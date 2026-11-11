@@ -59,7 +59,7 @@ export interface Monitor {
 /** The defaults, as the backend has them, until it answers. */
 export const DEFAULT_SETTINGS: Settings = {
   version: 1,
-  general: { startWithWindows: false, screen: null, hideInFullscreen: true, openOnHover: true, passThrough: true, islandShortcut: { ctrl: true, alt: true, shift: false, win: false, key: 0x49, label: "Ctrl+Alt+I", double: false }, motion: "system", checkUpdates: true, language: "system" },
+  general: { startWithWindows: false, screen: null, hideInFullscreen: true, openOnHover: true, passThrough: true, islandShortcut: { ctrl: true, alt: true, shift: false, win: false, key: 0x49, label: "Ctrl+Alt+I", double: false }, motion: "system", checkUpdates: false, language: "system" },
   tabs: { order: [], hidden: [] },
   calendar: { links: [], remindMinutes: 10 },
   launcher: { enabled: true, shortcut: "Alt+Espace", indexFiles: true },

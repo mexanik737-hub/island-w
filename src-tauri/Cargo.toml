@@ -1,7 +1,7 @@
 [package]
-name = "quiera"
-version = "0.1.6"
-description = "An island at the top of your screen for media, quick controls and live activities."
+name = "island-w"
+version = "0.1.0"
+description = "Island for Windows: an animated desktop companion and toolbox."
 authors = ["Island W contributors"]
 license = "GPL-3.0-or-later"
 edition = "2024"
@@ -9,7 +9,7 @@ edition = "2024"
 [lib]
 # The `_lib` suffix keeps the lib name distinct from the bin name, which
 # Cargo needs on Windows (rust-lang/cargo#8519).
-name = "quiera_lib"
+name = "island_w_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

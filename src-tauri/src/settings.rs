@@ -103,7 +103,7 @@ impl Default for General {
             pass_through: true,
             island_shortcut: Hotkey::default(),
             motion: Motion::System,
-            check_updates: true,
+            check_updates: false,
             language: Language::System,
         }
     }

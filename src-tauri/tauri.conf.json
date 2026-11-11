@@ -47,7 +47,7 @@
     "icon": [
       "icons/icon.ico"
     ],
-    "createUpdaterArtifacts": true,
+    "createUpdaterArtifacts": false,
     "licenseFile": "installer/notice.txt",
     "windows": {
       "nsis": {
@@ -59,15 +59,5 @@
       }
     }
   },
-  "plugins": {
-    "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDkyNjhFOEZENTlFNTU2NUUKUldSZVZ1VlovZWhva3VZMjd1MkNtbTZzaFJJb0Z5ejdyUkxYMURRYWs2ejlTRmtFVXV6ZWljc3kK",
-      "endpoints": [
-        "https://github.com/mexanik737-hub/island-w/releases/latest/download/latest.json"
-      ],
-      "windows": {
-        "installMode": "passive"
-      }
-    }
-  }
+  "plugins": {}
 }
