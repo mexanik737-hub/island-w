@@ -8,13 +8,13 @@ Island W combines the liquid visual language and product direction of Island wit
 
 - Animated top-edge island shell with spring-based morphing, hover/peek states, click-through support and monitor placement.
 - Windows-native media sessions (SMTC), artwork and synced lyrics lookup (LRCLIB).
-- Quick controls for Wi-Fi, Bluetooth, audio devices, master volume and per-app volume.
-- Session clipboard, file Shelf with drag-out and local phone sharing, file launcher, calendar/ICS, timer, notifications, webcam mirror, local text transformations, multi-note folders and recurring reminders, screen capture/annotation, screen recording, local Windows OCR, QR reading, a color picker and a weather forecast.
+- Quick controls for Wi-Fi, Bluetooth, audio devices, master volume and per-app volume; lock, sleep, restart and shutdown with confirmation.
+- Session clipboard, file Shelf with drag-out and local phone sharing, file launcher, calendar/ICS, timer, natural-language reminders, notes and folders, notifications, webcam mirror, local text transformations, calculator, unit/temperature and currency conversion, explicit CMD/PowerShell command launch, screen capture/annotation/crop/blur/text, screen recording, local Windows OCR, QR reading, a magnifying color picker with history, and a user-selected weather forecast.
 - Local settings and application data.
 
 ## Planned Island parity work
 
-The next integration stages cover weather alerts, the complete 25-character collection, additional live status chips, VPN integrations, microphone/camera controls, and the remaining system-wide keyboard shortcuts. AI-related functions are deliberately excluded.
+Remaining parity work includes Windows-native region capture and Media Foundation MP4/GIF recording, weather alerts, the original 25 character animations and reactions, VPN client adapters, microphone routing/mute, theme/scale/transparency options, system-wide hotkeys (paste without formatting, clipboard, screenshot and recording), richer note formatting, and a final settings/installer pass. AI-related functions are deliberately excluded.
 
 ## Build (Windows 11)
 
