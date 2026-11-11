@@ -1,8 +1,9 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { getWeather, type WeatherForecast } from "../../ipc/weather";
+import { getWeather, getWeatherAt, type WeatherForecast } from "../../ipc/weather";
 import "./weather.css";
 
-const PLACE_KEY = "island-w:weather-place";
+const CACHE_KEY = "island-w:weather-cache";
+const CACHE_FOR = 3 * 60 * 60 * 1000;
 const SYMBOLS: Record<string, string> = {
   clearsky: "☀️", fair: "🌤️", partlycloudy: "⛅", cloudy: "☁️", fog: "🌫️",
   rain: "🌧️", lightrain: "🌦️", heavyrain: "🌧️", sleet: "🌨️", snow: "❄️",
@@ -29,16 +30,20 @@ export function WeatherView() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const load = async (name: string) => {
+  const load = async (name: string, cached?: WeatherForecast) => {
     if (!name.trim()) return;
     setLoading(true);
     setError("");
     try {
-      const result = await getWeather(name.trim());
+      const result = cached
+        ? await getWeatherAt(name.trim(), cached.lat, cached.lon)
+        : await getWeather(name.trim());
       setForecast(result);
-      setPlace(name.trim());
-      setQuery(name.trim());
-      try { localStorage.setItem(PLACE_KEY, name.trim()); } catch { /* storage may be disabled */ }
+      setPlace(result.city);
+      setQuery(result.city);
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ savedAt: Date.now(), forecast: result }));
+      } catch { /* storage may be disabled */ }
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : String(reason));
     } finally {
@@ -46,14 +51,30 @@ export function WeatherView() {
     }
   };
   useEffect(() => {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (raw) {
+        const cache = JSON.parse(raw) as { savedAt?: number; forecast?: WeatherForecast };
+        if (cache.forecast) {
+          setForecast(cache.forecast);
+          setPlace(cache.forecast.city);
+          setQuery(cache.forecast.city);
+          if (typeof cache.savedAt !== "number" || Date.now() - cache.savedAt >= CACHE_FOR) {
+            void load(cache.forecast.city, cache.forecast);
+          }
+          return;
+        }
+      }
+    } catch { /* read the last selected place below */ }
     if (place) void load(place);
-  // Only the saved place is loaded when the view first mounts.
+  // Load the saved forecast immediately and refresh with stored coordinates only when stale.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    void load(query);
+    const saved = forecast?.city.toLocaleLowerCase() === query.trim().toLocaleLowerCase() ? forecast : undefined;
+    void load(query, saved);
   };
 
   return (

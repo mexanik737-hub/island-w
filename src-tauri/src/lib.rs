@@ -215,7 +215,8 @@ pub fn run() {
             dev_log,
             dev_bench_requested,
             dev_shelf_add,
-            weather::weather_forecast
+            weather::weather_forecast,
+            weather::weather_forecast_at
         ])
         .run(tauri::generate_context!())
         .expect("error while running Island");

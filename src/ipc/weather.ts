@@ -14,6 +14,8 @@ export interface WeatherDay {
 }
 export interface WeatherForecast {
   city: string;
+  lat: number;
+  lon: number;
   temperature: number;
   humidity: number | null;
   windSpeed: number | null;
@@ -24,3 +26,4 @@ export interface WeatherForecast {
   days: WeatherDay[];
 }
 export const getWeather = (place: string) => invoke<WeatherForecast>("weather_forecast", { place });
+export const getWeatherAt = (place: string, lat: number, lon: number) => invoke<WeatherForecast>("weather_forecast_at", { place, lat, lon });

@@ -34,6 +34,8 @@ pub struct WeatherDay {
 #[serde(rename_all = "camelCase")]
 pub struct WeatherForecast {
     pub city: String,
+    pub lat: f64,
+    pub lon: f64,
     pub temperature: f64,
     pub humidity: Option<f64>,
     pub wind_speed: Option<f64>,
@@ -179,6 +181,8 @@ fn build_forecast(city: &City, document: &Value) -> Result<WeatherForecast, Stri
 
     Ok(WeatherForecast {
         city: city.label.clone(),
+        lat: city.lat,
+        lon: city.lon,
         temperature,
         humidity,
         wind_speed,
@@ -190,15 +194,13 @@ fn build_forecast(city: &City, document: &Value) -> Result<WeatherForecast, Stri
     })
 }
 
-fn fetch(place: &str) -> Result<WeatherForecast, String> {
-    let city = geocode(place)?;
+fn fetch_city(city: City) -> Result<WeatherForecast, String> {
     let key = format!("{:.4},{:.4}", city.lat, city.lon);
     if let Some((at, forecast)) = FORECAST_CACHE.lock().unwrap_or_else(|e| e.into_inner()).get(&key).cloned() {
         if at.elapsed() < CACHE_FOR {
             return Ok(forecast);
         }
     }
-    // Four decimals improve cache sharing while retaining street-level city accuracy.
     let lat = format!("{:.4}", city.lat);
     let lon = format!("{:.4}", city.lon);
     let document: Value = agent()
@@ -215,9 +217,20 @@ fn fetch(place: &str) -> Result<WeatherForecast, String> {
     Ok(forecast)
 }
 
+fn fetch(place: &str) -> Result<WeatherForecast, String> {
+    fetch_city(geocode(place)?)
+}
+
+fn fetch_at(place: &str, lat: f64, lon: f64) -> Result<WeatherForecast, String> {
+    if !lat.is_finite() || !lon.is_finite() || !(-90.0..=90.0).contains(&lat) || !(-180.0..=180.0).contains(&lon) {
+        return Err("The saved weather coordinates are invalid.".into());
+    }
+    fetch_city(City { label: place.trim().to_owned(), lat, lon })
+}
+
 #[tauri::command]
-pub async fn weather_forecast(place: String) -> Result<WeatherForecast, String> {
-    tauri::async_runtime::spawn_blocking(move || fetch(&place))
+pub async fn weather_forecast_at(place: String, lat: f64, lon: f64) -> Result<WeatherForecast, String> {
+    tauri::async_runtime::spawn_blocking(move || fetch_at(&place, lat, lon))
         .await
         .map_err(|e| e.to_string())?
 }
