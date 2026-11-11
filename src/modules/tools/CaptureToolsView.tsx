@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent } from "react";
+import { recognizeImage } from "../../ipc/ocr";
 import "./capture-tools.css";
 
 type Tool = "pen" | "rectangle" | "arrow" | "pick";
@@ -58,6 +59,8 @@ export function CaptureToolsView() {
   const [color, setColor] = useState("#ff6259");
   const [picked, setPicked] = useState("#000000");
   const [qr, setQr] = useState("");
+  const [ocrText, setOcrText] = useState("");
+  const [ocrBusy, setOcrBusy] = useState(false);
   const [message, setMessage] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -146,6 +149,33 @@ export function CaptureToolsView() {
         setMessage(error instanceof Error ? error.message : "Could not copy the screenshot.");
       }
     }, "image/png");
+  };
+
+  const extractText = async () => {
+    const canvas = canvasRef.current;
+    if (!canvas || !captured) return;
+    setOcrBusy(true);
+    setOcrText("");
+    setMessage("Recognising text locally with Windows OCR…");
+    try {
+      const text = await recognizeImage(canvas.toDataURL("image/png"));
+      setOcrText(text);
+      setMessage(text.trim() ? "Text recognised. Copy it or use it in the Text tab." : "No text was recognised in this screenshot.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setOcrBusy(false);
+    }
+  };
+
+  const copyOcrText = async () => {
+    if (!ocrText) return;
+    try {
+      await navigator.clipboard.writeText(ocrText);
+      setMessage("Recognised text copied.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not copy recognised text.");
+    }
   };
 
   const scanQr = async () => {
@@ -289,7 +319,9 @@ export function CaptureToolsView() {
             <button type="button" onClick={() => exportCanvas("copy")}>Copy PNG</button>
             <button type="button" onClick={() => exportCanvas("save")}>Save PNG</button>
             <button type="button" onClick={scanQr}>Read QR</button>
+            <button type="button" onClick={extractText} disabled={ocrBusy}>{ocrBusy ? "Reading…" : "Extract text"}</button>
           </footer>
+          {ocrText && <div className="capture-ocr"><textarea readOnly value={ocrText} aria-label="Recognised text" /><button type="button" onClick={copyOcrText}>Copy text</button></div>}
           {qr && <div className="capture-qr"><span>QR result</span><code>{qr}</code><button type="button" onClick={() => void navigator.clipboard.writeText(qr).then(() => setMessage("QR result copied."))}>Copy</button></div>}
       </div>
       {message && <p className="capture-message" role="status">{message}</p>}

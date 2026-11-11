@@ -10,6 +10,7 @@ mod launcher;
 mod lyrics;
 mod media;
 mod notifications;
+mod ocr;
 mod peeks;
 mod platform;
 mod protocol;
@@ -216,7 +217,8 @@ pub fn run() {
             dev_bench_requested,
             dev_shelf_add,
             weather::weather_forecast,
-            weather::weather_forecast_at
+            weather::weather_forecast_at,
+            ocr::ocr_image
         ])
         .run(tauri::generate_context!())
         .expect("error while running Island");

@@ -24,3 +24,5 @@
 .capture-privacy{margin:7px 0 0}
 
 .capture-result--hidden{display:none}
+
+.capture-ocr{display:flex;gap:6px;align-items:stretch}.capture-ocr textarea{flex:1;min-width:0;height:54px;resize:vertical;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:rgba(255,255,255,.05);color:var(--text-1);font:10px/1.4 var(--font-ui);padding:7px}
