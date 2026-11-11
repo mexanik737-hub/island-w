@@ -1,7 +1,6 @@
 //! Windows implementation: the primary target. Features are switched on here
 //! as each development step lands and passes its checks.
 
-mod agent_pipe;
 mod agent_window;
 mod autostart;
 mod bluetooth;
@@ -25,7 +24,6 @@ mod system_events;
 mod thumbnail;
 mod webview;
 
-pub use agent_pipe::{send_agent_message, serve_agent_pipe};
 pub use agent_window::{
     agent_window, focus_window, process_running, short_path, window_in_front, window_title,
 };

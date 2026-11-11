@@ -1,5 +1,3 @@
-mod agents;
-mod agents_phone;
 mod apply;
 mod calendar;
 mod clipboard;
@@ -25,18 +23,6 @@ mod updates;
 
 use platform::Capabilities;
 use tauri::Manager;
-
-pub use agents::{EVENT_ARG as AGENT_EVENT_ARG, STATUS_ARG as AGENT_STATUS_ARG};
-
-/// Quiera started as an AI agent's hook: see `agents`.
-pub fn run_agent_hook(source: &str) {
-    agents::run_hook(source);
-}
-
-/// Quiera started as Claude Code's status line: see `agents`.
-pub fn run_agent_status(source: &str) {
-    agents::run_status(source);
-}
 
 /// What this platform supports; the frontend hides modules accordingly.
 #[tauri::command]
@@ -138,7 +124,6 @@ pub fn run() {
             apply::at_start(app.handle());
             updates::start(app.handle());
             calendar::start(app.handle());
-            agents::start(app.handle());
             Ok(())
         })
         .on_window_event(|window, event| {
@@ -155,7 +140,6 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_capabilities,
             frontend_error,
-            agents::agents_sessions,
             agents::agents_status,
             agents::agents_connect,
             agents::agents_decide,
@@ -166,7 +150,6 @@ pub fn run() {
             agents::agents_sound,
             agents::agents_keyboard,
             agents::agents_launch,
-            agents_phone::agents_phone_start,
             agents_phone::agents_phone_stop,
             calendar::calendar_events,
             calendar::calendar_refresh,
@@ -233,7 +216,7 @@ pub fn run() {
             dev_shelf_add
         ])
         .run(tauri::generate_context!())
-        .expect("error while running Quiera");
+        .expect("error while running Island");
 }
 
 /// Sends panics to the log file before the default handler runs.

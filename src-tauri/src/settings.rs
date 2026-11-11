@@ -314,30 +314,6 @@ impl Default for Calendar {
     }
 }
 
-/// AI agents: whether the island may answer their permissions, and whether
-/// it already offered to listen to Claude Code (asked once, never again).
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(default, rename_all = "camelCase")]
-pub struct Agents {
-    pub approve: bool,
-    pub claude_asked: bool,
-    /// Shows how much of each AI's usage limits is used.
-    pub usage: bool,
-    /// A sound when an agent has finished, or waits for its user.
-    pub sound: bool,
-}
-
-impl Default for Agents {
-    fn default() -> Self {
-        Self {
-            approve: true,
-            claude_asked: false,
-            usage: true,
-            sound: true,
-        }
-    }
-}
-
 impl Settings {
     /// Brings values read from an older file up to date and into range.
     pub fn migrate(mut self) -> Self {
