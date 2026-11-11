@@ -259,10 +259,9 @@ fn fetch_city(city: City) -> Result<WeatherForecast, String> {
         .unwrap_or_else(|e| e.into_inner())
         .get(&key)
         .cloned()
+        && at.elapsed() < CACHE_FOR
     {
-        if at.elapsed() < CACHE_FOR {
-            return Ok(forecast);
-        }
+        return Ok(forecast);
     }
     let lat = format!("{:.4}", city.lat);
     let lon = format!("{:.4}", city.lon);

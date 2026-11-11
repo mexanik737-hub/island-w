@@ -150,15 +150,6 @@ pub fn server_address() -> Result<(IpAddr, u16), String> {
     Ok((ip, port))
 }
 
-/// Whether two tokens are the same, in a time that does not tell how much of one matched.
-pub fn same_token(a: &str, b: &str) -> bool {
-    a.len() == b.len()
-        && a.bytes()
-            .zip(b.bytes())
-            .fold(0u8, |acc, (x, y)| acc | (x ^ y))
-            == 0
-}
-
 pub fn new_token() -> Result<String, getrandom::Error> {
     let mut bytes = [0u8; 16];
     getrandom::fill(&mut bytes)?;

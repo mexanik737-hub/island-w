@@ -52,10 +52,9 @@ fn fetch(from: &str, to: &str) -> Result<CurrencyRate, String> {
         .unwrap_or_else(|e| e.into_inner())
         .get(&key)
         .cloned()
+        && at.elapsed() < CACHE_FOR
     {
-        if at.elapsed() < CACHE_FOR {
-            return Ok(value);
-        }
+        return Ok(value);
     }
     let url = format!("{ENDPOINT}/{from}/{to}");
     let agent: ureq::Agent = ureq::Agent::config_builder()
