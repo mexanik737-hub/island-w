@@ -35,6 +35,8 @@ export function tabFace(id: Tab, labels: Messages["tabs"], hasMedia: boolean): {
       return { label: "Text", icon: <TextToolsIcon /> };
     case "notes":
       return { label: "Notes", icon: <NotesIcon /> };
+    case "tools":
+      return { label: "Screen tools", icon: <ScreenToolsIcon /> };
     case "timer":
       return { label: labels.timer, icon: <TimerIcon size={17} /> };
     case "calendar":
@@ -58,6 +60,10 @@ function TextToolsIcon() {
 
 function NotesIcon() {
   return <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7 3.5h7l4 4v13H7a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2Z" /><path d="M14 3.5v4h4M8 12h8M8 16h8" /></svg>;
+}
+
+function ScreenToolsIcon() {
+  return <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2" /><path d="M8 21h8m-4-4v4M8 9h8m-8 4h5" /></svg>;
 }
 
 interface TabBarProps {

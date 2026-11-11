@@ -48,6 +48,7 @@ import type { CalendarEvent } from "../ipc/calendar";
 import { MIRROR_SIZE, MirrorView } from "../modules/mirror/MirrorView";
 import { NotesView } from "../modules/notes/NotesView";
 import { TextView } from "../modules/text/TextView";
+import { CaptureToolsView } from "../modules/tools/CaptureToolsView";
 import { listen } from "@tauri-apps/api/event";
 import { BIRTH_IMPACT_MS, DURATIONS, REGION_HOLD_MS } from "./springs";
 import "./island.css";
@@ -103,6 +104,7 @@ function viewFor(
       // The wheels and the countdown crossfade.
       if (tab === "text") return { key: "expanded:text", content: <TextView /> };
       if (tab === "notes") return { key: "expanded:notes", content: <NotesView /> };
+      if (tab === "tools") return { key: "expanded:tools", content: <CaptureToolsView /> };
       if (tab === "timer") return { key: timerSet ? "expanded:timer" : "expanded:timer-pick", content: <TimerPanel /> };
       if (tab === "mirror") return { key: "expanded:mirror", content: <MirrorView /> };
       if (tab === "calendar") return { key: "expanded:calendar", content: <CalendarPanel events={calendar.coming} /> };
@@ -388,6 +390,8 @@ export function Island() {
         ? [560, 250, 22]
         : state.tab === "notes"
         ? [520, 250, 22]
+        : state.tab === "tools"
+        ? [620, 340, 22]
         : state.tab === "mirror"
         ? MIRROR_SIZE
         : state.tab === "calendar"
