@@ -9,11 +9,10 @@ export type Result =
   | { kind: "app"; id: string; app: LauncherApp }
   | { kind: "file"; id: string; file: FileHit }
   | { kind: "web"; id: string; query: string }
-  | { kind: "agent"; id: string; agent: "claude" | "codex"; task: string }
   | { kind: "settings"; id: string };
 
-/** Words that open Quiera's own settings. */
-const SETTINGS_WORDS = ["reglages", "parametres", "settings", "preferences", "quiera"];
+/** Words that open Island's own settings. */
+const SETTINGS_WORDS = ["reglages", "parametres", "settings", "preferences", "island"];
 
 /** Whether the query asks for Quiera's settings ("régl", "paramètres"…). */
 export function asksForSettings(query: string): boolean {
@@ -25,13 +24,6 @@ export function asksForSettings(query: string): boolean {
  * "claude fix the tests", "codex: write the docs": a task for an agent,
  * started in a new terminal.
  */
-export function agentRequest(query: string): { agent: "claude" | "codex"; task: string } | null {
-  const match = /^\s*(claude|codex)\b[\s:,]+(.+)$/i.exec(query);
-  if (!match) return null;
-  const task = match[2].trim();
-  return task ? { agent: match[1].toLowerCase() as "claude" | "codex", task } : null;
-}
-
 /** What fits in the window under the search bar. */
 export const MAX_ROWS = 7;
 /** Apps shown at most, so files keep room. */
@@ -45,8 +37,6 @@ export function compose(query: string, apps: LauncherApp[], files: FileHit[], us
   const q = query.trim();
   if (!q) return [];
   const list: Result[] = [];
-  const asked = agentRequest(q);
-  if (asked) list.push({ kind: "agent", id: `agent:${asked.agent}`, ...asked });
   if (asksForSettings(q)) list.push({ kind: "settings", id: "settings" });
   for (const { ms, pomodoro } of timerRequests(q)) list.push({ kind: "timer", id: `timer:${ms}:${pomodoro}`, ms, pomodoro });
   const value = calculate(q);
