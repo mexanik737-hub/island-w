@@ -1,35 +1,5 @@
-.clock-idle {
-  display: grid;
-  place-items: center;
-  height: 100%;
-  font-size: 13px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.2px;
-}
-
-.clock-panel {
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  padding-bottom: 4px;
-}
-
-.clock-panel-time {
-  font-family: var(--font-display);
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -0.5px;
-  font-variant-numeric: tabular-nums;
-}
-
-.clock-panel-day {
-  margin-top: 2px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-2);
-}
+.clock-idle{display:flex;align-items:center;justify-content:center;gap:10px;height:100%;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.2px}
+.clock-weather{font-size:11px;font-weight:600;color:rgba(255,255,255,.68);padding-left:9px;border-left:1px solid rgba(255,255,255,.2)}
+.clock-panel{box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding-bottom:4px}
+.clock-panel-time{font-family:var(--font-display);font-size:32px;font-weight:700;line-height:1.1;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.clock-panel-day{margin-top:2px;font-size:12px;font-weight:500;color:var(--text-2)}
