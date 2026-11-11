@@ -2,7 +2,7 @@
 
 **A free Dynamic Island for Windows 11 — no Pro tier, no subscription, no AI.**
 
-Island W combines the liquid visual language and product direction of Island with the native Windows integrations and productivity modules from Quiera. This repository is an actively adapted codebase: modules are being integrated and validated in stages. The current import is not yet a finished release.
+Island W combines the liquid visual language (French, English and Russian) and product direction of Island with the native Windows integrations and productivity modules from Quiera. This repository is an actively adapted codebase: modules are being integrated and validated in stages. The current import is not yet a finished release.
 
 ## Included in the current source tree
 

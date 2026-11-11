@@ -5,7 +5,7 @@ use tauri::menu::{Menu, MenuItem};
 use tauri::tray::TrayIconBuilder;
 use tauri::{AppHandle, Manager, Wry};
 
-use crate::i18n::tr;
+use crate::i18n::tr3;
 
 const QUIT: &str = "quit";
 const SETTINGS: &str = "settings";
@@ -56,14 +56,14 @@ pub fn refresh(app: &AppHandle) {
     let Some(items) = app.try_state::<Items>() else {
         return;
     };
-    let _ = items.settings.set_text(tr("Réglages…", "Settings…"));
-    let _ = items.quit.set_text(tr("Quitter Island", "Quit Island"));
+    let _ = items.settings.set_text(tr3("Réglages…", "Settings…", "Настройки…"));
+    let _ = items.quit.set_text(tr3("Quitter Island", "Quit Island", "Выйти из Island"));
     let update = match crate::updates::available() {
         Some(version) => format!(
             "{} {version}",
-            tr("Installer la mise à jour", "Install update")
+            tr3("Installer la mise à jour", "Install update", "Установить обновление")
         ),
-        None => tr("Rechercher des mises à jour", "Check for updates").to_owned(),
+        None => tr3("Rechercher des mises à jour", "Check for updates", "Проверить обновления").to_owned(),
     };
     let _ = items.update.set_text(update);
 }
