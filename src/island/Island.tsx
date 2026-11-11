@@ -49,6 +49,7 @@ import { MIRROR_SIZE, MirrorView } from "../modules/mirror/MirrorView";
 import { NotesView } from "../modules/notes/NotesView";
 import { TextView } from "../modules/text/TextView";
 import { CaptureToolsView } from "../modules/tools/CaptureToolsView";
+import { startNotesService } from "../modules/notes/store";
 import { listen } from "@tauri-apps/api/event";
 import { BIRTH_IMPACT_MS, DURATIONS, REGION_HOLD_MS } from "./springs";
 import "./island.css";
@@ -278,6 +279,7 @@ export function Island() {
 
   // The calendar: a meeting coming is a live activity, announced once by a peek.
   useEffect(() => startCalendar(), []);
+  useEffect(() => startNotesService(), []);
   const calendarEvents = useCalendarEvents();
   const meeting = useNextMeeting(settings.calendar.remindMinutes * 60_000);
   const meetingId = meeting?.id ?? null;
