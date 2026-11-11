@@ -139,3 +139,5 @@
 .launch-icon--agent {
   color: #bf5af2;
 }
+
+.launch-execution-error{padding:7px 12px;color:#ff8178;font-size:10px}

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { closeLauncher, getLauncherApps, launchApp, openFile, searchFiles, type FileHit, type LauncherApp } from "../../ipc/launcher";
+import { closeLauncher, getLauncherApps, launchApp, openFile, runShellCommand, searchFiles, type FileHit, type LauncherApp } from "../../ipc/launcher";
 import { addReminder } from "../notes/store";
-import { runShellCommand } from "../../ipc/launcher";
 import { openLink } from "../../ipc/notifications";
 import { openSettings } from "../../ipc/settings";
 import { arrivedLabel } from "../notifications/format";
@@ -193,6 +192,7 @@ export function Launcher({ onRows }: { onRows(rows: number): void }) {
   const [files, setFiles] = useState<{ query: string; hits: FileHit[]; ready: boolean }>({ query: "", hits: [], ready: true });
   const [selected, setSelected] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [executionError, setExecutionError] = useState<string | null>(null);
   const input = useRef<HTMLInputElement>(null);
   const usage = useMemo(readUsage, []);
 
@@ -257,8 +257,8 @@ export function Launcher({ onRows }: { onRows(rows: number): void }) {
         openFile(result.file, reveal).catch(ignore);
         break;
       case "command":
-        runShellCommand(result.text, result.powershell).catch((error) => {
-          setMissing(String(error));
+        runShellCommand(result.text, result.powershell).then(() => setExecutionError(null)).catch((error) => {
+          setExecutionError(String(error));
         });
         break;
       case "reminder":
@@ -324,6 +324,7 @@ export function Launcher({ onRows }: { onRows(rows: number): void }) {
         />
         {!files.ready && <span className="launch-indexing">{t.indexing}</span>}
       </div>
+      {executionError && <div className="launch-execution-error" role="alert">{executionError}</div>}
       {list.length > 0 && (
         <div className="launch-list" role="listbox">
           {list.map((result, i) => (
