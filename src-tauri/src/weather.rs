@@ -12,7 +12,7 @@ use serde_json::Value;
 const USER_AGENT: &str = "IslandW/0.1.0 (+https://github.com/mexanik737-hub/island-w)";
 const GEO_URL: &str = "https://nominatim.openstreetmap.org/search";
 const FORECAST_URL: &str = "https://api.met.no/weatherapi/locationforecast/2.0/compact";
-const CACHE_FOR: Duration = Duration::from_secs(30 * 60);
+const CACHE_FOR: Duration = Duration::from_secs(3 * 60 * 60);
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
