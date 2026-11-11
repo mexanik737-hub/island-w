@@ -40,7 +40,7 @@ pub use island::reassert_topmost as raise_island;
 pub use island::{
     pointer, prepare_island_window, set_island_click_through, set_island_region, show_island_window,
 };
-pub use language::system_prefers_french;
+pub use language::{system_prefers_french, system_prefers_russian};
 pub use launcher::{
     fixed_drives, focus_island, island_has_focus, list_apps, on_island_hotkey, restore_focus,
     set_island_hotkey, set_launcher_hotkey, start_launcher_hotkey,

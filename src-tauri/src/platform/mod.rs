@@ -25,7 +25,7 @@ pub use linux::{
     set_island_region, set_launcher_hotkey, set_master_mute, set_master_volume, set_radio,
     set_webview_memory_low, share_files, short_path, show_island_window, start_bluetooth_watch,
     start_clipboard_watch, start_in_terminal, start_launcher_hotkey, start_media,
-    start_notification_watch, start_peek_watch, start_system_watch, system_prefers_french,
+    start_notification_watch, start_peek_watch, start_system_watch, system_prefers_french, system_prefers_russian,
     wait_for_process_exit, watch_file_drops, watch_webview, window_in_front, window_title,
     write_clipboard,
 };
@@ -40,7 +40,7 @@ pub use macos::{
     set_island_region, set_launcher_hotkey, set_master_mute, set_master_volume, set_radio,
     set_webview_memory_low, share_files, short_path, show_island_window, start_bluetooth_watch,
     start_clipboard_watch, start_in_terminal, start_launcher_hotkey, start_media,
-    start_notification_watch, start_peek_watch, start_system_watch, system_prefers_french,
+    start_notification_watch, start_peek_watch, start_system_watch, system_prefers_french, system_prefers_russian,
     wait_for_process_exit, watch_file_drops, watch_webview, window_in_front, window_title,
     write_clipboard,
 };
@@ -55,7 +55,7 @@ pub use windows::{
     set_island_region, set_launcher_hotkey, set_master_mute, set_master_volume, set_radio,
     set_webview_memory_low, share_files, short_path, show_island_window, start_bluetooth_watch,
     start_clipboard_watch, start_in_terminal, start_launcher_hotkey, start_media,
-    start_notification_watch, start_peek_watch, start_system_watch, system_prefers_french,
+    start_notification_watch, start_peek_watch, start_system_watch, system_prefers_french, system_prefers_russian,
     wait_for_process_exit, watch_file_drops, watch_webview, window_in_front, window_title,
     write_clipboard,
 };

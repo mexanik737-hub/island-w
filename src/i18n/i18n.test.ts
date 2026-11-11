@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { en } from "./en";
+import { ru } from "./ru";
 import { fr } from "./fr";
 import { resolveLang } from "./index";
 
@@ -9,6 +10,8 @@ describe("resolveLang", () => {
     expect(resolveLang("en", "fr-FR")).toBe("en");
     expect(resolveLang("system", "fr-CA")).toBe("fr");
     expect(resolveLang("system", "de-DE")).toBe("en");
+    expect(resolveLang("system", "ru-RU")).toBe("ru");
+    expect(resolveLang("ru", "en-US")).toBe("ru");
   });
 });
 
@@ -19,5 +22,7 @@ describe("dictionaries", () => {
     expect(en.shortcut("Ctrl+Maj+Espace")).toBe("Ctrl+Shift+Space");
     expect(fr.shortcut("Ctrl+Maj+Espace")).toBe("Ctrl+Maj+Espace");
     expect(en.percent(76)).toBe("76%");
+    expect(ru.percent(76)).toBe("76%");
+    expect(ru.settings.general.languages.ru).toBe("Русский");
   });
 });

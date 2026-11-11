@@ -217,3 +217,11 @@ pub fn start_in_terminal(
 }
 
 pub fn play_system_sound(_alias: &str) {}
+
+/// Whether the system locale is Russian (from LANG / LC_ALL).
+pub fn system_prefers_russian() -> bool {
+    ["LC_ALL", "LC_MESSAGES", "LANG"]
+        .iter()
+        .find_map(|v| std::env::var(v).ok().filter(|s| !s.is_empty()))
+        .is_some_and(|locale| locale.to_lowercase().starts_with("ru"))
+}
