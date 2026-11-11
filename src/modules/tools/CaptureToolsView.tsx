@@ -316,7 +316,46 @@ export function CaptureToolsView() {
   };
 
   const onPointerUp = () => {
+    const draw = drawRef.current;
+    if (!draw) return;
     drawRef.current = null;
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext("2d");
+    if (!canvas || !context) return;
+    const left = Math.max(0, Math.floor(Math.min(draw.start.x, draw.last.x)));
+    const top = Math.max(0, Math.floor(Math.min(draw.start.y, draw.last.y)));
+    const right = Math.min(canvas.width, Math.ceil(Math.max(draw.start.x, draw.last.x)));
+    const bottom = Math.min(canvas.height, Math.ceil(Math.max(draw.start.y, draw.last.y)));
+    const width = right - left;
+    const height = bottom - top;
+    if (width < 6 || height < 6) {
+      context.putImageData(draw.before, 0, 0);
+      return;
+    }
+    if (draw.mode === "crop") {
+      const selected = context.getImageData(left, top, width, height);
+      canvas.width = width;
+      canvas.height = height;
+      const cropped = canvas.getContext("2d");
+      if (cropped) cropped.putImageData(selected, 0, 0);
+      setMessage("Screenshot cropped to the selected area.");
+      return;
+    }
+    if (draw.mode === "blur") {
+      context.putImageData(draw.before, 0, 0);
+      const patch = document.createElement("canvas");
+      patch.width = width;
+      patch.height = height;
+      const patchContext = patch.getContext("2d");
+      if (patchContext) {
+        patchContext.putImageData(context.getImageData(left, top, width, height), 0, 0);
+        context.save();
+        context.filter = "blur(" + Math.max(5, Math.min(width, height) / 8) + "px)";
+        context.drawImage(patch, left, top, width, height);
+        context.restore();
+      }
+      setMessage("Selected area blurred.");
+    }
   };
 
   return (
