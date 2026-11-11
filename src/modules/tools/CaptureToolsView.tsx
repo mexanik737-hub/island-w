@@ -313,6 +313,7 @@ export function CaptureToolsView() {
     }
     context.putImageData(draw.before, 0, 0);
     drawShape(context, draw.mode, draw.start, next, color);
+    draw.last = next;
   };
 
   const onPointerUp = () => {
@@ -333,6 +334,7 @@ export function CaptureToolsView() {
       return;
     }
     if (draw.mode === "crop") {
+      context.putImageData(draw.before, 0, 0);
       const selected = context.getImageData(left, top, width, height);
       canvas.width = width;
       canvas.height = height;
