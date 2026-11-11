@@ -17,3 +17,6 @@ export const setVolume = (level: number) => invoke<void>("controls_set_volume", 
 export const setMute = (muted: boolean) => invoke<void>("controls_set_mute", { muted });
 export const setAppVolume = (key: string, level: number) => invoke<void>("controls_set_app_volume", { key, level });
 export const setAppMute = (key: string, muted: boolean) => invoke<void>("controls_set_app_mute", { key, muted });
+
+export type PowerAction = "lock" | "sleep" | "restart" | "shutdown";
+export const runPowerAction = (action: PowerAction) => invoke<void>("controls_power_action", { action });

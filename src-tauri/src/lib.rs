@@ -196,6 +196,7 @@ pub fn run() {
             controls::controls_set_mute,
             controls::controls_set_app_volume,
             controls::controls_set_app_mute,
+            controls::controls_power_action,
             notifications::notifications_items,
             notifications::notification_open,
             notifications::notification_dismiss,

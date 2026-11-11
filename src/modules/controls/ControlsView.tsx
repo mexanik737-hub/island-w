@@ -1,7 +1,7 @@
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import * as ctl from "../../ipc/controls";
-import type { Controls, RadioKind } from "../../ipc/controls";
+import type { Controls, PowerAction, RadioKind } from "../../ipc/controls";
 import { levelAt, shownLevel } from "./format";
 import { BluetoothIcon, HeadphonesIcon, SpeakerIcon, WifiIcon } from "./icons";
 import { refreshControls, setOutputsOpen, useControls, useOutputsOpen } from "./store";
@@ -228,6 +228,28 @@ export function ControlsView() {
   const t = useT().controls;
   const controls = useControls();
   const outputsOpen = useOutputsOpen();
+  const [confirmAction, setConfirmAction] = useState<PowerAction | null>(null);
+  const [powerError, setPowerError] = useState<string | null>(null);
+  const confirmTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(confirmTimer.current), []);
+  const executePowerAction = (action: PowerAction) => {
+    clearTimeout(confirmTimer.current);
+    setConfirmAction(null);
+    ctl.runPowerAction(action).then(() => setPowerError(null)).catch((error) => setPowerError(String(error)));
+  };
+  const pressPowerAction = (action: PowerAction) => {
+    if (action === "lock") {
+      executePowerAction(action);
+      return;
+    }
+    if (confirmAction === action) {
+      executePowerAction(action);
+      return;
+    }
+    clearTimeout(confirmTimer.current);
+    setConfirmAction(action);
+    confirmTimer.current = setTimeout(() => setConfirmAction(null), 5000);
+  };
   if (!controls) return <div className="ctl" />;
   const { radios, outputs, volume, apps } = controls;
   const current = outputs.find((o) => o.default);
@@ -274,6 +296,13 @@ export function ControlsView() {
         </PillSlider>
       )}
 
+      <div className="ctl-power">
+        <button type="button" onClick={() => pressPowerAction("lock")}>{t.lock}</button>
+        <button type="button" className={confirmAction === "sleep" ? "ctl-power-confirm" : ""} onClick={() => pressPowerAction("sleep")}>{confirmAction === "sleep" ? t.confirm : t.sleep}</button>
+        <button type="button" className={confirmAction === "restart" ? "ctl-power-confirm" : ""} onClick={() => pressPowerAction("restart")}>{confirmAction === "restart" ? t.confirm : t.restart}</button>
+        <button type="button" className={confirmAction === "shutdown" ? "ctl-power-confirm" : ""} onClick={() => pressPowerAction("shutdown")}>{confirmAction === "shutdown" ? t.confirm : t.shutdown}</button>
+      </div>
+      {powerError && <p className="ctl-power-error" role="alert">{powerError}</p>}
       <AnimatePresence mode="wait" initial={false}>
         {outputsOpen ? (
           <motion.div key="outputs" className="ctl-section" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.16 }}>

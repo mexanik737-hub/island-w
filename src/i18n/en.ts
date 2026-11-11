@@ -52,6 +52,11 @@ export const en: Messages = {
     volume: "Volume",
     outputs: "Audio outputs",
     apps: "Apps",
+    lock: "Lock",
+    sleep: "Sleep",
+    restart: "Restart",
+    shutdown: "Shut down",
+    confirm: "Tap again",
   },
   clipboard: {
     pin: "Pin",

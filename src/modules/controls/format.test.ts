@@ -4,8 +4,8 @@ import { keepOrder } from "./store";
 
 describe("controlsContentSize", () => {
   it("grows with the apps, up to three rows", () => {
-    expect(controlsContentSize(0)).toEqual([460, 158]);
-    expect(controlsContentSize(1)[1]).toBe(158 + 30 + 34);
+    expect(controlsContentSize(0)).toEqual([460, 200]);
+    expect(controlsContentSize(1)[1]).toBe(200 + 30 + 34);
     expect(controlsContentSize(8)).toEqual(controlsContentSize(3));
   });
 

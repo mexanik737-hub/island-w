@@ -52,6 +52,11 @@ export const fr = {
     volume: "Volume",
     outputs: "Sorties audio",
     apps: "Applications",
+    lock: "Verrouiller",
+    sleep: "Veille",
+    restart: "Redémarrer",
+    shutdown: "Éteindre",
+    confirm: "Appuie encore",
   },
   clipboard: {
     pin: "Épingler",

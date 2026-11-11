@@ -301,3 +301,9 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+.ctl-power{display:flex;gap:6px;align-items:center}
+.ctl-power button{flex:1;min-width:0;height:30px;padding:0 5px;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:rgba(255,255,255,.055);color:var(--text-2);font:600 10px var(--font-ui);white-space:nowrap;cursor:pointer}
+.ctl-power button:hover{background:rgba(255,255,255,.12);color:var(--text-1)}
+.ctl-power button.ctl-power-confirm{background:rgba(255,159,10,.2);border-color:rgba(255,159,10,.45);color:#ffd08a}
+.ctl-power-error{margin:0;color:#ff8178;font-size:9px}

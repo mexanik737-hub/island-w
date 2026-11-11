@@ -8,6 +8,7 @@ use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
 use std::sync::{LazyLock, Mutex};
+use std::process::Command;
 
 use serde::{Deserialize, Serialize};
 use tauri::http::{Response, StatusCode, header};
@@ -226,6 +227,44 @@ pub async fn controls_set_app_volume(key: String, level: u8) -> Result<(), Strin
 #[tauri::command]
 pub async fn controls_set_app_mute(key: String, muted: bool) -> Result<(), String> {
     platform::set_app_mute(&app_path(&key)?, muted)
+}
+
+/// Runs a local Windows power action. Destructive actions are confirmed in the UI first.
+#[tauri::command]
+pub fn controls_power_action(action: String) -> Result<(), String> {
+    #[cfg(target_os = "windows")]
+    {
+        let mut process = match action.as_str() {
+            "lock" => {
+                let mut command = Command::new("rundll32.exe");
+                command.arg("user32.dll,LockWorkStation");
+                command
+            }
+            "sleep" => {
+                let mut command = Command::new("rundll32.exe");
+                command.args(["powrprof.dll,SetSuspendState", "0,1,0"]);
+                command
+            }
+            "restart" => {
+                let mut command = Command::new("shutdown.exe");
+                command.args(["/r", "/t", "0"]);
+                command
+            }
+            "shutdown" => {
+                let mut command = Command::new("shutdown.exe");
+                command.args(["/s", "/t", "0"]);
+                command
+            }
+            _ => return Err("Unknown power action.".into()),
+        };
+        process.spawn().map_err(|error| format!("Could not start the power action: {error}"))?;
+        Ok(())
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        let _ = action;
+        Err("Power actions are available on Windows only.".into())
+    }
 }
 
 /// Serves an app's icon (`/<key>`), read from the shell once per app.

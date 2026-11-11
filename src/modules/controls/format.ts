@@ -9,7 +9,7 @@ const GAP = 6;
  * then the apps, or the outputs while their list is unfolded.
  */
 export function controlsContentSize(apps: number, outputsOpen = false): [width: number, height: number] {
-  const base = 158;
+  const base = 200;
   const rows = outputsOpen ? VISIBLE_ROWS : Math.min(apps, VISIBLE_ROWS);
   if (rows === 0) return [460, base];
   // Gap, caption, gap, then the rows.
