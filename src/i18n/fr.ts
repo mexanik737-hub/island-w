@@ -357,4 +357,22 @@ export const fr = {
       report: "Signaler un problème",
     },
   },
+  notes: {
+    notes: "Notes", reminders: "Rappels", folder: "Dossier", newFolder: "Nouveau dossier", newNote: "Nouvelle note",
+    enableNotifications: "Activer les notifications", search: "Rechercher des notes", untitled: "Sans titre", emptyNote: "Note vide",
+    noNotes: "Aucune note dans ce dossier.", delete: "Supprimer", bold: "Gras", italic: "Italique", strike: "Barré",
+    task: "Tâche", list: "Liste", write: "Écris une note. Les raccourcis de mise en forme sont disponibles ci-dessus.",
+    autoSaved: "Enregistré localement", createNote: "Crée une note pour commencer.", folderPrompt: "Nom du dossier",
+    reminderFuture: "Choisis une date future et saisis le rappel.", reminderSaved: "Rappel enregistré sur ce PC.",
+    notificationsEnabled: "Notifications Windows activées.", notificationsUnsupported: "Cette WebView ne prend pas en charge les notifications de bureau.",
+    notificationsDenied: "L'autorisation de notification n'a pas été accordée.", reminderPlaceholder: "De quoi Island doit-il te rappeler ?",
+    reminderTime: "Heure du rappel", repeat: "Répéter", once: "Une fois", daily: "Chaque jour", weekly: "Chaque semaine",
+    add: "Ajouter", completed: "Terminé", markComplete: "Marquer comme terminé", deleteReminder: "Supprimer le rappel",
+    noReminders: "Aucun rappel pour le moment.",
+  },
+  weather: {
+    weather: "Météo", chooseCity: "Choisis une ville", cityOrPlace: "Ville ou lieu", find: "Chercher",
+    enterCity: "Saisis une ville pour voir la météo. Island n'accède pas à la localisation de ton appareil.",
+    wind: "Vent", humidity: "Humidité", rain: "Pluie", nextHours: "Prochaines heures", weekAhead: "Cette semaine",
+  },
 };

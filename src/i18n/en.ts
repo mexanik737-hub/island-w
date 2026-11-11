@@ -357,4 +357,22 @@ export const en: Messages = {
       report: "Report a problem",
     },
   },
+  notes: {
+    notes: "Notes", reminders: "Reminders", folder: "Folder", newFolder: "New folder", newNote: "New note",
+    enableNotifications: "Enable notifications", search: "Search notes", untitled: "Untitled", emptyNote: "Empty note",
+    noNotes: "No notes in this folder.", delete: "Delete", bold: "Bold", italic: "Italic", strike: "Strikethrough",
+    task: "Task", list: "List", write: "Write a note. Formatting shortcuts are available above.",
+    autoSaved: "Auto-saved locally", createNote: "Create a note to get started.", folderPrompt: "Folder name",
+    reminderFuture: "Choose a reminder time in the future and enter its text.", reminderSaved: "Reminder saved on this PC.",
+    notificationsEnabled: "Windows notifications enabled.", notificationsUnsupported: "This WebView does not expose desktop notifications.",
+    notificationsDenied: "Notification permission was not granted.", reminderPlaceholder: "What should Island remind you about?",
+    reminderTime: "Reminder time", repeat: "Repeat", once: "Once", daily: "Every day", weekly: "Every week",
+    add: "Add", completed: "Completed", markComplete: "Mark complete", deleteReminder: "Delete reminder",
+    noReminders: "No reminders yet.",
+  },
+  weather: {
+    weather: "Weather", chooseCity: "Choose a city", cityOrPlace: "City or place", find: "Find",
+    enterCity: "Enter a city to see the forecast. Island does not read your device location.",
+    wind: "Wind", humidity: "Humidity", rain: "Rain", nextHours: "Next hours", weekAhead: "Week ahead",
+  },
 };
