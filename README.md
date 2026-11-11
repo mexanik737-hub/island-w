@@ -18,7 +18,7 @@ Remaining parity work includes Windows-native region capture and Media Foundatio
 
 ## Build (Windows 11)
 
-Requirements: Windows 11 x64, Node.js 20+, pnpm 10, stable Rust, and the WebView2 runtime.
+Requirements: Windows 11 x64, Node.js 22+, pnpm 10.33.2, stable MSVC Rust, Visual Studio C++ Build Tools with a Windows SDK, and the WebView2 runtime. Use Developer PowerShell for x64. See [Windows build and CI diagnosis](docs/WINDOWS_BUILD.md) for exact checks, packaging and current blockers.
 
 ```powershell
 pnpm install

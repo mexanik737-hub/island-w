@@ -1,5 +1,7 @@
 # Development checkpoint — 2026-11-11
 
+Build-stabilization follow-up: see [Windows build and CI diagnosis](WINDOWS_BUILD.md) for the confirmed account billing/spending restriction, independent CI jobs, packaging gate and remaining MSVC/Windows 11 validation requirements. The application is not yet confirmed to compile or launch natively.
+
 Continued from main `09a323e9bad5d0b802c465381ce45f1fc77df8d7`, rather than reimporting Quiera.
 
 ## Changes
