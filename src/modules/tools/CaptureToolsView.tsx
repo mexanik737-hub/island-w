@@ -75,6 +75,8 @@ export function CaptureToolsView() {
   const [message, setMessage] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const magnifierRef = useRef<HTMLCanvasElement>(null);
+  const [magnifier, setMagnifier] = useState<{ x: number; y: number; left: number; top: number } | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -294,6 +296,18 @@ export function CaptureToolsView() {
   };
 
   const onPointerMove = (event: PointerEvent<HTMLCanvasElement>) => {
+    if (tool === "pick") {
+      const point = pointAt(event);
+      const rect = event.currentTarget.getBoundingClientRect();
+      setMagnifier({
+        x: point.x,
+        y: point.y,
+        left: Math.min(Math.max(0, event.clientX - rect.left + 14), Math.max(0, rect.width - 108)),
+        top: Math.max(0, event.clientY - rect.top - 118),
+      });
+      return;
+    }
+    setMagnifier(null);
     const draw = drawRef.current;
     if (!draw) return;
     const context = event.currentTarget.getContext("2d");
@@ -315,6 +329,28 @@ export function CaptureToolsView() {
     drawShape(context, draw.mode, draw.start, next, color);
     draw.last = next;
   };
+
+  useEffect(() => {
+    const source = canvasRef.current;
+    const lens = magnifierRef.current;
+    if (!source || !lens || !magnifier) return;
+    const context = lens.getContext("2d");
+    if (!context) return;
+    const size = 22;
+    const sx = Math.max(0, Math.min(source.width - size, magnifier.x - size / 2));
+    const sy = Math.max(0, Math.min(source.height - size, magnifier.y - size / 2));
+    context.clearRect(0, 0, lens.width, lens.height);
+    context.imageSmoothingEnabled = false;
+    context.drawImage(source, sx, sy, size, size, 0, 0, lens.width, lens.height);
+    context.strokeStyle = "rgba(255,255,255,.9)";
+    context.lineWidth = 1;
+    context.beginPath();
+    context.moveTo(lens.width / 2, 0);
+    context.lineTo(lens.width / 2, lens.height);
+    context.moveTo(0, lens.height / 2);
+    context.lineTo(lens.width, lens.height / 2);
+    context.stroke();
+  }, [magnifier]);
 
   const onPointerUp = () => {
     const draw = drawRef.current;
@@ -381,7 +417,15 @@ export function CaptureToolsView() {
             ))}
             <input aria-label="Annotation colour" type="color" value={color} onChange={(event) => setColor(event.target.value)} />
           </div>
-          <canvas ref={canvasRef} className="capture-canvas" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp} />
+          <div className="capture-canvas-wrap">
+            <canvas ref={canvasRef} className="capture-canvas" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp} />
+            {tool === "pick" && magnifier && (
+              <div className="capture-magnifier" style={{ left: magnifier.left, top: magnifier.top }}>
+                <canvas ref={magnifierRef} width={96} height={96} />
+                <span>{picked.toUpperCase()}</span>
+              </div>
+            )}
+          </div>
           <div className="capture-colour-history">
             {colorHistory.map((hex) => <button type="button" key={hex} title={hex} style={{ background: hex }} onClick={() => setColor(hex)} />)}
             <button type="button" onClick={() => void navigator.clipboard.writeText(picked).then(() => setMessage("HEX colour copied."))}>Copy HEX</button>

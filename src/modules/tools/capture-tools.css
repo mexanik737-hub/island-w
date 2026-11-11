@@ -26,3 +26,9 @@
 .capture-result--hidden{display:none}
 
 .capture-ocr{display:flex;gap:6px;align-items:stretch}.capture-ocr textarea{flex:1;min-width:0;height:54px;resize:vertical;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:rgba(255,255,255,.05);color:var(--text-1);font:10px/1.4 var(--font-ui);padding:7px}
+
+.capture-canvas-wrap{position:relative;align-self:center;max-width:100%;overflow:visible}
+.capture-canvas-wrap .capture-canvas{align-self:auto}
+.capture-magnifier{position:absolute;z-index:5;width:104px;padding:4px;border:1px solid rgba(255,255,255,.32);border-radius:9px;background:rgba(12,12,14,.94);box-shadow:0 8px 24px rgba(0,0,0,.45);display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none}
+.capture-magnifier canvas{width:96px;height:96px;image-rendering:pixelated;border-radius:5px}
+.capture-magnifier span{font:700 9px var(--font-ui);color:var(--text-1)}
