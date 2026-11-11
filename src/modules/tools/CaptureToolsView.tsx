@@ -2,12 +2,13 @@ import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { recognizeImage } from "../../ipc/ocr";
 import "./capture-tools.css";
 
-type Tool = "pen" | "rectangle" | "arrow" | "pick";
+type Tool = "pen" | "rectangle" | "arrow" | "blur" | "text" | "crop" | "pick";
 type Point = { x: number; y: number };
 type BarcodeDetectorConstructor = new (options?: { formats: string[] }) => {
   detect(source: CanvasImageSource): Promise<Array<{ rawValue: string; format: string }>>;
 };
-type DrawState = { mode: Exclude<Tool, "pick">; start: Point; last: Point; before: ImageData };
+type DrawMode = Exclude<Tool, "pick" | "text">;
+type DrawState = { mode: DrawMode; start: Point; last: Point; before: ImageData };
 
 function pointAt(event: PointerEvent<HTMLCanvasElement>): Point {
   const rect = event.currentTarget.getBoundingClientRect();
@@ -25,7 +26,7 @@ function download(blob: Blob, filename: string) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
 
-function drawShape(ctx: CanvasRenderingContext2D, mode: DrawState["mode"], from: Point, to: Point, color: string) {
+function drawShape(ctx: CanvasRenderingContext2D, mode: DrawMode, from: Point, to: Point, color: string) {
   ctx.save();
   ctx.strokeStyle = color;
   ctx.fillStyle = color;
@@ -33,6 +34,15 @@ function drawShape(ctx: CanvasRenderingContext2D, mode: DrawState["mode"], from:
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   if (mode === "rectangle") {
+    ctx.strokeRect(from.x, from.y, to.x - from.x, to.y - from.y);
+  } else if (mode === "crop") {
+    ctx.setLineDash([8, 5]);
+    ctx.strokeStyle = "#ffffff";
+    ctx.strokeRect(from.x, from.y, to.x - from.x, to.y - from.y);
+  } else if (mode === "blur") {
+    ctx.fillStyle = "rgba(8,8,10,.48)";
+    ctx.fillRect(from.x, from.y, to.x - from.x, to.y - from.y);
+    ctx.strokeStyle = color;
     ctx.strokeRect(from.x, from.y, to.x - from.x, to.y - from.y);
   } else {
     const angle = Math.atan2(to.y - from.y, to.x - from.x);
