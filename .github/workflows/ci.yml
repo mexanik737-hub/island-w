@@ -158,6 +158,7 @@ jobs:
           name: Island-W-windows-x64-${{ github.sha }}
           path: |
             src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*-setup.exe
+            src-tauri/target/x86_64-pc-windows-msvc/release/island-w.exe
             ci-logs/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 14
