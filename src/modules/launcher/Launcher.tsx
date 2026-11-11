@@ -144,6 +144,14 @@ function Row({ result, selected, copied }: { result: Result; selected: boolean; 
           <span className="launch-hint">{selected ? t.start : messages.timer.title}</span>
         </>
       );
+    case "convert":
+      return (
+        <>
+          <span className="launch-icon launch-icon--glyph">⇄</span>
+          <span className="launch-title">{result.display}</span>
+          <span className="launch-hint">{copied ? t.copiedCheck : selected ? t.copy : "Convert"}</span>
+        </>
+      );
     case "calc":
       return (
         <>
@@ -270,6 +278,15 @@ export function Launcher({ onRows }: { onRows(rows: number): void }) {
         primeChime();
         startTimer(result.ms, result.pomodoro);
         closeLauncher(true).catch(ignore);
+        break;
+      case "convert":
+        navigator.clipboard
+          .writeText(result.display)
+          .then(() => {
+            setCopied(true);
+            setTimeout(() => closeLauncher(true).catch(ignore), 500);
+          })
+          .catch(ignore);
         break;
       case "calc":
         navigator.clipboard

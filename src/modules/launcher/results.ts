@@ -2,12 +2,14 @@ import type { FileHit, LauncherApp } from "../../ipc/launcher";
 import { timerRequests } from "../timer/duration";
 import { calculate } from "./calc";
 import { parseReminder } from "../notes/reminders";
+import { convertUnits } from "./conversion";
 import { normalize, rank } from "./search";
 
 export type Result =
   | { kind: "timer"; id: string; ms: number; pomodoro: boolean }
   | { kind: "reminder"; id: string; text: string; at: number; repeat: "none" | "daily" | "weekly" }
   | { kind: "command"; id: string; text: string; powershell: boolean }
+  | { kind: "convert"; id: string; display: string }
   | { kind: "calc"; id: string; value: number }
   | { kind: "app"; id: string; app: LauncherApp }
   | { kind: "file"; id: string; file: FileHit }
@@ -46,6 +48,8 @@ export function compose(query: string, apps: LauncherApp[], files: FileHit[], us
   if (reminder) list.push({ kind: "reminder", id: `reminder:${reminder.at}`, ...reminder });
   if (asksForSettings(q)) list.push({ kind: "settings", id: "settings" });
   for (const { ms, pomodoro } of timerRequests(q)) list.push({ kind: "timer", id: `timer:${ms}:${pomodoro}`, ms, pomodoro });
+  const conversion = convertUnits(q);
+  if (conversion) list.push({ kind: "convert", id: "convert", display: conversion.display });
   const value = calculate(q);
   if (value !== null) list.push({ kind: "calc", id: "calc", value });
   for (const app of rank(apps, q, usage, MAX_APPS)) list.push({ kind: "app", id: `app:${app.key}`, app });

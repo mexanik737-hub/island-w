@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { calculate, formatNumber } from "./calc";
 import { launcherSize, normalize, rank, score } from "./search";
 import { asksForSettings, compose, MAX_ROWS } from "./results";
+import { convertUnits } from "./conversion";
 
 const apps = ["Visual Studio Code", "Spotify", "Steam", "Discord", "Discord Canary", "Paramètres", "Microsoft Edge", "Bloc-notes"].map(
   (name) => ({ key: name, name, icon: "" }),
@@ -108,5 +109,11 @@ describe("asksForSettings", () => {
     expect(asksForSettings("re")).toBe(false);
     expect(asksForSettings("spotify")).toBe(false);
     expect(compose("reglages", apps, [], {})[0].kind).toBe("settings");
+  });
+});
+
+describe("launcher unit conversions", () => {
+  it("offers a copyable conversion for a supported query", () => {
+    expect(convertUnits("5 km to mi")?.display).toContain("3.106");
   });
 });
