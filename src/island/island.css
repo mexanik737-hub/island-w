@@ -22,7 +22,7 @@
 }
 
 .island-svg path {
-  fill: #000;
+  fill: var(--shell-fill, #000);
 }
 
 /* Follows the body's animated shape; content beyond it is cut off. */

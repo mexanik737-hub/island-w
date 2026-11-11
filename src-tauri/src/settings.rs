@@ -61,6 +61,15 @@ pub enum Motion {
     Full,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum Theme {
+    #[default]
+    System,
+    Dark,
+    Light,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 pub struct General {
@@ -106,6 +115,7 @@ impl Default for General {
             pass_through: true,
             island_shortcut: Hotkey::default(),
             motion: Motion::System,
+            theme: Theme::System,
             check_updates: false,
             language: Language::System,
             character: "liquid".into(),

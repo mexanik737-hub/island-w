@@ -37,6 +37,7 @@ import { SystemPeekView, systemPeekSize } from "../modules/system/SystemPeekView
 import { onIslandNear, onIslandRest, onIslandToggle, setIslandMemory, setIslandPassThrough, type RegionRect } from "../ipc/island";
 import { useIslandRegion } from "./region";
 import { useSettings } from "../settings/store";
+import { useApplyTheme } from "../theme/useApplyTheme";
 import { startWelcome, useWelcome } from "../modules/welcome/store";
 import { WELCOME_PILL_SIZE, WELCOME_SIZE, WelcomePill, WelcomeTour } from "../modules/welcome/WelcomeViews";
 import { TIMER_ACTIVITY_SIZE, TimerActivity, TimerPanel, timerPanelSize } from "../modules/timer/TimerViews";
@@ -144,6 +145,7 @@ export function Island() {
   useEffect(() => () => controller.dispose(), [controller]);
 
   const settings = useSettings();
+  useApplyTheme(settings.general.theme);
   const systemReduced = useReducedMotion() ?? false;
   const motionSetting = settings.general.motion;
   const reducedMotion = motionSetting === "reduced" || (motionSetting === "system" && systemReduced);

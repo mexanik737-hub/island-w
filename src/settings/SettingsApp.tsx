@@ -14,6 +14,7 @@ import type { Tab } from "../machine/island-machine";
 import { orderTabs, TABS } from "../island/tabs";
 import { tabFace } from "../island/TabBar";
 import { CHARACTER_OPTIONS, CharacterSprite } from "../modules/characters/CharacterSprite";
+import { useApplyTheme } from "../theme/useApplyTheme";
 
 const ignore = () => {};
 const REPO = "https://github.com/mexanik737-hub/island-w";
@@ -274,6 +275,17 @@ function General({ settings, save }: { settings: Settings; save: ReturnType<type
         </div>
       </Group>
       <Group title={t.behaviour}>
+        <Row title={t.theme} description={t.themeHint}>
+          <Choice
+            value={g.theme}
+            onChange={(theme) => set({ theme })}
+            options={[
+              { value: "system", label: t.themes.system },
+              { value: "dark", label: t.themes.dark },
+              { value: "light", label: t.themes.light },
+            ]}
+          />
+        </Row>
         <Row title={t.hover} description={t.hoverHint}>
           <Toggle label={t.hover} on={g.openOnHover} onChange={(on) => set({ openOnHover: on })} />
         </Row>
@@ -750,6 +762,7 @@ function TitleBar({ title }: { title: string }) {
 
 export function SettingsApp() {
   const settings = useSettings();
+  useApplyTheme(settings.general.theme);
   const { save, error } = useSave();
   // Opened on a section ("#about", from the tray's update item) or told to show one.
   const [section, setSection] = useState<Section>(() => {

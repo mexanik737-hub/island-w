@@ -3,6 +3,7 @@
   /* Exterior (Bloom-style shell) */
   --shell-compact: rgba(0, 0, 0, 0.82);
   --shell-expanded: rgba(0, 0, 0, 0.94);
+  --shell-fill: #000000;
   --shell-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
   --flare-size: 13px;
   --radius-compact: 18px;
@@ -31,4 +32,21 @@ body {
   overflow: hidden;
   user-select: none;
   cursor: default;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --shell-compact: rgba(255, 255, 255, 0.90);
+  --shell-expanded: rgba(255, 255, 255, 0.97);
+  --shell-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  --shell-fill: #ffffff;
+  --ink: #ffffff;
+  --card: #f0f0f4;
+  --card-hover: #e5e5eb;
+  --text-1: #15151a;
+  --text-2: rgba(20, 20, 25, 0.70);
+  --text-3: rgba(20, 20, 25, 0.48);
+  --fill-active: rgba(0, 0, 0, 0.09);
+  --accent: #17171b;
+  --danger: #c83228;
 }
