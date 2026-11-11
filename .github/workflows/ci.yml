@@ -146,6 +146,8 @@ jobs:
         run: |
           pnpm tauri build --ci --no-bundle --target x86_64-pc-windows-msvc -- --locked 2>&1 | Tee-Object ci-logs/release.log
           exit $LASTEXITCODE
+      - name: Smoke test compiled application startup
+        run: ./scripts/smoke-windows-startup.ps1
       - name: Package compiled release with NSIS
         run: |
           pnpm tauri bundle --ci --bundles nsis --target x86_64-pc-windows-msvc 2>&1 | Tee-Object ci-logs/package.log

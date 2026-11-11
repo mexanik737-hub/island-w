@@ -201,3 +201,20 @@ pub fn tray_clicked(app: &AppHandle) {
         }
     });
 }
+
+#[cfg(test)]
+mod config_tests {
+    #[test]
+    fn bundled_updater_config_can_initialize_before_release_signing_is_configured() {
+        let config: serde_json::Value =
+            serde_json::from_str(include_str!("../tauri.conf.json")).unwrap();
+        let updater: tauri_plugin_updater::Config =
+            serde_json::from_value(config["plugins"]["updater"].clone())
+                .expect("the registered updater plugin must receive an object, not null");
+        assert!(updater.endpoints.is_empty());
+        assert!(updater.pubkey.is_empty());
+        assert!(!updater.dangerous_insecure_transport_protocol);
+        assert!(!updater.dangerous_accept_invalid_certs);
+        assert!(!updater.allow_downgrades);
+    }
+}
