@@ -9,12 +9,12 @@ Island W combines the liquid visual language and product direction of Island wit
 - Animated top-edge island shell with spring-based morphing, hover/peek states, click-through support and monitor placement.
 - Windows-native media sessions (SMTC), artwork and synced lyrics lookup (LRCLIB).
 - Quick controls for Wi-Fi, Bluetooth, audio devices, master volume and per-app volume.
-- Session clipboard, file Shelf with drag-out and local phone sharing, file launcher, calendar/ICS, timer, notifications, webcam mirror, tray integration and settings.
+- Session clipboard, file Shelf with drag-out and local phone sharing, file launcher, calendar/ICS, timer, notifications, webcam mirror, text transformations, local notes, tray integration and settings.
 - Local settings and application data.
 
 ## Planned Island parity work
 
-The next integration stages cover the rest of Island's toolbox: screenshot capture and annotation, OCR, screen recording, QR extraction, color picker, text transforms, notes, weather, the complete character collection, additional live status chips and remaining keyboard shortcuts. AI-related functions are deliberately excluded.
+The next integration stages cover the rest of Island's toolbox: screenshot capture and annotation, OCR, screen recording, QR extraction, color picker, weather, the complete character collection, additional live status chips, richer note formatting/reminders and remaining keyboard shortcuts. AI-related functions are deliberately excluded.
 
 ## Build (Windows 11)
 

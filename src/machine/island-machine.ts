@@ -19,7 +19,7 @@ export interface PeekState {
 }
 
 /** What the open panel shows: "home" is the player, or the clock without music. */
-export type Tab = "home" | "timer" | "calendar" | "controls" | "mirror" | "shelf" | "clipboard" | "notifications";
+export type Tab = "home" | "text" | "notes" | "timer" | "calendar" | "controls" | "mirror" | "shelf" | "clipboard" | "notifications";
 
 /** The notification peek: opening the island over it leads to its tab. */
 export const NOTIFICATION_PEEK = "system:notification";

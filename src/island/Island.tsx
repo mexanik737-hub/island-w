@@ -46,6 +46,8 @@ import { agenda, agendaSize, byDay, fitAgenda } from "../modules/calendar/format
 import { startCalendar, useCalendarEvents, useNextMeeting } from "../modules/calendar/store";
 import type { CalendarEvent } from "../ipc/calendar";
 import { MIRROR_SIZE, MirrorView } from "../modules/mirror/MirrorView";
+import { NotesView } from "../modules/notes/NotesView";
+import { TextView } from "../modules/text/TextView";
 import { listen } from "@tauri-apps/api/event";
 import { BIRTH_IMPACT_MS, DURATIONS, REGION_HOLD_MS } from "./springs";
 import "./island.css";
@@ -99,6 +101,8 @@ function viewFor(
       return { key: "peek:media", content: <MediaPeek /> };
     case "expanded":
       // The wheels and the countdown crossfade.
+      if (tab === "text") return { key: "expanded:text", content: <TextView /> };
+      if (tab === "notes") return { key: "expanded:notes", content: <NotesView /> };
       if (tab === "timer") return { key: timerSet ? "expanded:timer" : "expanded:timer-pick", content: <TimerPanel /> };
       if (tab === "mirror") return { key: "expanded:mirror", content: <MirrorView /> };
       if (tab === "calendar") return { key: "expanded:calendar", content: <CalendarPanel events={calendar.coming} /> };
@@ -380,7 +384,11 @@ export function Island() {
   if (surface === "peek" && state.peek?.id === CALENDAR_PEEK) size = CALENDAR_PEEK_SIZE;
   if (surface === "expanded") {
     const [w, h, r] =
-      state.tab === "mirror"
+      state.tab === "text"
+        ? [560, 250, 22]
+        : state.tab === "notes"
+        ? [520, 250, 22]
+        : state.tab === "mirror"
         ? MIRROR_SIZE
         : state.tab === "calendar"
         ? agendaSize(byDay(coming, Date.now()).length, coming.length)

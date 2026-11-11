@@ -55,10 +55,10 @@ fn dev_shelf_add(app: tauri::AppHandle, paths: Vec<String>) {
     }
 }
 
-/// Development aid: true when started with QUIERA_BENCH set (debug builds only).
+/// Development aid: true when started with ISLAND_BENCH set (debug builds only).
 #[tauri::command]
 fn dev_bench_requested() -> bool {
-    cfg!(debug_assertions) && std::env::var_os("QUIERA_BENCH").is_some()
+    cfg!(debug_assertions) && std::env::var_os("ISLAND_BENCH").is_some()
 }
 
 pub fn run() {
