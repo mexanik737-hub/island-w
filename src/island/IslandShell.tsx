@@ -5,6 +5,7 @@ import { bodyPath, FLARE, leftFlarePath, rightFlarePath, silhouetteWidth } from 
 import { DURATIONS, slowed, SPRINGS, type Spring } from "./springs";
 import { CharacterSprite } from "../modules/characters/CharacterSprite";
 import type { CharacterId } from "../ipc/settings";
+import "../modules/characters/characters.css";
 
 interface IslandShellProps {
   /** Where the shell is heading. Changing it mid-flight retargets the springs. */
