@@ -30,7 +30,7 @@ pub fn create(app: &tauri::App) -> tauri::Result<()> {
     });
     refresh(app.handle());
     let mut tray = TrayIconBuilder::with_id("main")
-        .tooltip("Quiera")
+        .tooltip("Island")
         .menu(&menu)
         .show_menu_on_left_click(true)
         .on_menu_event(|app, event| {
@@ -57,7 +57,7 @@ pub fn refresh(app: &AppHandle) {
         return;
     };
     let _ = items.settings.set_text(tr("Réglages…", "Settings…"));
-    let _ = items.quit.set_text(tr("Quitter Quiera", "Quit Quiera"));
+    let _ = items.quit.set_text(tr("Quitter Island", "Quit Island"));
     let update = match crate::updates::available() {
         Some(version) => format!(
             "{} {version}",
