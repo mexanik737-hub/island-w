@@ -68,6 +68,7 @@ export function CaptureToolsView() {
   const [tool, setTool] = useState<Tool>("pen");
   const [color, setColor] = useState("#ff6259");
   const [picked, setPicked] = useState("#000000");
+  const [colorHistory, setColorHistory] = useState<string[]>(() => { try { return JSON.parse(localStorage.getItem("island-w:color-history") ?? "[]") as string[]; } catch { return []; } });
   const [qr, setQr] = useState("");
   const [ocrText, setOcrText] = useState("");
   const [ocrBusy, setOcrBusy] = useState(false);
@@ -258,6 +259,7 @@ export function CaptureToolsView() {
     const pixel = context.getImageData(Math.floor(point.x), Math.floor(point.y), 1, 1).data;
     const hex = "#" + [...pixel.slice(0, 3)].map((channel) => channel.toString(16).padStart(2, "0")).join("");
     setPicked(hex);
+    setColorHistory((previous) => { const next = [hex, ...previous.filter((item) => item !== hex)].slice(0, 10); try { localStorage.setItem("island-w:color-history", JSON.stringify(next)); } catch { /* optional */ } return next; });
     setMessage(`Picked ${hex.toUpperCase()}`);
   };
 
@@ -265,6 +267,21 @@ export function CaptureToolsView() {
     if (!captured) return;
     if (tool === "pick") {
       sampleColor(event);
+      return;
+    }
+    if (tool === "text") {
+      const value = window.prompt("Text to add to the screenshot");
+      if (!value) return;
+      const point = pointAt(event);
+      const context = event.currentTarget.getContext("2d");
+      if (!context) return;
+      context.save();
+      context.fillStyle = color;
+      context.font = "600 " + Math.max(18, event.currentTarget.width / 42) + "px Segoe UI";
+      context.shadowColor = "rgba(0,0,0,.85)";
+      context.shadowBlur = 5;
+      context.fillText(value.slice(0, 200), point.x, point.y);
+      context.restore();
       return;
     }
     const canvas = event.currentTarget;
@@ -316,14 +333,18 @@ export function CaptureToolsView() {
       {!stream && <div className="capture-empty">Choose a screen, app window or browser tab to get started.</div>}
       <div className={`capture-result ${captured ? "" : "capture-result--hidden"}`}>
           <div className="capture-editor-tools">
-            {(["pen", "rectangle", "arrow", "pick"] as Tool[]).map((item) => (
+            {(["pen", "rectangle", "arrow", "blur", "text", "crop", "pick"] as Tool[]).map((item) => (
               <button type="button" key={item} className={tool === item ? "is-selected" : ""} onClick={() => setTool(item)}>
-                {item === "pen" ? "Pen" : item === "rectangle" ? "Box" : item === "arrow" ? "Arrow" : "Picker"}
+                {item === "pen" ? "Pen" : item === "rectangle" ? "Box" : item === "arrow" ? "Arrow" : item === "blur" ? "Blur" : item === "text" ? "Text" : item === "crop" ? "Crop" : "Picker"}
               </button>
             ))}
             <input aria-label="Annotation colour" type="color" value={color} onChange={(event) => setColor(event.target.value)} />
           </div>
           <canvas ref={canvasRef} className="capture-canvas" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp} />
+          <div className="capture-colour-history">
+            {colorHistory.map((hex) => <button type="button" key={hex} title={hex} style={{ background: hex }} onClick={() => setColor(hex)} />)}
+            <button type="button" onClick={() => void navigator.clipboard.writeText(picked).then(() => setMessage("HEX colour copied."))}>Copy HEX</button>
+          </div>
           <footer className="capture-result-actions">
             <span className="capture-picked"><i style={{ background: picked }} />{picked.toUpperCase()}</span>
             <button type="button" onClick={() => exportCanvas("copy")}>Copy PNG</button>
