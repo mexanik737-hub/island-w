@@ -23,6 +23,18 @@ try {
         throw 'Application has no Windows executable header.'
     }
 } finally { $stream.Dispose() }
+$imageBytes = [IO.File]::ReadAllBytes($executable.FullName)
+$peOffset = [BitConverter]::ToInt32($imageBytes, 0x3c)
+if ($peOffset -lt 0 -or $peOffset + 24 + 70 -gt $imageBytes.Length) {
+    throw 'Application has an invalid PE header offset.'
+}
+if ([BitConverter]::ToUInt32($imageBytes, $peOffset) -ne 0x00004550 -or
+    [BitConverter]::ToUInt16($imageBytes, $peOffset + 4) -ne 0x8664) {
+    throw 'Application must be a Windows x64 PE executable.'
+}
+if ([BitConverter]::ToUInt16($imageBytes, $peOffset + 24 + 68) -ne 2) {
+    throw 'Application must use the Windows GUI subsystem, not a console window.'
+}
 $logDirectory = Join-Path $PSScriptRoot '../ci-logs'
 New-Item -ItemType Directory -Force $logDirectory | Out-Null
 $checksums = foreach ($file in @($installer, $executable)) {
