@@ -22,3 +22,5 @@
 .capture-qr code{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-2)}
 .capture-message{margin:7px 0 0;color:var(--text-2);font-size:10px}
 .capture-privacy{margin:7px 0 0}
+
+.capture-result--hidden{display:none}

@@ -274,8 +274,7 @@ export function CaptureToolsView() {
       </header>
       {stream && <video ref={videoRef} className="capture-live-preview" muted playsInline />}
       {!stream && <div className="capture-empty">Choose a screen, app window or browser tab to get started.</div>}
-      {captured && (
-        <div className="capture-result">
+      <div className={`capture-result ${captured ? "" : "capture-result--hidden"}`}>
           <div className="capture-editor-tools">
             {(["pen", "rectangle", "arrow", "pick"] as Tool[]).map((item) => (
               <button type="button" key={item} className={tool === item ? "is-selected" : ""} onClick={() => setTool(item)}>
@@ -292,8 +291,7 @@ export function CaptureToolsView() {
             <button type="button" onClick={scanQr}>Read QR</button>
           </footer>
           {qr && <div className="capture-qr"><span>QR result</span><code>{qr}</code><button type="button" onClick={() => void navigator.clipboard.writeText(qr).then(() => setMessage("QR result copied."))}>Copy</button></div>}
-        </div>
-      )}
+      </div>
       {message && <p className="capture-message" role="status">{message}</p>}
       <p className="capture-privacy">Capture and recording start only after you choose a source. Files are created locally in Downloads.</p>
     </section>
