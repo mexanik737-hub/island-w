@@ -1,0 +1,175 @@
+//! Everything that depends on the operating system lives under this module,
+//! one submodule per platform. Code outside `platform` must stay portable:
+//! CI compiles the crate on Windows, macOS and Linux to keep it that way.
+//!
+//! Each platform reports its `Capabilities`; a flag turns true only once the
+//! feature is actually implemented and tested on that platform.
+
+use serde::Serialize;
+
+#[cfg(target_os = "linux")]
+mod linux;
+#[cfg(target_os = "macos")]
+mod macos;
+#[cfg(target_os = "windows")]
+mod windows;
+
+#[cfg(target_os = "linux")]
+pub use linux::{
+    agent_window, allow_island_camera, capabilities, dismiss_notification, file_thumbnail,
+    fixed_drives, focus_island, focus_window, install_crash_logger, island_has_focus,
+    lan_addresses, launch_app, list_apps, lower_thread_priority, notifications_quiet,
+    on_island_hotkey, play_system_sound, pointer, prepare_island_window, process_running,
+    raise_island, read_controls, restore_focus, set_app_mute,
+    set_app_volume, set_autostart, set_default_output, set_island_click_through, set_island_hotkey,
+    set_island_region, set_launcher_hotkey, set_master_mute, set_master_volume, set_radio,
+    set_webview_memory_low, share_files, short_path, show_island_window, start_bluetooth_watch,
+    start_clipboard_watch, start_in_terminal, start_launcher_hotkey, start_media,
+    start_notification_watch, start_peek_watch, start_system_watch, system_prefers_french,
+    wait_for_process_exit, watch_file_drops, watch_webview, window_in_front, window_title,
+    write_clipboard,
+};
+#[cfg(target_os = "macos")]
+pub use macos::{
+    agent_window, allow_island_camera, capabilities, dismiss_notification, file_thumbnail,
+    fixed_drives, focus_island, focus_window, install_crash_logger, island_has_focus,
+    lan_addresses, launch_app, list_apps, lower_thread_priority, notifications_quiet,
+    on_island_hotkey, play_system_sound, pointer, prepare_island_window, process_running,
+    raise_island, read_controls, restore_focus, set_app_mute,
+    set_app_volume, set_autostart, set_default_output, set_island_click_through, set_island_hotkey,
+    set_island_region, set_launcher_hotkey, set_master_mute, set_master_volume, set_radio,
+    set_webview_memory_low, share_files, short_path, show_island_window, start_bluetooth_watch,
+    start_clipboard_watch, start_in_terminal, start_launcher_hotkey, start_media,
+    start_notification_watch, start_peek_watch, start_system_watch, system_prefers_french,
+    wait_for_process_exit, watch_file_drops, watch_webview, window_in_front, window_title,
+    write_clipboard,
+};
+#[cfg(target_os = "windows")]
+pub use windows::{
+    agent_window, allow_island_camera, capabilities, dismiss_notification, file_thumbnail,
+    fixed_drives, focus_island, focus_window, install_crash_logger, island_has_focus,
+    lan_addresses, launch_app, list_apps, lower_thread_priority, notifications_quiet,
+    on_island_hotkey, play_system_sound, pointer, prepare_island_window, process_running,
+    raise_island, read_controls, restore_focus, set_app_mute,
+    set_app_volume, set_autostart, set_default_output, set_island_click_through, set_island_hotkey,
+    set_island_region, set_launcher_hotkey, set_master_mute, set_master_volume, set_radio,
+    set_webview_memory_low, share_files, short_path, show_island_window, start_bluetooth_watch,
+    start_clipboard_watch, start_in_terminal, start_launcher_hotkey, start_media,
+    start_notification_watch, start_peek_watch, start_system_watch, system_prefers_french,
+    wait_for_process_exit, watch_file_drops, watch_webview, window_in_front, window_title,
+    write_clipboard,
+};
+
+/// What the system tells the island about.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SystemEvent {
+    /// Monitors, resolution or work area changed: re-place the island.
+    DisplayChanged,
+    /// Back from sleep or the lock screen.
+    Resumed,
+    /// Explorer restarted (the notification-area icon re-adds itself).
+    TaskbarCreated,
+    /// A fullscreen app took over the island's monitor, or left it.
+    Fullscreen(bool),
+}
+
+/// A playback command for the current media session.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MediaCommand {
+    PlayPause,
+    Next,
+    Previous,
+    /// Position in ms from the start of the track.
+    Seek(u64),
+    SetShuffle(bool),
+    SetRepeat(RepeatMode),
+    /// Show and control this source (a `MediaSource` id), not the one
+    /// chosen automatically, as long as it exists.
+    Select(u32),
+}
+
+/// Repeat setting of the media session (`"none"`, `"track"`, `"list"` in JSON).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum RepeatMode {
+    None,
+    Track,
+    List,
+}
+
+/// Sends commands to the platform's media session.
+pub struct MediaControl(Box<dyn Fn(MediaCommand) + Send + Sync>);
+
+impl MediaControl {
+    pub fn new(send: impl Fn(MediaCommand) + Send + Sync + 'static) -> Self {
+        Self(Box::new(send))
+    }
+
+    pub fn send(&self, command: MediaCommand) {
+        (self.0)(command)
+    }
+}
+
+/// How the web view failed.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum WebviewFailure {
+    /// The page's process died or hung: reloading is enough.
+    RendererGone,
+    /// The whole web view is gone: the window must be rebuilt.
+    BrowserGone,
+}
+
+/// Mirrors `Capabilities` in `src/ipc/capabilities.ts`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Capabilities {
+    pub platform: &'static str,
+    pub island_window: bool,
+    pub media: bool,
+    pub volume: bool,
+    pub power: bool,
+}
+
+impl Capabilities {
+    pub const fn none(platform: &'static str) -> Self {
+        Self {
+            platform,
+            island_window: false,
+            media: false,
+            volume: false,
+            power: false,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn serializes_with_the_keys_the_frontend_expects() {
+        let json = serde_json::to_value(Capabilities::none("windows")).unwrap();
+        assert_eq!(
+            json,
+            serde_json::json!({
+                "platform": "windows",
+                "islandWindow": false,
+                "media": false,
+                "volume": false,
+                "power": false
+            })
+        );
+    }
+
+    #[test]
+    fn reports_the_platform_it_was_built_for() {
+        let expected = if cfg!(target_os = "windows") {
+            "windows"
+        } else if cfg!(target_os = "macos") {
+            "macos"
+        } else {
+            "linux"
+        };
+        assert_eq!(capabilities().platform, expected);
+    }
+}

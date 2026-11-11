@@ -1,0 +1,102 @@
+[package]
+name = "island-w"
+version = "0.1.0"
+description = "Island for Windows: an animated desktop companion and toolbox."
+authors = ["Quiera contributors"]
+license = "GPL-3.0-or-later"
+edition = "2024"
+
+[lib]
+# The `_lib` suffix keeps the lib name distinct from the bin name, which
+# Cargo needs on Windows (rust-lang/cargo#8519).
+name = "island_w_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2.12", features = ["tray-icon"] }
+tauri-plugin-log = "2.10"
+tauri-plugin-single-instance = "2.5"
+log = "0.4"
+serde = { version = "1", features = ["derive"] }
+# preserve_order: the settings of other apps (Claude Code) are rewritten
+# with their keys in the order their owner left them.
+serde_json = { version = "1", features = ["preserve_order"] }
+# Small blocking HTTP client (rustls) for word-synced lyrics.
+ureq = { version = "3.5", features = ["json"] }
+tauri-plugin-opener = "2.7"
+# Dragging shelf items out to other apps.
+tauri-plugin-drag = "2.1"
+png = "0.18"
+arboard = "3.7"
+# Sending Shelf files to a phone: the link's QR code, and its random token.
+qrcode = { version = "0.14", default-features = false }
+getrandom = "0.3"
+# Updates: checks GitHub releases, verifies their signature, installs them.
+tauri-plugin-updater = "2.14"
+rrule = "0.14.0"
+chrono-tz = "0.10.4"
+chrono = "0.4.45"
+
+# Same version as Tauri's own dependency, so HWND types match.
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.62", features = [
+	"Devices_Enumeration",
+	"Devices_Radios",
+	"ApplicationModel",
+	"ApplicationModel_DataTransfer",
+	"Foundation",
+	"Foundation_Collections",
+	"Media_Control",
+	"Storage",
+	"Storage_Streams",
+	"UI_Notifications",
+	"UI_Notifications_Management",
+	"Win32_Devices_FunctionDiscovery",
+	"Win32_Foundation",
+	"Win32_Globalization",
+	"Win32_Graphics_Gdi",
+	"Win32_Media_Audio",
+	"Win32_Media_Audio_Endpoints",
+	"Win32_NetworkManagement_IpHelper",
+	"Win32_NetworkManagement_Ndis",
+	"Win32_Networking_WinSock",
+	"Win32_Security",
+	"Win32_Security_Authorization",
+	"Win32_Storage_FileSystem",
+	"Win32_System_Com",
+	"Win32_System_Com_StructuredStorage",
+	"Win32_System_Console",
+	"Win32_System_DataExchange",
+	"Win32_System_Diagnostics_Debug",
+	"Win32_System_Diagnostics_ToolHelp",
+	"Win32_System_Kernel",
+	"Win32_System_IO",
+	"Win32_System_LibraryLoader",
+	"Win32_System_Memory",
+	"Win32_System_Pipes",
+	"Win32_System_Registry",
+	"Win32_System_Power",
+	"Win32_System_Variant",
+	"Win32_UI_Input_KeyboardAndMouse",
+	"Win32_UI_Shell_PropertiesSystem",
+	"Win32_System_RemoteDesktop",
+	"Win32_System_Threading",
+	"Win32_UI_Accessibility",
+	"Win32_UI_Shell",
+	"Win32_UI_WindowsAndMessaging",
+] }
+# Same version as wry's, for the WebView2 failure events.
+webview2-com = "0.39"
+# Needed by the `implement` macro (COM callbacks) and WinRT collections.
+windows-core = "0.62"
+windows-collections = "0.3"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
+panic = "abort"
+strip = true

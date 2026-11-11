@@ -1,0 +1,246 @@
+mod agents;
+mod agents_phone;
+mod apply;
+mod calendar;
+mod clipboard;
+mod controls;
+mod files;
+mod i18n;
+mod icon_cache;
+mod island;
+mod launcher;
+mod lyrics;
+mod media;
+mod notifications;
+mod peeks;
+mod platform;
+mod protocol;
+mod recovery;
+mod settings;
+mod share;
+mod shelf;
+mod system;
+mod tray;
+mod updates;
+
+use platform::Capabilities;
+use tauri::Manager;
+
+pub use agents::{EVENT_ARG as AGENT_EVENT_ARG, STATUS_ARG as AGENT_STATUS_ARG};
+
+/// Quiera started as an AI agent's hook: see `agents`.
+pub fn run_agent_hook(source: &str) {
+    agents::run_hook(source);
+}
+
+/// Quiera started as Claude Code's status line: see `agents`.
+pub fn run_agent_status(source: &str) {
+    agents::run_status(source);
+}
+
+/// What this platform supports; the frontend hides modules accordingly.
+#[tauri::command]
+fn get_capabilities() -> Capabilities {
+    platform::capabilities()
+}
+
+/// Development aid: lets the frontend write to the log. Ignored in release builds.
+#[tauri::command]
+fn dev_log(message: String) {
+    if cfg!(debug_assertions) {
+        log::info!("[dev] {message}");
+    }
+}
+
+/// An error in the interface (a script error, a view that crashed), for
+/// the log: the message and where, never what was on screen.
+#[tauri::command]
+fn frontend_error(message: String) {
+    let message: String = message.chars().take(600).collect();
+    log::error!("interface: {message}");
+}
+
+/// Development aid: puts files on the shelf as if they had been dropped
+/// (debug builds only), to check the shelf without a real drag.
+#[tauri::command]
+fn dev_shelf_add(app: tauri::AppHandle, paths: Vec<String>) {
+    if cfg!(debug_assertions) {
+        shelf::add_paths(&app, paths.into_iter().map(Into::into).collect());
+    }
+}
+
+/// Development aid: true when started with QUIERA_BENCH set (debug builds only).
+#[tauri::command]
+fn dev_bench_requested() -> bool {
+    cfg!(debug_assertions) && std::env::var_os("QUIERA_BENCH").is_some()
+}
+
+pub fn run() {
+    log_panics();
+    recovery::on_startup();
+    tauri::Builder::default()
+        // Must be registered first so a second launch exits before doing anything.
+        .plugin(tauri_plugin_single_instance::init(|_app, _args, _cwd| {
+            log::info!("second instance blocked");
+        }))
+        .plugin(
+            tauri_plugin_log::Builder::new()
+                .level(log::LevelFilter::Info)
+                .timezone_strategy(tauri_plugin_log::TimezoneStrategy::UseLocal)
+                .build(),
+        )
+        .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_drag::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .register_uri_scheme_protocol(media::ART_SCHEME, |_ctx, request| {
+            media::serve_artwork(request.uri().path())
+        })
+        .register_uri_scheme_protocol(notifications::ICON_SCHEME, |_ctx, request| {
+            notifications::serve_icon(request.uri().path())
+        })
+        .register_uri_scheme_protocol(clipboard::CLIP_SCHEME, |_ctx, request| {
+            clipboard::serve_thumbnail(request.uri().path())
+        })
+        .register_asynchronous_uri_scheme_protocol(
+            launcher::ICON_SCHEME,
+            |_ctx, request, responder| {
+                launcher::serve_icon(request.uri().path(), responder);
+            },
+        )
+        .register_asynchronous_uri_scheme_protocol(
+            controls::APP_ICON_SCHEME,
+            |_ctx, request, responder| {
+                controls::serve_icon(request.uri().path(), responder);
+            },
+        )
+        .register_asynchronous_uri_scheme_protocol(
+            shelf::THUMB_SCHEME,
+            |_ctx, request, responder| {
+                shelf::queue_thumbnail(request.uri().path().to_owned(), responder);
+            },
+        )
+        .setup(|app| {
+            platform::install_crash_logger();
+            settings::load(app.handle());
+            tray::create(app)?;
+            island::setup(app.handle())?;
+            island::passthrough::start(app.handle());
+            recovery::watch(app.handle());
+            shelf::watch_drops(app.handle());
+            system::start(app.handle());
+            media::start(app.handle());
+            peeks::start(app.handle());
+            clipboard::start(app.handle());
+            notifications::start(app.handle());
+            launcher::start(app.handle());
+            island::start_shortcut(app.handle());
+            files::start();
+            apply::at_start(app.handle());
+            updates::start(app.handle());
+            calendar::start(app.handle());
+            agents::start(app.handle());
+            Ok(())
+        })
+        .on_window_event(|window, event| {
+            if window.label() != island::LABEL {
+                return;
+            }
+            if let tauri::WindowEvent::ScaleFactorChanged { .. } = event
+                && let Some(island) = window.app_handle().get_webview_window(island::LABEL)
+                && let Err(e) = island::place(&island)
+            {
+                log::warn!("could not re-place the island after a scale change: {e}");
+            }
+        })
+        .invoke_handler(tauri::generate_handler![
+            get_capabilities,
+            frontend_error,
+            agents::agents_sessions,
+            agents::agents_status,
+            agents::agents_connect,
+            agents::agents_decide,
+            agents::agents_focus,
+            agents::agents_open,
+            agents::agents_usage,
+            agents::agents_quiet,
+            agents::agents_sound,
+            agents::agents_keyboard,
+            agents::agents_launch,
+            agents_phone::agents_phone_start,
+            agents_phone::agents_phone_stop,
+            calendar::calendar_events,
+            calendar::calendar_refresh,
+            calendar::calendar_check,
+            island::set_island_region,
+            island::passthrough::island_pass_through,
+            island::island_shortcut_held,
+            island::island_shortcut_recording,
+            system::get_fullscreen,
+            media::get_media,
+            media::media_play_pause,
+            media::media_select,
+            media::media_next,
+            media::media_previous,
+            media::media_seek,
+            media::media_set_shuffle,
+            media::media_set_repeat,
+            lyrics::lyrics_word_synced,
+            settings::settings_get,
+            settings::settings_set,
+            settings::settings_open,
+            settings::welcome_needed,
+            settings::welcome_done,
+            launcher::launcher_open,
+            updates::updates_status,
+            updates::updates_check,
+            updates::updates_install,
+            island::settings_monitors,
+            island::island_memory,
+            launcher::launcher_shortcut,
+            launcher::launcher_apps,
+            launcher::launcher_launch,
+            launcher::launcher_close,
+            launcher::launcher_files,
+            launcher::launcher_open_file,
+            controls::controls_state,
+            controls::controls_set_radio,
+            controls::controls_set_output,
+            controls::controls_set_volume,
+            controls::controls_set_mute,
+            controls::controls_set_app_volume,
+            controls::controls_set_app_mute,
+            notifications::notifications_items,
+            notifications::notification_open,
+            notifications::notification_dismiss,
+            notifications::notifications_clear,
+            notifications::open_link,
+            clipboard::clipboard_items,
+            clipboard::clipboard_copy,
+            clipboard::clipboard_pin,
+            clipboard::clipboard_remove,
+            clipboard::clipboard_clear,
+            shelf::shelf_items,
+            shelf::shelf_remove,
+            shelf::shelf_clear,
+            shelf::shelf_open,
+            shelf::shelf_reveal,
+            shelf::shelf_drag_icon,
+            share::shelf_share_phone,
+            share::shelf_share_stop,
+            share::shelf_share_windows,
+            dev_log,
+            dev_bench_requested,
+            dev_shelf_add
+        ])
+        .run(tauri::generate_context!())
+        .expect("error while running Quiera");
+}
+
+/// Sends panics to the log file before the default handler runs.
+fn log_panics() {
+    let default = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        log::error!("panic: {info}");
+        default(info);
+    }));
+}

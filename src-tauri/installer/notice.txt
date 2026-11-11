@@ -1,0 +1,43 @@
+﻿ISLAND : CONFIDENTIALITÉ ET LICENCE
+
+Island fonctionne sur votre PC. Pas de compte, pas de publicité, pas de télémétrie.
+
+CE QUI PASSE PAR INTERNET
+- Paroles synchronisées : pour trouver les paroles du morceau en cours, Island envoie son titre, son artiste, son album et sa durée à LRCLIB (lrclib.net). Les paroles mot à mot de NetEase sont une option désactivée par défaut. Pour couper : Réglages > Musique > Paroles synchronisées (ou à l'accueil, au premier lancement).
+- Mises à jour : au démarrage puis toutes les 6 heures, Island lit la liste des versions sur GitHub. Aucune donnée personnelle n'est envoyée. Pour couper : Réglages > À propos (ou à l'accueil, au premier lancement).
+
+CE QUI RESTE SUR VOTRE PC
+Notifications et presse-papiers (en mémoire seulement), fichiers du Shelf (leurs chemins), index des fichiers du lanceur, réglages. Envoyer au téléphone passe directement du PC au téléphone par votre réseau local, quand vous le demandez.
+
+Politique complète : https://github.com/mexanik737-hub/island-w/confidentialite/
+Signature du code : https://github.com/mexanik737-hub/island-w/code-signing/
+
+DÉSINSTALLER
+Paramètres de Windows > Applications > Applications installées > Island > Désinstaller.
+
+LICENCE
+Island est un logiciel libre, sous licence GNU General Public License version 3 ou ultérieure : vous pouvez l'utiliser, l'étudier, le modifier et le redistribuer selon ses termes. Il est fourni sans aucune garantie. Texte complet : https://www.gnu.org/licenses/gpl-3.0.html
+Code source : https://github.com/mexanik737-hub/island-w
+
+----------------------------------------
+
+ISLAND: PRIVACY AND LICENSE
+
+Island runs on your PC. No account, no advertising, no telemetry.
+
+WHAT GOES OVER THE INTERNET
+- Synced lyrics: to find the lyrics of the playing track, Island sends its title, artist, album and duration to LRCLIB (lrclib.net). Word-by-word lyrics from NetEase are an option, off by default. To turn off: Settings > Music > Synced lyrics (or in the welcome, on first launch).
+- Updates: at start, then every 6 hours, Island reads the list of releases on GitHub. No personal data is sent. To turn off: Settings > About (or in the welcome, on first launch).
+
+WHAT STAYS ON YOUR PC
+Notifications and the clipboard (in memory only), Shelf files (their paths), the launcher's file index, the settings. Send to phone goes straight from the PC to the phone over your local network, when you ask.
+
+Full policy: https://github.com/mexanik737-hub/island-w/confidentialite/#english
+Code signing: https://github.com/mexanik737-hub/island-w/code-signing/
+
+UNINSTALL
+Windows Settings > Apps > Installed apps > Island > Uninstall.
+
+LICENSE
+Island is free software under the GNU General Public License version 3 or later: you may use, study, change and share it under its terms. It comes with no warranty. Full text: https://www.gnu.org/licenses/gpl-3.0.html
+Source code: https://github.com/mexanik737-hub/island-w

@@ -1,0 +1,303 @@
+.ctl {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  padding: 4px 16px 14px;
+}
+
+/* ---- Wi-Fi, Bluetooth ---- */
+
+.ctl-toggles {
+  display: flex;
+  gap: 8px;
+}
+
+.ctl-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  height: 48px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 16px;
+  corner-shape: squircle;
+  background: #141417;
+  color: var(--text-1);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.ctl-toggle:hover {
+  background: #1c1c20;
+}
+
+.ctl-toggle-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  background: #2a2a30;
+  color: var(--text-2);
+  transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.ctl-toggle--on .ctl-toggle-icon {
+  background: #0a84ff;
+  color: #fff;
+  box-shadow: 0 0 14px rgba(10, 132, 255, 0.45);
+}
+
+.ctl-toggle-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.ctl-toggle-label {
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.ctl-toggle-state {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-3);
+}
+
+/* ---- Output button ---- */
+
+.ctl-current {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 11px;
+  background: #141417;
+  color: var(--text-2);
+  font: 600 12px var(--font-ui);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.ctl-current:hover,
+.ctl-current--open {
+  background: #1c1c20;
+  color: var(--text-1);
+}
+
+.ctl-current-label {
+  flex: none;
+  color: var(--text-3);
+}
+
+.ctl-current-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-1);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ---- Pill sliders ---- */
+
+.ctl-pill {
+  position: relative;
+  height: 34px;
+  border-radius: 11px;
+  corner-shape: squircle;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  cursor: ew-resize;
+  touch-action: none;
+  outline: none;
+  transition: transform 0.18s ease;
+}
+
+.ctl-pill:focus-visible {
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.4);
+}
+
+.ctl-pill--drag {
+  transform: scale(1.012);
+}
+
+.ctl-pill-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: rgba(255, 255, 255, 0.17);
+  transition: width 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ctl-pill--drag .ctl-pill-fill {
+  transition: none;
+}
+
+.ctl-pill-content {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 100%;
+  padding: 0 12px 0 6px;
+  color: var(--text-1);
+  pointer-events: none;
+}
+
+.ctl-pill-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background-color 0.15s ease;
+}
+
+.ctl-pill-icon:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.ctl-pill-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ctl-pill-value {
+  flex: none;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2);
+}
+
+/* The master volume: a white fill, its label inverting where the fill is. */
+.ctl-pill--big {
+  height: 40px;
+  border-radius: 13px;
+}
+
+.ctl-pill--big .ctl-pill-fill {
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.ctl-pill--big .ctl-pill-content {
+  color: #fff;
+  mix-blend-mode: difference;
+}
+
+.ctl-pill--big .ctl-pill-value {
+  color: inherit;
+}
+
+.ctl-pill--muted .ctl-pill-label,
+.ctl-pill--muted .ctl-app-icon {
+  opacity: 0.4;
+}
+
+.ctl-pill--muted .ctl-pill-value {
+  color: #ff453a;
+}
+
+/* ---- Lists below ---- */
+
+.ctl-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+}
+
+.ctl-caption {
+  height: 14px;
+  padding-left: 2px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-3);
+}
+
+.ctl-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  /* Three rows, the rest scrolls behind a fade. */
+  max-height: calc(3 * 34px + 2 * 6px);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.ctl-list:has(> :nth-child(4)) {
+  mask-image: linear-gradient(to bottom, #000 82%, transparent);
+}
+
+.ctl-app-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  object-fit: contain;
+  transition: opacity 0.2s ease;
+}
+
+.ctl-app-icon--letter {
+  display: grid;
+  place-items: center;
+  background: #2a2a30;
+  color: var(--text-1);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ctl-output {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-2);
+  font: 600 12px var(--font-ui);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.ctl-output:hover {
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--text-1);
+}
+
+.ctl-output--on {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-1);
+}
+
+.ctl-output-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

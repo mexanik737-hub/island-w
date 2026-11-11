@@ -1,0 +1,77 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Island",
+  "version": "0.1.0",
+  "identifier": "app.island.desktop",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "island",
+        "title": "Island",
+        "width": 680,
+        "height": 380,
+        "decorations": false,
+        "transparent": true,
+        "shadow": false,
+        "resizable": false,
+        "maximizable": false,
+        "minimizable": false,
+        "closable": false,
+        "alwaysOnTop": true,
+        "visibleOnAllWorkspaces": true,
+        "skipTaskbar": true,
+        "focus": false,
+        "visible": false,
+        "dragDropEnabled": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: http://quiera-art.localhost quiera-art: http://quiera-thumb.localhost quiera-thumb: http://quiera-clip.localhost quiera-clip: http://quiera-notif.localhost quiera-notif: http://quiera-app.localhost quiera-app: http://quiera-launch.localhost quiera-launch:; connect-src 'self' ipc: http://ipc.localhost https://lrclib.net"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "nsis"
+    ],
+    "publisher": "Island Project",
+    "category": "Utility",
+    "shortDescription": "A free dynamic island and desktop toolbox for Windows",
+    "license": "GPL-3.0-or-later",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "createUpdaterArtifacts": true,
+    "licenseFile": "installer/notice.txt",
+    "windows": {
+      "nsis": {
+        "languages": [
+          "French",
+          "English"
+        ],
+        "installMode": "currentUser"
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDkyNjhFOEZENTlFNTU2NUUKUldSZVZ1VlovZWhva3VZMjd1MkNtbTZzaFJJb0Z5ejdyUkxYMURRYWs2ejlTRmtFVXV6ZWljc3kK",
+      "endpoints": [
+        "https://github.com/mexanik737-hub/island-w/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  }
+}
