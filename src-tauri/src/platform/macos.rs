@@ -182,44 +182,6 @@ pub fn serve_agent_pipe(
 ) {
 }
 
-pub fn send_agent_message(_message: &str, _reply: bool) -> Option<String> {
-    None
-}
-
-pub fn agent_window(_project: &str) -> Option<isize> {
-    None
-}
-
-pub fn focus_window(_window: isize) -> bool {
-    false
-}
-
-pub fn window_in_front(_window: isize) -> bool {
-    false
-}
-
-pub fn process_running(_name: &str) -> bool {
-    false
-}
-
-pub fn window_title(_window: isize) -> String {
-    String::new()
-}
-
-pub fn short_path(_path: &str) -> Option<String> {
-    None
-}
-
-pub fn start_in_terminal(
-    _program: &std::path::Path,
-    _task: &str,
-    _folder: &std::path::Path,
-) -> Result<(), String> {
-    Err("not implemented on this platform yet".into())
-}
-
-pub fn play_system_sound(_alias: &str) {}
-
 /// Whether the system locale is Russian (from LANG / LC_ALL).
 pub fn system_prefers_russian() -> bool {
     ["LC_ALL", "LC_MESSAGES", "LANG"]

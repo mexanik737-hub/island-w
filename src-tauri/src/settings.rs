@@ -86,6 +86,7 @@ pub struct General {
     #[serde(deserialize_with = "lenient_hotkey")]
     pub island_shortcut: Hotkey,
     pub motion: Motion,
+    pub theme: Theme,
     /// Looks for a new version now and then (GitHub releases).
     pub check_updates: bool,
     pub language: Language,

@@ -303,6 +303,13 @@ fn fetch_at(place: &str, lat: f64, lon: f64) -> Result<WeatherForecast, String> 
 }
 
 #[tauri::command]
+pub async fn weather_forecast(place: String) -> Result<WeatherForecast, String> {
+    tauri::async_runtime::spawn_blocking(move || fetch(&place))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
 pub async fn weather_forecast_at(
     place: String,
     lat: f64,

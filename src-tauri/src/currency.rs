@@ -58,7 +58,7 @@ fn fetch(from: &str, to: &str) -> Result<CurrencyRate, String> {
         }
     }
     let url = format!("{ENDPOINT}/{from}/{to}");
-    let agent = ureq::Agent::config_builder()
+    let agent: ureq::Agent = ureq::Agent::config_builder()
         .timeout_global(Some(Duration::from_secs(12)))
         .user_agent(USER_AGENT)
         .build()

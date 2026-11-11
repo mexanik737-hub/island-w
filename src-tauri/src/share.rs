@@ -293,28 +293,6 @@ fn handle(stream: TcpStream) -> io::Result<()> {
     let mut words = request.split_whitespace();
     let (method, target) = (words.next().unwrap_or(""), words.next().unwrap_or(""));
     let mut out = stream;
-    // A phone answering an AI agent (see agents_phone).
-    if target.starts_with("/a/") {
-        return match crate::agents_phone::route(method, target, french) {
-            Some((status, kind, body)) => reply(&mut out, status, kind, body.as_bytes(), false),
-            None => reply(
-                &mut out,
-                "410 Gone",
-                "text/html; charset=utf-8",
-                message_page(
-                    french,
-                    pick(french, "Ce lien a expiré", "This link has expired"),
-                    pick(
-                        french,
-                        "Refais le QR code dans les réglages de Quiera (Agents IA).",
-                        "Make a new QR code in Quiera's settings (AI agents).",
-                    ),
-                )
-                .as_bytes(),
-                false,
-            ),
-        };
-    }
     if method != "GET" && method != "HEAD" {
         return reply(
             &mut out,

@@ -36,7 +36,11 @@ pub fn tr(fr: &'static str, en: &'static str) -> &'static str {
 
 /// A three-language translation for backend-owned UI such as the tray.
 pub fn tr3(fr: &'static str, en: &'static str, ru: &'static str) -> &'static str {
-    match lang() {
+    text_for(lang(), fr, en, ru)
+}
+
+fn text_for(language: Lang, fr: &'static str, en: &'static str, ru: &'static str) -> &'static str {
+    match language {
         Lang::Fr => fr,
         Lang::En => en,
         Lang::Ru => ru,
@@ -48,13 +52,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn russian_translation_is_available() {
-        assert_eq!(
-            tr3("Bonjour", "Hello", "Привет"),
-            match Lang::Ru {
-                Lang::Ru => "Привет",
-                _ => unreachable!(),
-            }
-        );
+    fn translations_do_not_depend_on_the_test_hosts_display_language() {
+        for (language, expected) in [
+            (Lang::Fr, "Bonjour"),
+            (Lang::En, "Hello"),
+            (Lang::Ru, "Привет"),
+        ] {
+            assert_eq!(text_for(language, "Bonjour", "Hello", "Привет"), expected);
+        }
     }
 }
