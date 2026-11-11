@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { closeLauncher, getLauncherApps, launchApp, openFile, searchFiles, type FileHit, type LauncherApp } from "../../ipc/launcher";
+import { addReminder } from "../notes/store";
 import { openLink } from "../../ipc/notifications";
 import { openSettings } from "../../ipc/settings";
 import { arrivedLabel } from "../notifications/format";
@@ -109,6 +110,17 @@ function Row({ result, selected, copied }: { result: Result; selected: boolean; 
                   ? t.folder
                   : t.file}
           </span>
+        </>
+      );
+    case "reminder":
+      return (
+        <>
+          <span className="launch-icon launch-icon--glyph">◷</span>
+          <span className="launch-text">
+            <span className="launch-title">{result.text}</span>
+            <span className="launch-sub">{new Date(result.at).toLocaleString()}</span>
+          </span>
+          <span className="launch-hint">{selected ? "Add reminder" : result.repeat}</span>
         </>
       );
     case "timer":
@@ -231,6 +243,10 @@ export function Launcher({ onRows }: { onRows(rows: number): void }) {
         break;
       case "file":
         openFile(result.file, reveal).catch(ignore);
+        break;
+      case "reminder":
+        addReminder(result.text, result.at, result.repeat);
+        closeLauncher(true).catch(ignore);
         break;
       case "timer":
         // Now, during the key press or click: the chime may sound later.

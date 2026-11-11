@@ -1,10 +1,12 @@
 import type { FileHit, LauncherApp } from "../../ipc/launcher";
 import { timerRequests } from "../timer/duration";
 import { calculate } from "./calc";
+import { parseReminder } from "../notes/reminders";
 import { normalize, rank } from "./search";
 
 export type Result =
   | { kind: "timer"; id: string; ms: number; pomodoro: boolean }
+  | { kind: "reminder"; id: string; text: string; at: number; repeat: "none" | "daily" | "weekly" }
   | { kind: "calc"; id: string; value: number }
   | { kind: "app"; id: string; app: LauncherApp }
   | { kind: "file"; id: string; file: FileHit }
@@ -33,6 +35,8 @@ export function compose(query: string, apps: LauncherApp[], files: FileHit[], us
   const q = query.trim();
   if (!q) return [];
   const list: Result[] = [];
+  const reminder = parseReminder(q);
+  if (reminder) list.push({ kind: "reminder", id: `reminder:${reminder.at}`, ...reminder });
   if (asksForSettings(q)) list.push({ kind: "settings", id: "settings" });
   for (const { ms, pomodoro } of timerRequests(q)) list.push({ kind: "timer", id: `timer:${ms}:${pomodoro}`, ms, pomodoro });
   const value = calculate(q);
