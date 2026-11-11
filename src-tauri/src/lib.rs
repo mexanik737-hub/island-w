@@ -20,6 +20,7 @@ mod shelf;
 mod system;
 mod tray;
 mod updates;
+mod weather;
 
 use platform::Capabilities;
 use tauri::Manager;
@@ -213,7 +214,8 @@ pub fn run() {
             share::shelf_share_windows,
             dev_log,
             dev_bench_requested,
-            dev_shelf_add
+            dev_shelf_add,
+            weather::weather_forecast
         ])
         .run(tauri::generate_context!())
         .expect("error while running Island");

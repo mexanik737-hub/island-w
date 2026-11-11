@@ -50,6 +50,7 @@ import { NotesView } from "../modules/notes/NotesView";
 import { TextView } from "../modules/text/TextView";
 import { CaptureToolsView } from "../modules/tools/CaptureToolsView";
 import { startNotesService } from "../modules/notes/store";
+import { WeatherView } from "../modules/weather/WeatherView";
 import { listen } from "@tauri-apps/api/event";
 import { BIRTH_IMPACT_MS, DURATIONS, REGION_HOLD_MS } from "./springs";
 import "./island.css";
@@ -106,6 +107,7 @@ function viewFor(
       if (tab === "text") return { key: "expanded:text", content: <TextView /> };
       if (tab === "notes") return { key: "expanded:notes", content: <NotesView /> };
       if (tab === "tools") return { key: "expanded:tools", content: <CaptureToolsView /> };
+      if (tab === "weather") return { key: "expanded:weather", content: <WeatherView /> };
       if (tab === "timer") return { key: timerSet ? "expanded:timer" : "expanded:timer-pick", content: <TimerPanel /> };
       if (tab === "mirror") return { key: "expanded:mirror", content: <MirrorView /> };
       if (tab === "calendar") return { key: "expanded:calendar", content: <CalendarPanel events={calendar.coming} /> };
@@ -394,6 +396,8 @@ export function Island() {
         ? [520, 250, 22]
         : state.tab === "tools"
         ? [620, 340, 22]
+        : state.tab === "weather"
+        ? [560, 250, 22]
         : state.tab === "mirror"
         ? MIRROR_SIZE
         : state.tab === "calendar"
