@@ -4,7 +4,7 @@
 
 Run [43079309852](https://github.com/mexanik737-hub/island-w/actions/runs/43079309852), commit `1e7cff90ba1ccc7aa4674441aa739507d90f9bd5`, failed before runner assignment. The job API reports `runner_id: 0`, an empty runner name and `steps: []`. The run page's annotation states that the job was not started because recent account payments failed or the spending limit needs increasing. GitHub does not distinguish those two alternatives in that message.
 
-This is an account billing/spending restriction, not evidence of a workflow step or compiler failure. The account owner must inspect Billing & plans and restore Actions availability, then rerun CI. No billing, payment, spending-limit, repository visibility or security settings were changed by this work. Do not solve this by removing checks or making this private repository public.
+This was an account billing/spending restriction, not evidence of a workflow step or compiler failure. No billing, payment or spending-limit settings were changed. After the owner explicitly approved publication of the source and history, the repository was changed to public and the latest CI run was retried. Standard GitHub-hosted runners then started. Do not remove checks or change billing/visibility without owner approval.
 
 Logs/artifacts cannot be produced by workflow steps when GitHub never starts a runner. After runner assignment, the revised workflow separates frontend, Rust formatting, Windows native checks and packaging, with named steps and diagnostic artifacts. A skipped packaging job is not a successful package.
 

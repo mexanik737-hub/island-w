@@ -82,6 +82,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
+          cache-on-failure: true
       - name: Cargo check
         if: ${{ !cancelled() && steps.preflight.outcome == 'success' }}
         working-directory: src-tauri
@@ -138,6 +139,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
+          cache-on-failure: true
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
       - name: Compile release before packaging
