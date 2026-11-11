@@ -140,17 +140,17 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_capabilities,
             frontend_error,
-            agents::agents_status,
-            agents::agents_connect,
-            agents::agents_decide,
-            agents::agents_focus,
-            agents::agents_open,
-            agents::agents_usage,
-            agents::agents_quiet,
-            agents::agents_sound,
-            agents::agents_keyboard,
-            agents::agents_launch,
-            agents_phone::agents_phone_stop,
+
+
+
+
+
+
+
+
+
+
+
             calendar::calendar_events,
             calendar::calendar_refresh,
             calendar::calendar_check,
