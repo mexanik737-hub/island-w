@@ -5,9 +5,9 @@
 use std::collections::HashMap;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
+use std::process::Command;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{LazyLock, Mutex};
-use std::process::Command;
 use std::time::{Duration, Instant};
 
 use serde::Serialize;
@@ -255,12 +255,27 @@ pub fn launcher_command(app: AppHandle, command: String, powershell: bool) -> Re
 
     if powershell {
         Command::new("cmd.exe")
-            .args(["/C", "start", "Island - PowerShell", "powershell.exe", "-NoExit", "-Command", command])
+            .args([
+                "/C",
+                "start",
+                "Island - PowerShell",
+                "powershell.exe",
+                "-NoExit",
+                "-Command",
+                command,
+            ])
             .spawn()
             .map_err(|error| format!("Could not open PowerShell: {error}"))?;
     } else {
         Command::new("cmd.exe")
-            .args(["/C", "start", "Island - Command Prompt", "cmd.exe", "/K", command])
+            .args([
+                "/C",
+                "start",
+                "Island - Command Prompt",
+                "cmd.exe",
+                "/K",
+                command,
+            ])
             .spawn()
             .map_err(|error| format!("Could not open Command Prompt: {error}"))?;
     }

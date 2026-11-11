@@ -49,9 +49,12 @@ mod tests {
 
     #[test]
     fn russian_translation_is_available() {
-        assert_eq!(tr3("Bonjour", "Hello", "Привет"), match Lang::Ru {
-            Lang::Ru => "Привет",
-            _ => unreachable!(),
-        });
+        assert_eq!(
+            tr3("Bonjour", "Hello", "Привет"),
+            match Lang::Ru {
+                Lang::Ru => "Привет",
+                _ => unreachable!(),
+            }
+        );
     }
 }

@@ -47,7 +47,12 @@ fn fetch(from: &str, to: &str) -> Result<CurrencyRate, String> {
         });
     }
     let key = format!("{from}:{to}");
-    if let Some((at, value)) = CACHE.lock().unwrap_or_else(|e| e.into_inner()).get(&key).cloned() {
+    if let Some((at, value)) = CACHE
+        .lock()
+        .unwrap_or_else(|e| e.into_inner())
+        .get(&key)
+        .cloned()
+    {
         if at.elapsed() < CACHE_FOR {
             return Ok(value);
         }
@@ -74,7 +79,10 @@ fn fetch(from: &str, to: &str) -> Result<CurrencyRate, String> {
         to: response.quote,
         rate: response.rate,
     };
-    CACHE.lock().unwrap_or_else(|e| e.into_inner()).insert(key, (Instant::now(), rate.clone()));
+    CACHE
+        .lock()
+        .unwrap_or_else(|e| e.into_inner())
+        .insert(key, (Instant::now(), rate.clone()));
     Ok(rate)
 }
 

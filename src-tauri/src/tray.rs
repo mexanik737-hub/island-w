@@ -56,14 +56,27 @@ pub fn refresh(app: &AppHandle) {
     let Some(items) = app.try_state::<Items>() else {
         return;
     };
-    let _ = items.settings.set_text(tr3("Réglages…", "Settings…", "Настройки…"));
-    let _ = items.quit.set_text(tr3("Quitter Island", "Quit Island", "Выйти из Island"));
+    let _ = items
+        .settings
+        .set_text(tr3("Réglages…", "Settings…", "Настройки…"));
+    let _ = items
+        .quit
+        .set_text(tr3("Quitter Island", "Quit Island", "Выйти из Island"));
     let update = match crate::updates::available() {
         Some(version) => format!(
             "{} {version}",
-            tr3("Installer la mise à jour", "Install update", "Установить обновление")
+            tr3(
+                "Installer la mise à jour",
+                "Install update",
+                "Установить обновление"
+            )
         ),
-        None => tr3("Rechercher des mises à jour", "Check for updates", "Проверить обновления").to_owned(),
+        None => tr3(
+            "Rechercher des mises à jour",
+            "Check for updates",
+            "Проверить обновления",
+        )
+        .to_owned(),
     };
     let _ = items.update.set_text(update);
 }

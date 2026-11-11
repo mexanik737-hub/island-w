@@ -13,7 +13,7 @@ Continued from main `09a323e9bad5d0b802c465381ce45f1fc77df8d7`, rather than reim
 
 - `pnpm build`: passed.
 - `pnpm test`: 178 tests passed across 25 files, including ordered microphone writes, recovery after device failure, routing IDs and translations.
-- Rust formatting was checked for changed Rust files.
+- `cargo fmt --check`: passed after a separate formatting-only cleanup of six pre-existing files that also failed the CI formatting gate.
 - `cargo check --locked`: blocked before application compilation because this machine lacks the MSVC linker `link.exe`. Rust tests and Clippy are not confirmed.
 - GitHub Actions failed for both the starting HEAD and the language/build fix; the job exposed no step summaries or logs. This is not evidence that the Windows build passes. Check the run associated with the latest commit before releasing.
 - Microphone behavior and visual layout have not yet been exercised in a running Windows 11 application.

@@ -87,7 +87,12 @@ fn geocode(query: &str) -> Result<City, String> {
     if key.is_empty() {
         return Err("Enter a city or place name.".into());
     }
-    if let Some(city) = GEO_CACHE.lock().unwrap_or_else(|e| e.into_inner()).get(&key).cloned() {
+    if let Some(city) = GEO_CACHE
+        .lock()
+        .unwrap_or_else(|e| e.into_inner())
+        .get(&key)
+        .cloned()
+    {
         return Ok(city);
     }
 
@@ -112,16 +117,34 @@ fn geocode(query: &str) -> Result<City, String> {
         .read_json()
         .map_err(|e| format!("Could not read place search results: {e}"))?;
 
-    let found = response.into_iter().next().ok_or_else(|| "No matching place was found.".to_string())?;
-    let lat: f64 = found.lat.parse().map_err(|_| "Invalid latitude in place result.".to_string())?;
-    let lon: f64 = found.lon.parse().map_err(|_| "Invalid longitude in place result.".to_string())?;
-    let city = City { label: city_label(&found.display_name), lat, lon };
-    GEO_CACHE.lock().unwrap_or_else(|e| e.into_inner()).insert(key, city.clone());
+    let found = response
+        .into_iter()
+        .next()
+        .ok_or_else(|| "No matching place was found.".to_string())?;
+    let lat: f64 = found
+        .lat
+        .parse()
+        .map_err(|_| "Invalid latitude in place result.".to_string())?;
+    let lon: f64 = found
+        .lon
+        .parse()
+        .map_err(|_| "Invalid longitude in place result.".to_string())?;
+    let city = City {
+        label: city_label(&found.display_name),
+        lat,
+        lon,
+    };
+    GEO_CACHE
+        .lock()
+        .unwrap_or_else(|e| e.into_inner())
+        .insert(key, city.clone());
     Ok(city)
 }
 
 fn number_at(value: &Value, path: &[&str]) -> Option<f64> {
-    path.iter().try_fold(value, |node, key| node.get(*key))?.as_f64()
+    path.iter()
+        .try_fold(value, |node, key| node.get(*key))?
+        .as_f64()
 }
 fn string_at(value: &Value, path: &[&str]) -> Option<String> {
     path.iter()
@@ -141,43 +164,78 @@ fn build_forecast(city: &City, document: &Value) -> Result<WeatherForecast, Stri
         .and_then(|p| p.get("timeseries"))
         .and_then(Value::as_array)
         .ok_or_else(|| "The weather service returned no forecast.".to_string())?;
-    let current = series.first().ok_or_else(|| "The forecast is empty for this place.".to_string())?;
-    let current_data = current.get("data").ok_or_else(|| "The current forecast is incomplete.".to_string())?;
+    let current = series
+        .first()
+        .ok_or_else(|| "The forecast is empty for this place.".to_string())?;
+    let current_data = current
+        .get("data")
+        .ok_or_else(|| "The current forecast is incomplete.".to_string())?;
     let temperature = number_at(current_data, &["instant", "details", "air_temperature"])
         .ok_or_else(|| "The weather service did not report a temperature.".to_string())?;
     let humidity = number_at(current_data, &["instant", "details", "relative_humidity"]);
     let wind_speed = number_at(current_data, &["instant", "details", "wind_speed"]);
-    let precipitation = number_at(current_data, &["next_1_hours", "details", "precipitation_amount"])
-        .or_else(|| number_at(current_data, &["next_6_hours", "details", "precipitation_amount"]));
+    let precipitation = number_at(
+        current_data,
+        &["next_1_hours", "details", "precipitation_amount"],
+    )
+    .or_else(|| {
+        number_at(
+            current_data,
+            &["next_6_hours", "details", "precipitation_amount"],
+        )
+    });
 
-    let hours = series.iter().take(12).filter_map(|step| {
-        let data = step.get("data")?;
-        Some(WeatherHour {
-            time: step.get("time")?.as_str()?.to_owned(),
-            temperature: number_at(data, &["instant", "details", "air_temperature"] )?,
-            symbol: symbol_for(data),
-            precipitation: number_at(data, &["next_1_hours", "details", "precipitation_amount"]),
+    let hours = series
+        .iter()
+        .take(12)
+        .filter_map(|step| {
+            let data = step.get("data")?;
+            Some(WeatherHour {
+                time: step.get("time")?.as_str()?.to_owned(),
+                temperature: number_at(data, &["instant", "details", "air_temperature"])?,
+                symbol: symbol_for(data),
+                precipitation: number_at(
+                    data,
+                    &["next_1_hours", "details", "precipitation_amount"],
+                ),
+            })
         })
-    }).collect::<Vec<_>>();
+        .collect::<Vec<_>>();
 
     let mut by_day: BTreeMap<String, (f64, f64, String)> = BTreeMap::new();
     for step in series {
-        let Some(time) = step.get("time").and_then(Value::as_str) else { continue; };
+        let Some(time) = step.get("time").and_then(Value::as_str) else {
+            continue;
+        };
         let date = time.split('T').next().unwrap_or(time).to_owned();
-        let Some(data) = step.get("data") else { continue; };
-        let Some(temp) = number_at(data, &["instant", "details", "air_temperature"]) else { continue; };
+        let Some(data) = step.get("data") else {
+            continue;
+        };
+        let Some(temp) = number_at(data, &["instant", "details", "air_temperature"]) else {
+            continue;
+        };
         let symbol = symbol_for(data);
-        by_day.entry(date)
+        by_day
+            .entry(date)
             .and_modify(|value| {
                 value.0 = value.0.min(temp);
                 value.1 = value.1.max(temp);
-                if value.2 == "cloudy" { value.2 = symbol.clone(); }
+                if value.2 == "cloudy" {
+                    value.2 = symbol.clone();
+                }
             })
             .or_insert((temp, temp, symbol));
     }
-    let days = by_day.into_iter().take(7).map(|(date, (minimum, maximum, symbol))| {
-        WeatherDay { date, minimum, maximum, symbol }
-    }).collect();
+    let days = by_day
+        .into_iter()
+        .take(7)
+        .map(|(date, (minimum, maximum, symbol))| WeatherDay {
+            date,
+            minimum,
+            maximum,
+            symbol,
+        })
+        .collect();
 
     Ok(WeatherForecast {
         city: city.label.clone(),
@@ -196,7 +254,12 @@ fn build_forecast(city: &City, document: &Value) -> Result<WeatherForecast, Stri
 
 fn fetch_city(city: City) -> Result<WeatherForecast, String> {
     let key = format!("{:.4},{:.4}", city.lat, city.lon);
-    if let Some((at, forecast)) = FORECAST_CACHE.lock().unwrap_or_else(|e| e.into_inner()).get(&key).cloned() {
+    if let Some((at, forecast)) = FORECAST_CACHE
+        .lock()
+        .unwrap_or_else(|e| e.into_inner())
+        .get(&key)
+        .cloned()
+    {
         if at.elapsed() < CACHE_FOR {
             return Ok(forecast);
         }
@@ -213,7 +276,10 @@ fn fetch_city(city: City) -> Result<WeatherForecast, String> {
         .read_json()
         .map_err(|e| format!("Could not read the weather forecast: {e}"))?;
     let forecast = build_forecast(&city, &document)?;
-    FORECAST_CACHE.lock().unwrap_or_else(|e| e.into_inner()).insert(key, (Instant::now(), forecast.clone()));
+    FORECAST_CACHE
+        .lock()
+        .unwrap_or_else(|e| e.into_inner())
+        .insert(key, (Instant::now(), forecast.clone()));
     Ok(forecast)
 }
 
@@ -222,14 +288,26 @@ fn fetch(place: &str) -> Result<WeatherForecast, String> {
 }
 
 fn fetch_at(place: &str, lat: f64, lon: f64) -> Result<WeatherForecast, String> {
-    if !lat.is_finite() || !lon.is_finite() || !(-90.0..=90.0).contains(&lat) || !(-180.0..=180.0).contains(&lon) {
+    if !lat.is_finite()
+        || !lon.is_finite()
+        || !(-90.0..=90.0).contains(&lat)
+        || !(-180.0..=180.0).contains(&lon)
+    {
         return Err("The saved weather coordinates are invalid.".into());
     }
-    fetch_city(City { label: place.trim().to_owned(), lat, lon })
+    fetch_city(City {
+        label: place.trim().to_owned(),
+        lat,
+        lon,
+    })
 }
 
 #[tauri::command]
-pub async fn weather_forecast_at(place: String, lat: f64, lon: f64) -> Result<WeatherForecast, String> {
+pub async fn weather_forecast_at(
+    place: String,
+    lat: f64,
+    lon: f64,
+) -> Result<WeatherForecast, String> {
     tauri::async_runtime::spawn_blocking(move || fetch_at(&place, lat, lon))
         .await
         .map_err(|e| e.to_string())?
@@ -249,7 +327,11 @@ mod tests {
 
     #[test]
     fn forecast_extracts_current_and_daily_values() {
-        let city = City { label: "Helsinki".into(), lat: 60.17, lon: 24.94 };
+        let city = City {
+            label: "Helsinki".into(),
+            lat: 60.17,
+            lon: 24.94,
+        };
         let document = serde_json::json!({
           "properties":{
             "meta":{"updated_at":"2026-11-11T12:00:00Z"},
@@ -268,5 +350,5 @@ mod tests {
         assert_eq!(result.days[0].minimum, 4.0);
         assert_eq!(result.days[0].maximum, 5.0);
         assert_eq!(result.days[1].symbol, "snow");
-      }
+    }
 }
