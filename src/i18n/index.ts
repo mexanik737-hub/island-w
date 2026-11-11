@@ -4,23 +4,25 @@
  * text missing in English fails the build.
  *
  * The language is the setting's, or for "system" Windows' display
- * language (the web view's navigator.language): French for French,
- * English for everything else.
+ * language (the web view's navigator.language): Russian, French, or English.
  */
 import { useSettings, settingsNow } from "../settings/store";
 import type { Language } from "../ipc/settings";
 import { fr } from "./fr";
 import { en } from "./en";
+import { ru } from "./ru";
 
 export type Messages = typeof fr;
-export type Lang = "fr" | "en";
+export type Lang = "fr" | "en" | "ru";
 
 export function resolveLang(setting: Language, system = navigator.language): Lang {
   if (setting === "fr" || setting === "en") return setting;
-  return system.toLowerCase().startsWith("fr") ? "fr" : "en";
+  const detected = system.toLowerCase();
+  if (detected.startsWith("ru")) return "ru";
+  return detected.startsWith("fr") ? "fr" : "en";
 }
 
-const DICTIONARIES: Record<Lang, Messages> = { fr, en };
+const DICTIONARIES: Record<Lang, Messages> = { fr, en, ru };
 
 /** The texts in the current language, re-rendering when it changes. */
 export function useT(): Messages {
@@ -34,7 +36,7 @@ export function tNow(): Messages {
 
 /** "fr-FR" or "en-GB": for dates, numbers and sorting. */
 export function localeOf(lang: Lang): string {
-  return lang === "fr" ? "fr-FR" : "en-GB";
+  return lang === "fr" ? "fr-FR" : lang === "ru" ? "ru-RU" : "en-GB";
 }
 
 export function useLang(): Lang {

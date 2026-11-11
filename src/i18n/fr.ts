@@ -249,7 +249,7 @@ export const fr = {
       startupLabel: "Lancer au démarrage",
       language: "Langue",
       languageHint: "« Système » suit la langue d'affichage de Windows.",
-      languages: { system: "Système", fr: "Français", en: "English" },
+      languages: { system: "Système", fr: "Français", en: "English", ru: "Russe" },
       screen: "Écran",
       screenHint: "Où l'île se place. Si cet écran est débranché, elle va sur l'écran principal.",
       primaryScreen: "Écran principal",

@@ -88,11 +88,12 @@ pub struct General {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum Language {
-    /// Windows' display language: French for French, English otherwise.
+    /// Windows display language: Russian, French, or English by default.
     #[default]
     System,
     Fr,
     En,
+    Ru,
 }
 
 impl Default for General {
