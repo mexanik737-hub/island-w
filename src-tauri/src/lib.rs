@@ -2,6 +2,7 @@ mod apply;
 mod calendar;
 mod clipboard;
 mod controls;
+mod currency;
 mod files;
 mod i18n;
 mod icon_cache;
@@ -219,7 +220,8 @@ pub fn run() {
             dev_shelf_add,
             weather::weather_forecast,
             weather::weather_forecast_at,
-            ocr::ocr_image
+            ocr::ocr_image,
+            currency::currency_rate
         ])
         .run(tauri::generate_context!())
         .expect("error while running Island");

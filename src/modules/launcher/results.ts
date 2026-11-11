@@ -10,6 +10,7 @@ export type Result =
   | { kind: "reminder"; id: string; text: string; at: number; repeat: "none" | "daily" | "weekly" }
   | { kind: "command"; id: string; text: string; powershell: boolean }
   | { kind: "convert"; id: string; display: string }
+  | { kind: "currency"; id: string; amount: number; from: string; to: string }
   | { kind: "calc"; id: string; value: number }
   | { kind: "app"; id: string; app: LauncherApp }
   | { kind: "file"; id: string; file: FileHit }
@@ -48,6 +49,8 @@ export function compose(query: string, apps: LauncherApp[], files: FileHit[], us
   if (reminder) list.push({ kind: "reminder", id: `reminder:${reminder.at}`, ...reminder });
   if (asksForSettings(q)) list.push({ kind: "settings", id: "settings" });
   for (const { ms, pomodoro } of timerRequests(q)) list.push({ kind: "timer", id: `timer:${ms}:${pomodoro}`, ms, pomodoro });
+  const currency = /^\s*(-?\d+(?:[.,]\d+)?)\s+([a-z]{3})\s+(?:to|in|в|→)\s+([a-z]{3})\s*$/i.exec(q);
+  if (currency) list.push({ kind: "currency", id: "currency", amount: Number(currency[1].replace(",", ".")), from: currency[2].toUpperCase(), to: currency[3].toUpperCase() });
   const conversion = convertUnits(q);
   if (conversion) list.push({ kind: "convert", id: "convert", display: conversion.display });
   const value = calculate(q);

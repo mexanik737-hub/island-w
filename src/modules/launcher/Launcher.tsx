@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { closeLauncher, getLauncherApps, launchApp, openFile, runShellCommand, searchFiles, type FileHit, type LauncherApp } from "../../ipc/launcher";
 import { addReminder } from "../notes/store";
+import { getCurrencyRate } from "../../ipc/currency";
 import { openLink } from "../../ipc/notifications";
 import { openSettings } from "../../ipc/settings";
 import { arrivedLabel } from "../notifications/format";
@@ -144,6 +145,17 @@ function Row({ result, selected, copied }: { result: Result; selected: boolean; 
           <span className="launch-hint">{selected ? t.start : messages.timer.title}</span>
         </>
       );
+    case "currency":
+      return (
+        <>
+          <span className="launch-icon launch-icon--glyph">¤</span>
+          <span className="launch-text">
+            <span className="launch-title">{result.amount} {result.from} → {result.to}</span>
+            <span className="launch-sub">Daily reference rate · fetched on selection</span>
+          </span>
+          <span className="launch-hint">{selected ? "Fetch & copy" : "Currency"}</span>
+        </>
+      );
     case "convert":
       return (
         <>
@@ -278,6 +290,20 @@ export function Launcher({ onRows }: { onRows(rows: number): void }) {
         primeChime();
         startTimer(result.ms, result.pomodoro);
         closeLauncher(true).catch(ignore);
+        break;
+      case "currency":
+        getCurrencyRate(result.from, result.to)
+          .then((rate) => {
+            const value = Number((result.amount * rate.rate).toFixed(4));
+            const output = result.amount + " " + rate.from + " = " + value + " " + rate.to + " · " + rate.date;
+            return navigator.clipboard.writeText(output);
+          })
+          .then(() => {
+            setExecutionError(null);
+            setCopied(true);
+            setTimeout(() => closeLauncher(true).catch(ignore), 500);
+          })
+          .catch((error) => setExecutionError(String(error)));
         break;
       case "convert":
         navigator.clipboard
