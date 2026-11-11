@@ -1,5 +1,5 @@
 /** Rows the lower list shows before it scrolls. */
-export const VISIBLE_ROWS = 3;
+export const VISIBLE_ROWS = 2;
 /** One app (or output) row and the gap after it. */
 const ROW = 34;
 const GAP = 6;

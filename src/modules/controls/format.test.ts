@@ -3,18 +3,19 @@ import { controlsContentSize, levelAt, shownLevel } from "./format";
 import { keepOrder } from "./store";
 
 describe("controlsContentSize", () => {
-  it("grows with the apps, up to three rows", () => {
+  it("grows with the apps, keeping room for audio errors below the controls", () => {
     expect(controlsContentSize(0)).toEqual([460, 200]);
     expect(controlsContentSize(1)[1]).toBe(200 + 30 + 34);
-    expect(controlsContentSize(8)).toEqual(controlsContentSize(3));
+    expect(controlsContentSize(8)).toEqual(controlsContentSize(2));
   });
 
   it("makes room for the outputs list when it unfolds", () => {
-    expect(controlsContentSize(0, true)).toEqual(controlsContentSize(3));
+    expect(controlsContentSize(0, true)).toEqual(controlsContentSize(2));
   });
 
   it("fits under the tab bar in the window", () => {
     expect(controlsContentSize(9, true)[1] + 32).toBeLessThanOrEqual(376);
+    expect(controlsContentSize(9, true)[1] + 32 + 36).toBeLessThanOrEqual(376);
   });
 });
 

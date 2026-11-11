@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import * as ctl from "../../ipc/controls";
 import type { Controls, PowerAction, RadioKind } from "../../ipc/controls";
 import { levelAt, shownLevel } from "./format";
-import { BluetoothIcon, HeadphonesIcon, SpeakerIcon, WifiIcon } from "./icons";
+import { BluetoothIcon, HeadphonesIcon, SpeakerIcon, WifiIcon, MicrophoneIcon } from "./icons";
 import { refreshControls, setOutputsOpen, useControls, useOutputsOpen } from "./store";
 import { useT } from "../../i18n";
 import "./controls.css";
@@ -146,7 +146,8 @@ function AppIcon({ src, name }: { src: string; name: string }) {
   );
 }
 
-function OutputList({ outputs }: { outputs: Controls["outputs"] }) {
+function OutputList({ outputs, input = false, onError }: { outputs: Controls["outputs"]; input?: boolean; onError(message: string): void }) {
+  const t = useT().controls;
   const [chosen, setChosen] = useState<string | null>(null);
   return (
     <div className="ctl-list">
@@ -158,13 +159,14 @@ function OutputList({ outputs }: { outputs: Controls["outputs"] }) {
             layout="position"
             className={`ctl-output ${active ? "ctl-output--on" : ""}`}
             title={o.name}
+            aria-pressed={active}
+            disabled={chosen !== null}
             whileTap={{ scale: 0.98 }}
             onClick={(e) => {
               e.stopPropagation();
               setChosen(o.id);
-              ctl
-                .setOutput(o.id)
-                .catch(ignore)
+              (input ? ctl.setInput(o.id) : ctl.setOutput(o.id))
+                .catch(() => onError(t.audioError))
                 .finally(() => {
                   refreshControls();
                   setTimeout(() => {
@@ -174,7 +176,7 @@ function OutputList({ outputs }: { outputs: Controls["outputs"] }) {
                 });
             }}
           >
-            <OutputIcon form={o.form} />
+            {input ? <MicrophoneIcon /> : <OutputIcon form={o.form} />}
             <span className="ctl-output-name">{o.name}</span>
             {active && (
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -227,6 +229,9 @@ function AppList({ apps }: { apps: Controls["apps"] }) {
 export function ControlsView() {
   const t = useT().controls;
   const controls = useControls();
+  const [inputMode, setInputMode] = useState(false);
+  const [audioError, setAudioError] = useState<string | null>(null);
+  const [micBusy, setMicBusy] = useState(false);
   const outputsOpen = useOutputsOpen();
   const [confirmAction, setConfirmAction] = useState<PowerAction | null>(null);
   const [powerError, setPowerError] = useState<string | null>(null);
@@ -251,8 +256,17 @@ export function ControlsView() {
     confirmTimer.current = setTimeout(() => setConfirmAction(null), 5000);
   };
   if (!controls) return <div className="ctl" />;
-  const { radios, outputs, volume, apps } = controls;
-  const current = outputs.find((o) => o.default);
+  const { radios, outputs, volume, apps, inputs, microphone } = controls;
+  const devices = inputMode ? inputs : outputs;
+  const current = inputMode ? devices.find((o) => o.id === microphone?.id) ?? devices.find((o) => o.default) : devices.find((o) => o.default);
+  const audio = inputMode ? microphone : volume;
+  const failAudio = () => setAudioError(t.audioError);
+  const setAudioLevel = (level: number) => {
+    setAudioError(null);
+    if (inputMode) {
+      if (microphone) void ctl.setMicrophoneVolume(microphone.id, level).catch(failAudio).finally(refreshControls);
+    } else void ctl.setVolume(level).catch(failAudio);
+  };
 
   return (
     <div className="ctl">
@@ -262,7 +276,8 @@ export function ControlsView() {
         ))}
       </div>
 
-      {outputs.length > 0 && (
+      <div className="ctl-route">
+      {devices.length > 0 && (
         <motion.button
           className={`ctl-current ${outputsOpen ? "ctl-current--open" : ""}`}
           whileTap={{ scale: 0.98 }}
@@ -272,30 +287,44 @@ export function ControlsView() {
             setOutputsOpen(!outputsOpen);
           }}
         >
-          {current && <OutputIcon form={current.form} />}
-          <span className="ctl-current-label">{t.output}</span>
-          <span className="ctl-current-name">{current?.name ?? t.noOutput}</span>
+          {inputMode ? <MicrophoneIcon /> : current && <OutputIcon form={current.form} />}
+          <span className="ctl-current-label">{inputMode ? t.input : t.output}</span>
+          <span className="ctl-current-name">{current?.name ?? (inputMode ? t.noInput : t.noOutput)}</span>
           <Chevron open={outputsOpen} />
         </motion.button>
       )}
 
-      {volume && (
-        <PillSlider big level={volume.level} muted={volume.muted} label={t.volume} onLevel={(l) => ctl.setVolume(l).catch(ignore)}>
+      <button type="button" className="ctl-audio-mode" aria-label={inputMode ? t.output : t.input} title={inputMode ? t.output : t.input} aria-pressed={inputMode}
+        onClick={(e) => { e.stopPropagation(); setInputMode(!inputMode); setOutputsOpen(false); setAudioError(null); }}>
+        {inputMode ? <SpeakerIcon size={17} /> : <MicrophoneIcon />}
+      </button>
+      </div>
+      {inputMode && devices.length === 0 && <p className="ctl-audio-empty">{t.noInput}</p>}
+
+      {audio && (
+        <PillSlider key={inputMode ? microphone?.id : "output"} big level={audio.level} muted={audio.muted} label={inputMode ? t.inputVolume : t.volume} onLevel={setAudioLevel}>
           <button
             className="ctl-pill-icon"
-            aria-label={volume.muted ? t.unmute : t.mute}
+            aria-label={inputMode ? (audio.muted ? t.unmuteInput : t.muteInput) : (audio.muted ? t.unmute : t.mute)}
+            aria-pressed={audio.muted}
+            disabled={inputMode && micBusy}
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
-              ctl.setMute(!volume.muted).catch(ignore).finally(refreshControls);
+              setAudioError(null);
+              if (inputMode && microphone) {
+                setMicBusy(true);
+                ctl.setMicrophoneMute(microphone.id, !audio.muted).catch(failAudio).finally(() => refreshControls().finally(() => setMicBusy(false)));
+              } else ctl.setMute(!audio.muted).catch(failAudio).finally(refreshControls);
             }}
           >
-            <SpeakerIcon size={17} muted={volume.muted} />
+            {inputMode ? <MicrophoneIcon muted={audio.muted} /> : <SpeakerIcon size={17} muted={audio.muted} />}
           </button>
-          <span className="ctl-pill-label">{t.volume}</span>
+          <span className="ctl-pill-label">{inputMode ? t.inputVolume : t.volume}</span>
         </PillSlider>
       )}
 
+      {audioError && <p className="ctl-audio-error" role="alert">{audioError}</p>}
       <div className="ctl-power">
         <button type="button" onClick={() => pressPowerAction("lock")}>{t.lock}</button>
         <button type="button" className={confirmAction === "sleep" ? "ctl-power-confirm" : ""} onClick={() => pressPowerAction("sleep")}>{confirmAction === "sleep" ? t.confirm : t.sleep}</button>
@@ -306,11 +335,11 @@ export function ControlsView() {
       <AnimatePresence mode="wait" initial={false}>
         {outputsOpen ? (
           <motion.div key="outputs" className="ctl-section" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.16 }}>
-            <div className="ctl-caption">{t.outputs}</div>
-            <OutputList outputs={outputs} />
+            <div className="ctl-caption">{inputMode ? t.inputs : t.outputs}</div>
+            <OutputList key={inputMode ? "inputs" : "outputs"} outputs={devices} input={inputMode} onError={setAudioError} />
           </motion.div>
         ) : (
-          apps.length > 0 && (
+          !inputMode && apps.length > 0 && (
             <motion.div key="apps" className="ctl-section" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} transition={{ duration: 0.16 }}>
               <div className="ctl-caption">{t.apps}</div>
               <AppList apps={apps} />

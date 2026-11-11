@@ -39,6 +39,13 @@ export const fr = {
     source: (n: number, total: number) => `Source ${n} sur ${total}`,
   },
   controls: {
+    input: "Microphone",
+    inputs: "Microphones",
+    noInput: "Aucun microphone connecté",
+    inputVolume: "Niveau du microphone",
+    muteInput: "Couper le microphone",
+    unmuteInput: "Activer le microphone",
+    audioError: "Impossible de modifier le périphérique audio. Rouvrez les contrôles et réessayez.",
     on: "Activé",
     off: "Désactivé",
     muted: "Coupé",

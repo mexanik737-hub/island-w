@@ -62,6 +62,8 @@ pub fn read_controls() -> crate::controls::RawControls {
     crate::controls::RawControls {
         radios: Vec::new(),
         outputs: Vec::new(),
+        inputs: Vec::new(),
+        microphone: None,
         master: None,
         apps: Vec::new(),
     }
@@ -224,4 +226,14 @@ pub fn system_prefers_russian() -> bool {
         .iter()
         .find_map(|v| std::env::var(v).ok().filter(|s| !s.is_empty()))
         .is_some_and(|locale| locale.to_lowercase().starts_with("ru"))
+}
+
+pub fn set_default_input(_id: &str) -> Result<(), String> {
+    Err(NOT_YET.into())
+}
+pub fn set_microphone_volume(_id: &str, _level: u8) -> Result<(), String> {
+    Err(NOT_YET.into())
+}
+pub fn set_microphone_mute(_id: &str, _muted: bool) -> Result<(), String> {
+    Err(NOT_YET.into())
 }

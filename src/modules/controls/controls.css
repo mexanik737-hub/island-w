@@ -240,13 +240,13 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  /* Three rows, the rest scrolls behind a fade. */
-  max-height: calc(3 * 34px + 2 * 6px);
+  /* Two rows leave room for device errors inside the island. */
+  max-height: calc(2 * 34px + 6px);
   overflow-y: auto;
   scrollbar-width: none;
 }
 
-.ctl-list:has(> :nth-child(4)) {
+.ctl-list:has(> :nth-child(3)) {
   mask-image: linear-gradient(to bottom, #000 82%, transparent);
 }
 
@@ -307,3 +307,14 @@
 .ctl-power button:hover{background:rgba(255,255,255,.12);color:var(--text-1)}
 .ctl-power button.ctl-power-confirm{background:rgba(255,159,10,.2);border-color:rgba(255,159,10,.45);color:#ffd08a}
 .ctl-power-error{margin:0;color:#ff8178;font-size:9px}
+
+/* A single route row keeps the input controls within the island's height. */
+.ctl-route { display: flex; gap: 6px; min-height: 32px; flex: none; }
+.ctl-route .ctl-current { flex: 1; min-width: 0; }
+.ctl-audio-mode { display: grid; place-items: center; width: 34px; margin-left: auto; flex: none; border: 0; border-radius: 11px; background: #141417; color: var(--text-2); cursor: pointer; }
+.ctl-audio-mode[aria-pressed="true"] { color: #fff; background: #0a84ff; }
+.ctl-audio-mode:focus-visible { outline: 2px solid #0a84ff; outline-offset: 2px; }
+.ctl-audio-empty, .ctl-audio-error { margin: 0; font: 500 11px var(--font-ui); color: var(--text-3); }
+.ctl-audio-error { color: #ff6961; }
+.ctl:has(.ctl-audio-error) .ctl-list { max-height: 74px; }
+.ctl-pill-icon:disabled, .ctl-output:disabled { cursor: wait; }

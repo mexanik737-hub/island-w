@@ -143,17 +143,6 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_capabilities,
             frontend_error,
-
-
-
-
-
-
-
-
-
-
-
             calendar::calendar_events,
             calendar::calendar_refresh,
             calendar::calendar_check,
@@ -192,6 +181,9 @@ pub fn run() {
             controls::controls_state,
             controls::controls_set_radio,
             controls::controls_set_output,
+            controls::controls_set_input,
+            controls::controls_set_microphone_volume,
+            controls::controls_set_microphone_mute,
             controls::controls_set_volume,
             controls::controls_set_mute,
             controls::controls_set_app_volume,

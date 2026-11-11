@@ -43,6 +43,13 @@ export const ru: Messages = {
   },
   controls: {
     ...en.controls,
+    input: "Микрофон",
+    inputs: "Микрофоны",
+    noInput: "Микрофон не подключён",
+    inputVolume: "Уровень микрофона",
+    muteInput: "Выключить микрофон",
+    unmuteInput: "Включить микрофон",
+    audioError: "Не удалось изменить аудиоустройство. Откройте панель заново и повторите.",
     on: "Включено",
     off: "Выключено",
     muted: "Без звука",

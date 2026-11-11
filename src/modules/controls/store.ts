@@ -24,8 +24,8 @@ export function keepOrder(previous: Controls["apps"], next: Controls["apps"]): C
   return [...next].sort((a, b) => (rank.get(a.key) ?? Infinity) - (rank.get(b.key) ?? Infinity));
 }
 
-export function refreshControls(): void {
-  getControls()
+export function refreshControls(): Promise<void> {
+  return getControls()
     .then((next) => {
       state = { ...next, apps: state ? keepOrder(state.apps, next.apps) : next.apps };
       publish();

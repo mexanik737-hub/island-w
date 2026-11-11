@@ -14,9 +14,10 @@ use windows::Devices::Radios::{Radio, RadioKind as WinRadioKind, RadioState};
 use windows::Win32::Foundation::CloseHandle;
 use windows::Win32::Media::Audio::Endpoints::IAudioEndpointVolume;
 use windows::Win32::Media::Audio::{
-    AudioSessionStateActive, AudioSessionStateExpired, DEVICE_STATE_ACTIVE, IAudioSessionControl2,
-    IAudioSessionManager2, IMMDevice, IMMDeviceEnumerator, ISimpleAudioVolume, MMDeviceEnumerator,
-    eCommunications, eConsole, eMultimedia, eRender,
+    AudioSessionStateActive, AudioSessionStateExpired, DEVICE_STATE_ACTIVE, EDataFlow,
+    IAudioSessionControl2, IAudioSessionManager2, IMMDevice, IMMDeviceEnumerator,
+    ISimpleAudioVolume, MMDeviceEnumerator, eCapture, eCommunications, eConsole, eMultimedia,
+    eRender,
 };
 use windows::Win32::Storage::FileSystem::{
     GetFileVersionInfoSizeW, GetFileVersionInfoW, VerQueryValueW,
@@ -129,6 +130,8 @@ pub fn read_controls() -> RawControls {
     RawControls {
         radios: read_radios(),
         outputs: read_outputs(),
+        inputs: read_endpoints(eCapture),
+        microphone: read_microphone(),
         master: read_master(),
         apps: read_apps(),
     }
@@ -189,12 +192,19 @@ pub fn set_radio(kind: RadioKind, on: bool) -> Result<(), String> {
 // ---- Outputs ------------------------------------------------------------
 
 fn read_outputs() -> Vec<RawOutput> {
+    read_endpoints(eRender)
+}
+
+fn read_endpoints(flow: EDataFlow) -> Vec<RawOutput> {
     let Ok(enumerator) = enumerator() else {
         return Vec::new();
     };
-    let default = default_render().as_ref().and_then(device_id);
+    let default = unsafe { enumerator.GetDefaultAudioEndpoint(flow, eConsole) }
+        .ok()
+        .as_ref()
+        .and_then(device_id);
     // SAFETY: plain COM enumeration.
-    let Ok(list) = (unsafe { enumerator.EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE) }) else {
+    let Ok(list) = (unsafe { enumerator.EnumAudioEndpoints(flow, DEVICE_STATE_ACTIVE) }) else {
         return Vec::new();
     };
     let count = unsafe { list.GetCount() }.unwrap_or(0);
@@ -266,6 +276,72 @@ pub fn set_master_mute(muted: bool) -> Result<(), String> {
     com();
     let volume = master_volume().ok_or("no output")?;
     // SAFETY: a plain COM setter.
+    unsafe { volume.SetMute(muted, std::ptr::null()) }.map_err(|e| e.to_string())
+}
+
+// ---- Microphone (capture endpoints; never opens an audio stream) -----------
+
+/// Resolve by the displayed endpoint id, so a concurrent default-device change
+/// cannot mute a different microphone. Reject output, disabled and removed ids.
+fn microphone_volume(id: &str) -> Result<IAudioEndpointVolume, String> {
+    let enumerator = enumerator().map_err(|e| e.to_string())?;
+    // SAFETY: plain COM enumeration; all indices are within the collection.
+    unsafe {
+        let list = enumerator
+            .EnumAudioEndpoints(eCapture, DEVICE_STATE_ACTIVE)
+            .map_err(|e| e.to_string())?;
+        let count = list.GetCount().map_err(|e| e.to_string())?;
+        for i in 0..count {
+            let device = list.Item(i).map_err(|e| e.to_string())?;
+            if device_id(&device).as_deref() == Some(id) {
+                return device.Activate(CLSCTX_ALL, None).map_err(|e| e.to_string());
+            }
+        }
+    }
+    Err("Microphone disconnected or unavailable".into())
+}
+
+fn read_microphone() -> Option<(String, u8, bool)> {
+    // SAFETY: plain COM getter for the default capture endpoint.
+    let device = unsafe {
+        enumerator()
+            .ok()?
+            .GetDefaultAudioEndpoint(eCapture, eConsole)
+    }
+    .ok()?;
+    let id = device_id(&device)?;
+    let volume = microphone_volume(&id).ok()?;
+    // SAFETY: plain COM getters, no recording or audio capture.
+    unsafe {
+        Some((
+            id,
+            volume_percent(volume.GetMasterVolumeLevelScalar().ok()?),
+            volume.GetMute().ok()?.as_bool(),
+        ))
+    }
+}
+
+pub fn set_default_input(id: &str) -> Result<(), String> {
+    com();
+    // Validate that the id is an active capture endpoint before changing roles.
+    let _ = microphone_volume(id)?;
+    set_default_output(id)
+}
+
+pub fn set_microphone_volume(id: &str, level: u8) -> Result<(), String> {
+    com();
+    let volume = microphone_volume(id)?;
+    // SAFETY: plain COM setter; volume does not change the mute state.
+    unsafe {
+        volume.SetMasterVolumeLevelScalar(f32::from(level.min(100)) / 100.0, std::ptr::null())
+    }
+    .map_err(|e| e.to_string())
+}
+
+pub fn set_microphone_mute(id: &str, muted: bool) -> Result<(), String> {
+    com();
+    let volume = microphone_volume(id)?;
+    // SAFETY: plain COM setter on the validated capture endpoint.
     unsafe { volume.SetMute(muted, std::ptr::null()) }.map_err(|e| e.to_string())
 }
 

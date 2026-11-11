@@ -39,6 +39,13 @@ export const en: Messages = {
     source: (n: number, total: number) => `Source ${n} of ${total}`,
   },
   controls: {
+    input: "Microphone",
+    inputs: "Microphones",
+    noInput: "No microphone connected",
+    inputVolume: "Microphone level",
+    muteInput: "Mute microphone",
+    unmuteInput: "Unmute microphone",
+    audioError: "Could not change the audio device. Reopen Controls and try again.",
     on: "On",
     off: "Off",
     muted: "Muted",

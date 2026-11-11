@@ -16,6 +16,16 @@ describe("resolveLang", () => {
 });
 
 describe("dictionaries", () => {
+  it("translates microphone actions and errors in each language", () => {
+    expect(ru.controls.input).toBe("Микрофон");
+    expect(ru.controls.muteInput).toBe("Выключить микрофон");
+    expect(ru.controls.audioError).not.toBe(en.controls.audioError);
+    for (const dictionary of [en, fr, ru]) {
+      expect(dictionary.controls.inputVolume).toBeTruthy();
+      expect(dictionary.controls.unmuteInput).not.toBe(dictionary.controls.muteInput);
+      expect(dictionary.controls.noInput).toBeTruthy();
+    }
+  });
   it("write counts and sizes each in their own way", () => {
     expect(fr.shelf.count(1)).toBe("1 élément");
     expect(en.shelf.count(3)).toBe("3 items");

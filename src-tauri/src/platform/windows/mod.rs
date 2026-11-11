@@ -31,8 +31,8 @@ pub use autostart::set_autostart;
 pub use bluetooth::start_bluetooth_watch;
 pub use clipboard::{start_clipboard_watch, write_clipboard};
 pub use controls::{
-    read_controls, set_app_mute, set_app_volume, set_default_output, set_master_mute,
-    set_master_volume, set_radio,
+    read_controls, set_app_mute, set_app_volume, set_default_input, set_default_output,
+    set_master_mute, set_master_volume, set_microphone_mute, set_microphone_volume, set_radio,
 };
 pub use crash::install_crash_logger;
 pub use file_drop::watch_file_drops;

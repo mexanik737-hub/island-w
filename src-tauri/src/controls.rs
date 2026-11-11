@@ -7,8 +7,8 @@ use std::collections::HashMap;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
-use std::sync::{LazyLock, Mutex};
 use std::process::Command;
+use std::sync::{LazyLock, Mutex};
 
 use serde::{Deserialize, Serialize};
 use tauri::http::{Response, StatusCode, header};
@@ -31,6 +31,8 @@ pub enum RadioKind {
 pub struct RawControls {
     pub radios: Vec<(RadioKind, bool)>,
     pub outputs: Vec<RawOutput>,
+    pub inputs: Vec<RawOutput>,
+    pub microphone: Option<(String, u8, bool)>,
     /// Level 0–100 and mute, when there is an output.
     pub master: Option<(u8, bool)>,
     pub apps: Vec<RawApp>,
@@ -58,6 +60,8 @@ pub struct RawApp {
 pub struct Controls {
     pub radios: Vec<Radio>,
     pub outputs: Vec<Output>,
+    pub inputs: Vec<Output>,
+    pub microphone: Option<Microphone>,
     pub volume: Option<Level>,
     pub apps: Vec<App>,
 }
@@ -75,6 +79,13 @@ pub struct Output {
     pub name: String,
     pub form: DeviceForm,
     pub default: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct Microphone {
+    pub id: String,
+    pub level: u8,
+    pub muted: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -142,7 +153,24 @@ pub fn output_names(outputs: &[RawOutput]) -> Vec<String> {
     names
 }
 
+fn build_endpoints(raw: Vec<RawOutput>) -> Vec<Output> {
+    let names = output_names(&raw);
+    let mut endpoints: Vec<_> = raw
+        .into_iter()
+        .zip(names)
+        .map(|(o, name)| Output {
+            id: o.id,
+            name,
+            form: o.form,
+            default: o.default,
+        })
+        .collect();
+    endpoints.sort_by_key(|o| !o.default);
+    endpoints
+}
+
 fn build(raw: RawControls) -> Controls {
+    let inputs = build_endpoints(raw.inputs);
     let names = output_names(&raw.outputs);
     let mut outputs: Vec<Output> = raw
         .outputs
@@ -181,6 +209,10 @@ fn build(raw: RawControls) -> Controls {
             .map(|(kind, on)| Radio { kind, on })
             .collect(),
         outputs,
+        inputs,
+        microphone: raw
+            .microphone
+            .map(|(id, level, muted)| Microphone { id, level, muted }),
         volume: raw.master.map(|(level, muted)| Level { level, muted }),
         apps,
     }
@@ -207,6 +239,27 @@ pub async fn controls_set_radio(kind: RadioKind, on: bool) -> Result<(), String>
 #[tauri::command]
 pub async fn controls_set_output(id: String) -> Result<(), String> {
     platform::set_default_output(&id)
+}
+
+#[tauri::command]
+pub async fn controls_set_input(id: String) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || platform::set_default_input(&id))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn controls_set_microphone_volume(id: String, level: u8) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || platform::set_microphone_volume(&id, level))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn controls_set_microphone_mute(id: String, muted: bool) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || platform::set_microphone_mute(&id, muted))
+        .await
+        .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
@@ -257,7 +310,9 @@ pub fn controls_power_action(action: String) -> Result<(), String> {
             }
             _ => return Err("Unknown power action.".into()),
         };
-        process.spawn().map_err(|error| format!("Could not start the power action: {error}"))?;
+        process
+            .spawn()
+            .map_err(|error| format!("Could not start the power action: {error}"))?;
         Ok(())
     }
     #[cfg(not(target_os = "windows"))]
@@ -349,6 +404,17 @@ mod tests {
     }
 
     #[test]
+    fn inputs_use_unique_names_and_put_the_default_first() {
+        let first = output("USB", "Microphone (USB)");
+        let mut second = output("USB", "Headset (USB)");
+        second.default = true;
+        let inputs = build_endpoints(vec![first, second]);
+        assert_eq!(inputs[0].name, "Headset (USB)");
+        assert!(inputs[0].default);
+        assert_eq!(inputs[1].name, "Microphone (USB)");
+    }
+
+    #[test]
     fn apps_get_a_stable_key_and_commands_resolve_it() {
         let mut speakers = output("Realtek(R) Audio", "Haut-parleurs (Realtek(R) Audio)");
         let mut headphones = output("WH-CH520", "Casque (WH-CH520)");
@@ -357,6 +423,8 @@ mod tests {
         let controls = build(RawControls {
             radios: vec![(RadioKind::Bluetooth, true), (RadioKind::Wifi, true)],
             outputs: vec![speakers, headphones],
+            inputs: Vec::new(),
+            microphone: Some(("mic-id".into(), 65, true)),
             master: Some((40, false)),
             apps: vec![RawApp {
                 path: PathBuf::from(r"C:\Apps\Spotify.exe"),
@@ -365,6 +433,15 @@ mod tests {
                 muted: false,
             }],
         });
+        assert_eq!(
+            controls.microphone,
+            Some(Microphone {
+                id: "mic-id".into(),
+                level: 65,
+                muted: true
+            })
+        );
+        assert!(controls.inputs.is_empty());
         let key = &controls.apps[0].key;
         assert_eq!(key, &key_of(Path::new(r"C:\Apps\Spotify.exe")));
         assert_eq!(
