@@ -4,32 +4,166 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: never
+  RUST_BACKTRACE: 1
 
 jobs:
-  windows:
-    name: Windows 11 build and checks
-    runs-on: windows-latest
+  frontend:
+    name: Frontend build and tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
         with:
-          version: 10.33.2
+          node-version: 22
+          cache: pnpm
+      - name: Tool versions
+        run: node --version && pnpm --version
+      - name: Install locked dependencies
+        id: install
+        run: pnpm install --frozen-lockfile
+      - name: Build frontend
+        run: pnpm build
+      - name: Test frontend
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: pnpm test
+      - name: Upload validated frontend
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
+
+  rust-format:
+    name: Rust formatting
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --check
+        working-directory: src-tauri
+
+  rust-windows:
+    # A Windows Server compile/test host is not proof of a Windows 11 UI launch.
+    name: Windows native check, Clippy and tests
+    runs-on: windows-2022
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+          components: clippy
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - name: Check MSVC and Windows SDK
+        id: preflight
+        run: ./scripts/check-windows-build.ps1
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - name: Cargo check
+        if: ${{ !cancelled() && steps.preflight.outcome == 'success' }}
+        working-directory: src-tauri
+        run: |
+          New-Item -ItemType Directory -Force ../ci-logs | Out-Null
+          cargo check --locked --all-targets --target x86_64-pc-windows-msvc 2>&1 | Tee-Object ../ci-logs/check.log
+          exit $LASTEXITCODE
+      - name: Cargo Clippy (warnings are errors)
+        if: ${{ !cancelled() && steps.preflight.outcome == 'success' }}
+        working-directory: src-tauri
+        run: |
+          New-Item -ItemType Directory -Force ../ci-logs | Out-Null
+          cargo clippy --locked --all-targets --target x86_64-pc-windows-msvc -- -D warnings 2>&1 | Tee-Object ../ci-logs/clippy.log
+          exit $LASTEXITCODE
+      - name: Cargo tests
+        if: ${{ !cancelled() && steps.preflight.outcome == 'success' }}
+        working-directory: src-tauri
+        run: |
+          New-Item -ItemType Directory -Force ../ci-logs | Out-Null
+          cargo test --locked --all-targets --target x86_64-pc-windows-msvc 2>&1 | Tee-Object ../ci-logs/test.log
+          exit $LASTEXITCODE
+      - name: Upload native diagnostics even on failure
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-diagnostics-${{ github.sha }}
+          path: ci-logs/
+          if-no-files-found: warn
+          retention-days: 14
+
+  windows-package:
+    name: Compile release and verify NSIS package
+    needs: [frontend, rust-format, rust-windows]
+    runs-on: windows-2022
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: pnpm
       - uses: dtolnay/rust-toolchain@stable
         with:
-          components: clippy, rustfmt
+          targets: x86_64-pc-windows-msvc
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - name: Check MSVC and Windows SDK
+        run: ./scripts/check-windows-build.ps1
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
-      - run: pnpm test
-      - run: cargo fmt --check
-        working-directory: src-tauri
-      - run: cargo clippy --locked --all-targets -- -D warnings
-        working-directory: src-tauri
-      - run: cargo test --locked
-        working-directory: src-tauri
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Compile release before packaging
+        run: |
+          pnpm tauri build --ci --no-bundle --target x86_64-pc-windows-msvc -- --locked 2>&1 | Tee-Object ci-logs/release.log
+          exit $LASTEXITCODE
+      - name: Package compiled release with NSIS
+        run: |
+          pnpm tauri bundle --ci --bundles nsis --target x86_64-pc-windows-msvc 2>&1 | Tee-Object ci-logs/package.log
+          exit $LASTEXITCODE
+      - name: Verify installer and record SHA256
+        run: ./scripts/verify-windows-package.ps1
+      - name: Upload verified installer (not a published release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Island-W-windows-x64-${{ github.sha }}
+          path: |
+            src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*-setup.exe
+            ci-logs/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload packaging diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-diagnostics-${{ github.sha }}
+          path: ci-logs/
+          if-no-files-found: warn
+          retention-days: 14

@@ -50,6 +50,10 @@
     "createUpdaterArtifacts": false,
     "licenseFile": "installer/notice.txt",
     "windows": {
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper",
+        "silent": true
+      },
       "nsis": {
         "languages": [
           "French",
