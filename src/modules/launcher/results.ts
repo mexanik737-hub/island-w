@@ -20,10 +20,6 @@ export function asksForSettings(query: string): boolean {
   return q.length >= 3 && SETTINGS_WORDS.some((word) => word.startsWith(q) || q.startsWith(word));
 }
 
-/**
- * "claude fix the tests", "codex: write the docs": a task for an agent,
- * started in a new terminal.
- */
 /** What fits in the window under the search bar. */
 export const MAX_ROWS = 7;
 /** Apps shown at most, so files keep room. */

@@ -77,7 +77,7 @@ interface TabBarProps {
   hasMedia: boolean;
   /** What each tab holds, shown as a badge. */
   counts: Partial<Record<Tab, number>>;
-  /** A badge other than the count, when they differ (agents: those waiting). */
+  /** An alternate badge value when it differs from the count. */
   badges?: Partial<Record<Tab, number>>;
   /** From the settings: the tabs' order and the hidden ones. */
   order: readonly string[];
