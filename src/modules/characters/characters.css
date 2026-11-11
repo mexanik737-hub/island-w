@@ -15,3 +15,52 @@
 .island-character--preview>span{font-size:31px}
 @keyframes character-wheel{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 @keyframes character-wing{from{transform:scaleX(.75)}to{transform:scaleX(1.05)}}
+
+/* Individual character idle loops: each keeps its own silhouette and rhythm. */
+.island-character--pixel>span{animation:character-pixel 1.7s steps(2,end) infinite}
+.island-character--spark>span{animation:character-spark 2.1s ease-in-out infinite}
+.island-character--eyes>span{animation:character-eyes 3.2s ease-in-out infinite}
+.island-character--tail>span{animation:character-tail 1.4s ease-in-out infinite}
+.island-character--legs>span{animation:character-legs .8s ease-in-out infinite}
+.island-character--jellyfish>span{animation:character-jelly 2.5s ease-in-out infinite}
+.island-character--campfire>span{animation:character-fire .42s ease-in-out infinite alternate}
+.island-character--lens>span{animation:character-lens 2.4s ease-in-out infinite}
+.island-character--newton>span{animation:character-newton 1.8s ease-in-out infinite}
+.island-character--cat>span{animation:character-cat 2.7s ease-in-out infinite}
+.island-character--frog>span{animation:character-frog 2s ease-in-out infinite}
+.island-character--ghost>span{animation:character-ghost 2.8s ease-in-out infinite}
+.island-character--cloud>span{animation:character-cloud 4s ease-in-out infinite}
+.island-character--planet>span{animation:character-planet 5s linear infinite}
+.island-character--flower>span{animation:character-flower 3s ease-in-out infinite}
+.island-character--mushroom>span{animation:character-mushroom 2.6s ease-in-out infinite}
+.island-character--duck>span{animation:character-duck 1.8s ease-in-out infinite}
+.island-character--fox>span{animation:character-fox 1.5s ease-in-out infinite}
+.island-character--axolotl>span{animation:character-axolotl 2.2s ease-in-out infinite}
+.island-character--star>span{animation:character-twinkle 1.6s ease-in-out infinite}
+.island-character--robot>span{animation:character-robot 2.3s ease-in-out infinite}
+.island-character--slime>span{animation:character-slime 1.15s ease-in-out infinite}
+@keyframes character-pixel{0%,90%,100%{transform:translateY(0)}45%{transform:translateY(-3px)}}
+@keyframes character-spark{0%,100%{transform:rotate(-9deg) scale(.92)}50%{transform:rotate(12deg) scale(1.12)}}
+@keyframes character-eyes{0%,35%,100%{transform:translateX(0)}45%,55%{transform:translateX(3px)}65%{transform:translateX(-2px)}}
+@keyframes character-tail{0%,100%{transform:rotate(-22deg)}50%{transform:rotate(18deg)}}
+@keyframes character-legs{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
+@keyframes character-jelly{0%,100%{transform:translateY(2px) scaleX(1)}50%{transform:translateY(-4px) scaleX(.92)}}
+@keyframes character-fire{from{transform:scale(.94,1.04) rotate(-3deg)}to{transform:scale(1.06,.96) rotate(3deg)}}
+@keyframes character-lens{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+@keyframes character-newton{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+@keyframes character-cat{0%,75%,100%{transform:rotate(0)}82%{transform:rotate(-12deg)}90%{transform:rotate(8deg)}}
+@keyframes character-frog{0%,70%,100%{transform:translateY(0) scaleY(1)}80%{transform:translateY(-7px) scaleY(1.08)}90%{transform:translateY(1px) scaleY(.92)}}
+@keyframes character-ghost{0%,100%{transform:translateY(3px) rotate(-3deg)}50%{transform:translateY(-5px) rotate(3deg)}}
+@keyframes character-cloud{0%,100%{transform:translateX(-2px)}50%{transform:translateX(3px)}}
+@keyframes character-planet{from{transform:rotate(-12deg)}to{transform:rotate(348deg)}}
+@keyframes character-flower{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+@keyframes character-mushroom{0%,100%{transform:scale(1)}50%{transform:scale(1.08,1.12)}}
+@keyframes character-duck{0%,100%{transform:rotate(-4deg) translateY(0)}50%{transform:rotate(5deg) translateY(-2px)}}
+@keyframes character-fox{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(7deg)}}
+@keyframes character-axolotl{0%,100%{transform:scale(1)}50%{transform:scale(1.06,.96)}}
+@keyframes character-twinkle{0%,100%{transform:scale(.9) rotate(-12deg);opacity:.8}50%{transform:scale(1.14) rotate(12deg);opacity:1}}
+@keyframes character-robot{0%,100%{transform:rotate(0)}25%{transform:rotate(-5deg)}75%{transform:rotate(5deg)}}
+@keyframes character-slime{0%,100%{transform:scale(1,1)}35%{transform:scale(1.12,.88)}65%{transform:scale(.92,1.08)}}
+@media (prefers-reduced-motion: reduce){
+  .island-character>span{animation:none!important}
+}
