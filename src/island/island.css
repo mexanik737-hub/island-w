@@ -41,3 +41,5 @@
   color: var(--text-1);
   font-family: var(--font-ui);
 }
+
+@import "../modules/characters/characters.css";

@@ -13,6 +13,7 @@ import { localeOf, useLang, useT } from "../i18n";
 import type { Tab } from "../machine/island-machine";
 import { orderTabs, TABS } from "../island/tabs";
 import { tabFace } from "../island/TabBar";
+import { CHARACTER_OPTIONS, CharacterSprite } from "../modules/characters/CharacterSprite";
 
 const ignore = () => {};
 const REPO = "https://github.com/mexanik737-hub/island-w";
@@ -252,6 +253,24 @@ function General({ settings, save }: { settings: Settings; save: ReturnType<type
             ))}
           </select>
         </Row>
+      </Group>
+      <Group title="Character">
+        <div className="character-picker">
+          {CHARACTER_OPTIONS.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              className={g.character === option.id ? "character-option character-option--selected" : "character-option"}
+              aria-pressed={g.character === option.id}
+              onClick={() => set({ character: option.id })}
+            >
+              <span className="character-option-art">
+                {option.id === "liquid" ? <span className="character-liquid-preview" /> : <CharacterSprite character={option.id} preview />}
+              </span>
+              <span>{option.name}</span>
+            </button>
+          ))}
+        </div>
       </Group>
       <Group title={t.behaviour}>
         <Row title={t.hover} description={t.hoverHint}>

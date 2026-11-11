@@ -444,6 +444,7 @@ export function Island() {
         initial={reducedMotion ? target : UNBORN}
         timeScale={timeScale}
         reducedMotion={reducedMotion}
+        character={settings.general.character}
         onPointerEnter={controller.pointerEnter}
         onPointerLeave={controller.pointerLeave}
         onPress={controller.press}

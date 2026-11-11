@@ -1,0 +1,17 @@
+.island-character{position:absolute;z-index:2;left:50%;top:-9px;transform:translateX(-50%);width:50px;height:43px;display:grid;place-items:center;pointer-events:none;filter:drop-shadow(0 2px 5px rgba(0,0,0,.42))}
+.island-character>span{font-family:"Segoe UI Emoji","Apple Color Emoji",sans-serif;font-size:27px;line-height:1;display:block;white-space:nowrap}
+.island-character--pixel>span{font-size:25px;image-rendering:pixelated;filter:contrast(1.15)}
+.island-character--spark>span,.island-character--star>span{filter:drop-shadow(0 0 8px rgba(255,225,125,.7))}
+.island-character--eyes>span{letter-spacing:-7px;font-size:28px}
+.island-character--tail>span{transform:rotate(-15deg)}
+.island-character--legs>span{font-size:28px;filter:drop-shadow(0 4px 0 rgba(255,255,255,.2))}
+.island-character--jellyfish>span{filter:drop-shadow(0 3px 4px rgba(117,202,255,.55))}
+.island-character--hamster>span{animation:character-wheel 1s linear infinite}
+.island-character--campfire>span{filter:drop-shadow(0 0 7px rgba(255,111,38,.6))}
+.island-character--ghost>span{filter:drop-shadow(0 0 8px rgba(255,255,255,.5))}
+.island-character--planet>span{filter:drop-shadow(0 0 5px rgba(111,142,255,.55))}
+.island-character--butterfly>span{animation:character-wing .65s ease-in-out infinite alternate}
+.island-character--preview{position:relative;inset:auto;transform:none;width:54px;height:48px;filter:none}
+.island-character--preview>span{font-size:31px}
+@keyframes character-wheel{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes character-wing{from{transform:scaleX(.75)}to{transform:scaleX(1.05)}}

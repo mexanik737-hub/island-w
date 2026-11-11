@@ -80,6 +80,8 @@ pub struct General {
     /// Looks for a new version now and then (GitHub releases).
     pub check_updates: bool,
     pub language: Language,
+    /// Character drawn in the folded island; liquid is the default shell.
+    pub character: String,
 }
 
 /// The interface's language.
@@ -105,6 +107,7 @@ impl Default for General {
             motion: Motion::System,
             check_updates: false,
             language: Language::System,
+            character: "liquid".into(),
         }
     }
 }

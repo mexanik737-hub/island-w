@@ -3,6 +3,8 @@ import { animate, motion, useMotionValue, useTransform, type MotionValue } from 
 import type { ShellTarget } from "./geometry";
 import { bodyPath, FLARE, leftFlarePath, rightFlarePath, silhouetteWidth } from "./shell";
 import { DURATIONS, slowed, SPRINGS, type Spring } from "./springs";
+import { CharacterSprite } from "../modules/characters/CharacterSprite";
+import type { CharacterId } from "../ipc/settings";
 
 interface IslandShellProps {
   /** Where the shell is heading. Changing it mid-flight retargets the springs. */
@@ -12,6 +14,7 @@ interface IslandShellProps {
   /** 1 = normal speed; 4 = four times slower (debug). */
   timeScale: number;
   reducedMotion: boolean;
+  character: CharacterId;
   onPointerEnter(): void;
   onPointerLeave(): void;
   onPress(): void;
@@ -28,6 +31,7 @@ export function IslandShell({
   initial,
   timeScale,
   reducedMotion,
+  character,
   onPointerEnter,
   onPointerLeave,
   onPress,
@@ -79,6 +83,7 @@ export function IslandShell({
           <motion.path d={rightFlare} style={{ opacity: flares }} />
         </motion.g>
       </svg>
+      {th < 64 && <CharacterSprite character={character} />}
       <motion.div
         className="island-clip"
         style={{
