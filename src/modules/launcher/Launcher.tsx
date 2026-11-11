@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { closeLauncher, getLauncherApps, launchApp, openFile, searchFiles, type FileHit, type LauncherApp } from "../../ipc/launcher";
 import { addReminder } from "../notes/store";
+import { runShellCommand } from "../../ipc/launcher";
 import { openLink } from "../../ipc/notifications";
 import { openSettings } from "../../ipc/settings";
 import { arrivedLabel } from "../notifications/format";
@@ -110,6 +111,17 @@ function Row({ result, selected, copied }: { result: Result; selected: boolean; 
                   ? t.folder
                   : t.file}
           </span>
+        </>
+      );
+    case "command":
+      return (
+        <>
+          <span className="launch-icon launch-icon--glyph">&gt;</span>
+          <span className="launch-text">
+            <span className="launch-title">{result.text}</span>
+            <span className="launch-sub">{result.powershell ? "PowerShell" : "Command Prompt"}</span>
+          </span>
+          <span className="launch-hint">{selected ? "Run command" : "Terminal"}</span>
         </>
       );
     case "reminder":
@@ -243,6 +255,11 @@ export function Launcher({ onRows }: { onRows(rows: number): void }) {
         break;
       case "file":
         openFile(result.file, reveal).catch(ignore);
+        break;
+      case "command":
+        runShellCommand(result.text, result.powershell).catch((error) => {
+          setMissing(String(error));
+        });
         break;
       case "reminder":
         addReminder(result.text, result.at, result.repeat);

@@ -12,6 +12,7 @@ export const getLauncherApps = () => invoke<LauncherApp[]>("launcher_apps");
 /** The shortcut the launcher got ("Alt+Espace"), or null when none was free. */
 export const getLauncherShortcut = () => invoke<string | null>("launcher_shortcut");
 export const launchApp = (key: string) => invoke<void>("launcher_launch", { key });
+export const runShellCommand = (command: string, powershell = false) => invoke<void>("launcher_command", { command, powershell });
 /** `restore`: give the keyboard back to the window that had it. */
 export const closeLauncher = (restore: boolean) => invoke<void>("launcher_close", { restore });
 

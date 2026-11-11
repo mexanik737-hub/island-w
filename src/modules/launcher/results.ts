@@ -7,6 +7,7 @@ import { normalize, rank } from "./search";
 export type Result =
   | { kind: "timer"; id: string; ms: number; pomodoro: boolean }
   | { kind: "reminder"; id: string; text: string; at: number; repeat: "none" | "daily" | "weekly" }
+  | { kind: "command"; id: string; text: string; powershell: boolean }
   | { kind: "calc"; id: string; value: number }
   | { kind: "app"; id: string; app: LauncherApp }
   | { kind: "file"; id: string; file: FileHit }
@@ -35,6 +36,12 @@ export function compose(query: string, apps: LauncherApp[], files: FileHit[], us
   const q = query.trim();
   if (!q) return [];
   const list: Result[] = [];
+  if (q.startsWith(">") && q.slice(1).trim()) {
+    const raw = q.slice(1).trim();
+    const powershell = /^(?:ps|powershell)\s+/i.test(raw);
+    const text = powershell ? raw.replace(/^(?:ps|powershell)\s+/i, "") : raw;
+    list.push({ kind: "command", id: "command", text, powershell });
+  }
   const reminder = parseReminder(q);
   if (reminder) list.push({ kind: "reminder", id: `reminder:${reminder.at}`, ...reminder });
   if (asksForSettings(q)) list.push({ kind: "settings", id: "settings" });

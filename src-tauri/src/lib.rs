@@ -184,6 +184,7 @@ pub fn run() {
             launcher::launcher_shortcut,
             launcher::launcher_apps,
             launcher::launcher_launch,
+            launcher::launcher_command,
             launcher::launcher_close,
             launcher::launcher_files,
             launcher::launcher_open_file,

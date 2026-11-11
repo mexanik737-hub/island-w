@@ -7,6 +7,7 @@ use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{LazyLock, Mutex};
+use std::process::Command;
 use std::time::{Duration, Instant};
 
 use serde::Serialize;
@@ -236,6 +237,32 @@ pub fn launcher_open_file(
         opener
             .open_path(path.to_string_lossy(), None::<&str>)
             .map_err(|e| e.to_string())?;
+    }
+    close(&app, false);
+    Ok(())
+}
+
+/// Opens an explicit, user-entered command in a separate terminal window.
+#[tauri::command]
+pub fn launcher_command(app: AppHandle, command: String, powershell: bool) -> Result<(), String> {
+    let command = command.trim();
+    if command.is_empty() {
+        return Err("Enter a command first.".into());
+    }
+    if command.len() > 4096 || command.contains('\0') {
+        return Err("The command is too long or contains an invalid character.".into());
+    }
+
+    if powershell {
+        Command::new("cmd.exe")
+            .args(["/C", "start", "Island - PowerShell", "powershell.exe", "-NoExit", "-Command", command])
+            .spawn()
+            .map_err(|error| format!("Could not open PowerShell: {error}"))?;
+    } else {
+        Command::new("cmd.exe")
+            .args(["/C", "start", "Island - Command Prompt", "cmd.exe", "/K", command])
+            .spawn()
+            .map_err(|error| format!("Could not open Command Prompt: {error}"))?;
     }
     close(&app, false);
     Ok(())
