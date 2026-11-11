@@ -7,7 +7,7 @@ import { benchRequested, runBench } from "../dev/bench";
 // Development only: loaded on demand, so neither it nor its CSS ships.
 const DebugPanel = import.meta.env.DEV ? lazy(() => import("../dev/DebugPanel").then((m) => ({ default: m.DebugPanel }))) : null;
 import { getFullscreen, onFullscreen } from "../ipc/system";
-import { BIRTH, MAX_ISLAND_HEIGHT, targetBox, targetFor, type ShellTarget, type Size } from "./geometry";
+import { BIRTH, MAX_ISLAND_HEIGHT, targetBox, targetFor, type ShellTarget } from "./geometry";
 import { IslandShell } from "./IslandShell";
 import { useMedia } from "../modules/media/store";
 import { useMediaActivity } from "../modules/media/useMediaActivity";

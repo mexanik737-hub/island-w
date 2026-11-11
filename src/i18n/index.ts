@@ -16,7 +16,7 @@ export type Messages = typeof fr;
 export type Lang = "fr" | "en" | "ru";
 
 export function resolveLang(setting: Language, system = navigator.language): Lang {
-  if (setting === "fr" || setting === "en") return setting;
+  if (setting === "fr" || setting === "en" || setting === "ru") return setting;
   const detected = system.toLowerCase();
   if (detected.startsWith("ru")) return "ru";
   return detected.startsWith("fr") ? "fr" : "en";
