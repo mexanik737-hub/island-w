@@ -6,7 +6,7 @@
  * leaving them is not clipped. (Idea from Bloom's windowRegion.ts; this is an
  * independent implementation.)
  */
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { setIslandRegion, type RegionRect } from "../ipc/island";
 
 export interface HeldRegion {
@@ -68,22 +68,40 @@ function onScaleChange(callback: () => void): () => void {
  * `holdMs`. Re-sent when the display scale changes, since the backend
  * converts to physical pixels.
  */
-export function useIslandRegion(wanted: RegionRect[], holdMs: number): void {
+export function useIslandRegion(wanted: RegionRect[], holdMs: number): boolean {
   const state = useRef<RegionState>(EMPTY_REGION);
   const latest = useRef(wanted);
   const sent = useRef<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   latest.current = wanted;
   const key = regionKey(wanted);
+  const latestKey = useRef(key);
+  latestKey.current = key;
+  const [applied, setApplied] = useState<string | null>(null);
+  const pending = useRef(Promise.resolve());
+  const sequence = useRef(0);
 
-  useEffect(() => {
+  const send = (rects: RegionRect[], forKey: string) => {
+    const version = ++sequence.current;
+    setApplied(null);
+    // Keep native requests ordered: a slow previous request must never restore
+    // an old clipping region after the new one has been acknowledged.
+    pending.current = pending.current.then(() => setIslandRegion(rects)).then(() => {
+      if (version === sequence.current && latestKey.current === forKey) setApplied(forKey);
+    }).catch((e: unknown) => {
+      sent.current = null;
+      console.warn("set_island_region failed", e);
+    });
+  };
+
+  useLayoutEffect(() => {
     const update = (force = false) => {
       const next = nextRegion(state.current, latest.current, performance.now(), holdMs);
       state.current = next.state;
       const nextKey = regionKey(next.rects);
       if (force || nextKey !== sent.current) {
         sent.current = nextKey;
-        setIslandRegion(next.rects).catch((e: unknown) => console.warn("set_island_region failed", e));
+        send(next.rects, key);
       }
       if (timer.current) clearTimeout(timer.current);
       timer.current =
@@ -99,10 +117,9 @@ export function useIslandRegion(wanted: RegionRect[], holdMs: number): void {
     () =>
       onScaleChange(() => {
         sent.current = null;
-        setIslandRegion([...state.current.current, ...state.current.held.flatMap((h) => h.rects)]).catch(
-          (e: unknown) => console.warn("set_island_region failed", e),
-        );
+        send([...state.current.current, ...state.current.held.flatMap((h) => h.rects)], latestKey.current);
       }),
     [],
   );
+  return applied === key;
 }

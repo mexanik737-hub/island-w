@@ -428,7 +428,9 @@ export function Island() {
   const tabOffset = showTabs ? TAB_BAR_HEIGHT : 0;
 
   const islandBox = targetBox(risen ? target : BIRTH, window.innerWidth);
-  useIslandRegion(islandBox ? [islandBox, ...debugRects] : debugRects, reducedMotion ? 120 : REGION_HOLD_MS * timeScale);
+  const regionReady = useIslandRegion(islandBox ? [islandBox, ...debugRects] : debugRects, reducedMotion ? 120 : REGION_HOLD_MS * timeScale);
+  const preparedTarget = useRef(UNBORN);
+  if (regionReady) preparedTarget.current = target;
 
   const view = viewFor(
     surface,
@@ -444,7 +446,7 @@ export function Island() {
     <div className="island-stage">
       <IslandShell
         key={birth}
-        target={target}
+        target={preparedTarget.current}
         initial={reducedMotion ? target : UNBORN}
         timeScale={timeScale}
         reducedMotion={reducedMotion}
