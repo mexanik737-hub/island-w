@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, type ChangeEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { startDrag } from "@crabnebula/tauri-plugin-drag";
 import * as shelf from "../../ipc/shelf";
@@ -106,21 +106,35 @@ function Tile({ item, onShare }: { item: ShelfItem; onShare(): void }) {
 export function ShelfView({ dragging }: { dragging: boolean }) {
   const t = useT().shelf;
   const items = useShelf();
+  const filePicker = useRef<HTMLInputElement>(null);
   const row = useRef<HTMLDivElement>(null);
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState("");
   // The items being sent to a phone; those removed meanwhile drop out.
   const [sending, setSending] = useState<number[] | null>(null);
   const sent = sending && items.filter((i) => sending.includes(i.id));
 
-  if (items.length === 0) {
-    return (
-      <div className={`shelf-empty ${dragging ? "shelf-empty--target" : ""}`}>
-        <TrayIcon size={22} />
-        <span>{dragging ? t.dropHere : t.empty}</span>
-      </div>
-    );
-  }
-
   const files = items.filter((i) => i.kind !== "folder");
+
+  const importFiles = async (event: ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(event.currentTarget.files ?? []);
+    event.currentTarget.value = "";
+    if (!selected.length) return;
+    if (selected.reduce((sum, file) => sum + file.size, 0) > 128 * 1024 * 1024) {
+      setImportError(t.importTooLarge);
+      return;
+    }
+    setImporting(true);
+    setImportError("");
+    try {
+      const files = await Promise.all(selected.map(async (file) => ({ name: file.name, bytes: Array.from(new Uint8Array(await file.arrayBuffer())) })));
+      await shelf.importFiles(files);
+    } catch {
+      setImportError(t.importFailed);
+    } finally {
+      setImporting(false);
+    }
+  };
 
   if (sent && sent.length > 0 && !dragging) {
     return (
@@ -137,6 +151,9 @@ export function ShelfView({ dragging }: { dragging: boolean }) {
           {t.count(items.length)}
         </span>
         <span className="shelf-head-actions">
+          <button className="shelf-clear" disabled={importing} onClick={(e) => { e.stopPropagation(); filePicker.current?.click(); }}>
+            {importing ? t.addingFiles : t.addFiles}
+          </button>
           {files.length > 0 && (
             <button
               className="shelf-clear"
@@ -160,6 +177,14 @@ export function ShelfView({ dragging }: { dragging: boolean }) {
           </button>
         </span>
       </div>
+      <input ref={filePicker} className="shelf-file-picker" type="file" multiple onChange={importFiles} aria-label={t.addFiles} />
+      {importError && <p className="shelf-import-error" role="status">{importError}</p>}
+      {items.length === 0 ? (
+        <div className={`shelf-empty ${dragging ? "shelf-empty--target" : ""}`}>
+          <TrayIcon size={22} />
+          <span>{dragging ? t.dropHere : t.empty}</span>
+        </div>
+      ) : (
       <div
         ref={row}
         className="shelf-row"
@@ -174,6 +199,7 @@ export function ShelfView({ dragging }: { dragging: boolean }) {
           ))}
         </AnimatePresence>
       </div>
+      )}
     </div>
   );
 }

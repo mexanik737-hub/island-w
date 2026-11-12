@@ -88,6 +88,10 @@ export const ru: Messages = {
   },
   shelf: {
     remove: "Убрать с полки",
+    addFiles: "Добавить файлы",
+    addingFiles: "Добавление…",
+    importTooLarge: "Выберите файлы общим размером до 128 МБ.",
+    importFailed: "Не удалось добавить выбранные файлы.",
     send: "Отправить на телефон",
     sendAll: "Отправить всё на телефон",
     dropHere: "Перетащите файлы сюда",
@@ -96,6 +100,8 @@ export const ru: Messages = {
     clear: "Очистить",
   },
   phone: {
+    activityLabel: "Локальная передача файлов",
+    activeShares: (n: number) => `Сеть · ${n}`,
     qrLabel: "QR-код ссылки",
     expired: "Срок истёк",
     scan: "Отсканируйте телефоном",
@@ -431,6 +437,7 @@ export const ru: Messages = {
   "copy": "Копировать",
   "privacy": "Захват и запись начинаются после выбора источника. Файлы сохраняются локально в «Загрузках».",
   "stopRecording": "Остановить запись",
+  "activityLabel": "Запись экрана",
   "record": "Записать",
   "pen": "Перо",
   "box": "Рамка",

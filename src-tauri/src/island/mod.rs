@@ -124,6 +124,11 @@ pub fn island_text_input(window: WebviewWindow, active: bool) {
     platform::set_island_text_input(&window, active);
 }
 
+#[tauri::command]
+pub fn island_process_status(app: AppHandle, recording: bool, elapsed_seconds: u64, shares: u32) {
+    crate::tray::process_status(&app, recording, elapsed_seconds, shares);
+}
+
 /// Asks the web view to keep its memory low while the island is closed.
 #[tauri::command]
 pub fn island_memory(window: WebviewWindow, low: bool) {

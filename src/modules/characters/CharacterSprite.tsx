@@ -130,17 +130,18 @@ export const CHARACTER_OPTIONS: { id: CharacterId; name: string; glyph: string }
   }
 ];
 
-export function CharacterSprite({ character, preview = false }: { character: CharacterId; preview?: boolean }) {
+export function CharacterSprite({ character, preview = false, reducedMotion = false, visible = true }: { character: CharacterId; preview?: boolean; reducedMotion?: boolean; visible?: boolean }) {
   const names = useT().characters;
   if (character === "liquid") return null;
   const option = CHARACTER_OPTIONS.find((item) => item.id === character) ?? CHARACTER_OPTIONS[1];
   return (
     <motion.div
-      className={`island-character island-character--${character} ${preview ? "island-character--preview" : ""}`}
+      className={`island-character island-character--${character} ${preview ? "island-character--preview" : ""} ${reducedMotion ? "island-character--reduced" : ""} ${visible ? "" : "island-character--hidden"}`}
+      aria-hidden={!visible}
       aria-label={names[option.id]}
       title={names[option.id]}
-      animate={{ y: [0, -2, 0], rotate: character === "newton" ? [0, 5, -5, 0] : [0, -1.5, 1.5, 0], scale: [1, 1.035, 1] }}
-      transition={{ duration: character === "hamster" ? 1.15 : 2.3, repeat: Infinity, ease: "easeInOut" }}
+      animate={reducedMotion ? { y: 0, rotate: 0, scale: 1 } : { y: [0, -2, 0], rotate: character === "newton" ? [0, 5, -5, 0] : [0, -1.5, 1.5, 0], scale: [1, 1.035, 1] }}
+      transition={reducedMotion ? { duration: 0.12 } : { duration: character === "hamster" ? 1.15 : 2.3, repeat: Infinity, ease: "easeInOut" }}
     >
       <span>{option.glyph}</span>
     </motion.div>

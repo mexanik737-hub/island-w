@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use std::sync::mpsc::{self, Sender};
 use std::sync::{Arc, LazyLock, Mutex, OnceLock};
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tauri::http::{Response, StatusCode, header};
 use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_opener::OpenerExt;
@@ -43,6 +43,13 @@ pub struct ShelfItem {
     pub size: Option<u64>,
     /// URL of the thumbnail, served by the `quiera-thumb` protocol.
     pub thumbnail: String,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportedFile {
+    name: String,
+    bytes: Vec<u8>,
 }
 
 const IMAGE_EXTENSIONS: [&str; 9] = [
@@ -197,6 +204,9 @@ pub fn persist(app: &AppHandle) {
 /// since are left out.
 pub fn restore(app: &AppHandle) {
     if !crate::settings::get().shelf.keep {
+        if let Ok(dir) = app.path().app_data_dir() {
+            let _ = std::fs::remove_dir_all(dir.join("shelf-import"));
+        }
         return;
     }
     let Some(text) = saved_path(app).and_then(|f| std::fs::read_to_string(f).ok()) else {
@@ -220,6 +230,52 @@ pub fn add_paths(app: &AppHandle, paths: Vec<PathBuf>) {
     let gone = shelf().add(entries.collect::<Vec<_>>());
     forget_thumbnails(&gone);
     changed(app);
+}
+
+/// Copies files chosen in the system file picker into Island's managed shelf.
+#[tauri::command]
+pub fn shelf_import(app: AppHandle, files: Vec<ImportedFile>) -> Result<(), String> {
+    const MAX_IMPORT_BYTES: usize = 128 * 1024 * 1024;
+    if files.iter().map(|file| file.bytes.len()).sum::<usize>() > MAX_IMPORT_BYTES {
+        return Err("selected files exceed the 128 MiB import limit".into());
+    }
+    if let Some(file) = files
+        .iter()
+        .find(|file| file.bytes.len() > MAX_IMPORT_BYTES)
+    {
+        return Err(format!("{} exceeds the 128 MiB import limit", file.name));
+    }
+    let directory = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| e.to_string())?
+        .join("shelf-import");
+    std::fs::create_dir_all(&directory).map_err(|e| e.to_string())?;
+    let mut paths = Vec::new();
+    for (index, file) in files.into_iter().enumerate() {
+        let name = Path::new(&file.name)
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("file")
+            .chars()
+            .map(|c| {
+                if c.is_ascii_alphanumeric() || ".-_ ".contains(c) {
+                    c
+                } else {
+                    '_'
+                }
+            })
+            .collect::<String>();
+        let stamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_millis();
+        let destination = directory.join(format!("{stamp}-{index}-{name}"));
+        std::fs::write(&destination, file.bytes).map_err(|e| e.to_string())?;
+        paths.push(destination);
+    }
+    add_paths(&app, paths);
+    Ok(())
 }
 
 /// Receives the files dropped on the island.
@@ -249,6 +305,16 @@ fn item_path(id: u32) -> Result<PathBuf, String> {
         .ok_or_else(|| format!("no shelf item {id}"))
 }
 
+fn remove_imported_file(app: &AppHandle, path: &Path) {
+    let Ok(root) = app.path().app_data_dir() else {
+        return;
+    };
+    let imported = root.join("shelf-import");
+    if path.starts_with(&imported) {
+        let _ = std::fs::remove_file(path);
+    }
+}
+
 /// The items, after dropping those whose file is gone.
 #[tauri::command]
 pub fn shelf_items(app: AppHandle) -> Vec<ShelfItem> {
@@ -262,7 +328,11 @@ pub fn shelf_items(app: AppHandle) -> Vec<ShelfItem> {
 
 #[tauri::command]
 pub fn shelf_remove(app: AppHandle, id: u32) {
+    let path = item_path(id).ok();
     if shelf().remove(id) {
+        if let Some(path) = path.as_deref() {
+            remove_imported_file(&app, path);
+        }
         forget_thumbnails(&[id]);
         changed(&app);
     }
@@ -270,7 +340,15 @@ pub fn shelf_remove(app: AppHandle, id: u32) {
 
 #[tauri::command]
 pub fn shelf_clear(app: AppHandle) {
+    let paths: Vec<PathBuf> = shelf()
+        .items()
+        .into_iter()
+        .map(|item| PathBuf::from(item.path))
+        .collect();
     let gone = shelf().clear();
+    for path in &paths {
+        remove_imported_file(&app, path);
+    }
     forget_thumbnails(&gone);
     changed(&app);
 }

@@ -4,6 +4,7 @@ import type { PhoneLink, ShelfItem } from "../../ipc/shelf";
 import { countdown } from "./format";
 import { ShareIcon } from "./icons";
 import { useT } from "../../i18n";
+import { registerPhoneShare, stopPhoneShare } from "./share-status";
 
 type State = { link: PhoneLink; until: number } | { error: string } | null;
 
@@ -29,6 +30,7 @@ export function PhoneShare({ items, onBack }: { items: ShelfItem[]; onBack(): vo
     shelf
       .shareToPhone(key.split(",").map(Number))
       .then((link) => {
+        registerPhoneShare(link.token, Date.now() + link.expiresInSecs * 1000);
         if (alive) setState({ link, until: Date.now() + link.expiresInSecs * 1000 });
       })
       .catch((e) => alive && setState({ error: String(e) }));
@@ -73,7 +75,7 @@ export function PhoneShare({ items, onBack }: { items: ShelfItem[]; onBack(): vo
         <div className="phone-actions">
           {expired || (state && "error" in state) ? (
             <button className="phone-btn phone-btn--main" onClick={() => {
-              if (state && "link" in state) shelf.stopPhoneShare(state.link.token).catch(() => {});
+              if (state && "link" in state) stopPhoneShare(state.link.token);
               setAttempt((n) => n + 1);
             }}>
               {t.newCode}
@@ -91,7 +93,7 @@ export function PhoneShare({ items, onBack }: { items: ShelfItem[]; onBack(): vo
             </button>
           )}
           <button className="phone-btn" onClick={() => {
-            if (state && "link" in state) shelf.stopPhoneShare(state.link.token).catch(() => {});
+            if (state && "link" in state) stopPhoneShare(state.link.token);
             onBack();
           }}>
             {t.back}

@@ -56,7 +56,7 @@
       },
       "nsis": {
         "languages": [
-          "French",
+          "Russian",
           "English"
         ],
         "installMode": "currentUser"

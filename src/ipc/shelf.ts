@@ -38,6 +38,7 @@ export const stopPhoneShare = (token: string) => invoke<void>("shelf_share_stop"
 export const shareWithWindows = (ids: number[]) => invoke<void>("shelf_share_windows", { ids });
 /** Path of a PNG to show under the cursor while dragging the item out. */
 export const dragIcon = (id: number) => invoke<string>("shelf_drag_icon", { id });
+export const importFiles = (files: { name: string; bytes: number[] }[]) => invoke<void>("shelf_import", { files });
 
 interface WebView2 {
   postMessageWithAdditionalObjects(message: string, objects: FileList): void;

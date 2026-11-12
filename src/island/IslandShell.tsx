@@ -87,7 +87,7 @@ export function IslandShell({
           <motion.path d={rightFlare} style={{ opacity: flares }} />
         </motion.g>
       </svg>
-      {th < 64 && <CharacterSprite character={character} />}
+      <CharacterSprite character={character} reducedMotion={reducedMotion} visible={th < 64} />
       <motion.div
         className="island-clip"
         style={{

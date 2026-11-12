@@ -14,4 +14,14 @@ describe("island navigation", () => {
     const open = { ...initialState, open: true, hovered: true, autoHide: false };
     expect(reduce(open, { type: "hover.end" }).open).toBe(true);
   });
+
+  it("keeps background process indicators when the panel auto-hides", () => {
+    const withProcesses = reduce(
+      reduce({ ...initialState, open: true, hovered: true }, { type: "activity.set", activity: { id: "screen-recording", priority: 70 } }),
+      { type: "activity.set", activity: { id: "phone-sharing", priority: 60 } },
+    );
+    const folded = reduce(withProcesses, { type: "hover.end" });
+    expect(folded.open).toBe(false);
+    expect(folded.activities.map((activity) => activity.id)).toEqual(["screen-recording", "phone-sharing"]);
+  });
 });

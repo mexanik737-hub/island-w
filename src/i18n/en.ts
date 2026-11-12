@@ -88,6 +88,10 @@ export const en = {
   },
   shelf: {
     remove: "Remove from the Shelf",
+    addFiles: "Add files",
+    addingFiles: "Adding…",
+    importTooLarge: "Choose files smaller than 128 MB total.",
+    importFailed: "Could not add the selected files.",
     send: "Send to phone",
     sendAll: "Send all to phone",
     dropHere: "Drop your files here",
@@ -96,6 +100,8 @@ export const en = {
     clear: "Clear",
   },
   phone: {
+    activityLabel: "Local file sharing",
+    activeShares: (n: number) => `LAN · ${n}`,
     qrLabel: "QR code of the link",
     expired: "Expired",
     scan: "Scan with your phone",
@@ -435,6 +441,7 @@ export const en = {
   "copy": "Copy",
   "privacy": "Capture and recording start only after you choose a source. Files are created locally in Downloads.",
   "stopRecording": "Stop recording",
+  "activityLabel": "Screen recording",
   "record": "Record",
   "pen": "Pen",
   "box": "Box",

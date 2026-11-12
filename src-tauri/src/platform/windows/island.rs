@@ -24,10 +24,10 @@ use windows::Win32::Graphics::Gdi::{
 };
 use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VK_LBUTTON};
 use windows::Win32::UI::WindowsAndMessaging::{
-    GWL_EXSTYLE, GetCursorPos, GetWindowLongPtrW, HWND_TOPMOST, SET_WINDOW_POS_FLAGS,
-    SW_SHOWNOACTIVATE, SWP_FRAMECHANGED, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE,
-    SetForegroundWindow, SetWindowLongPtrW, SetWindowPos, ShowWindow, WS_EX_APPWINDOW,
-    WS_EX_LAYERED, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW, WS_EX_TRANSPARENT,
+    GWL_EXSTYLE, GetCursorPos, GetForegroundWindow, GetWindowLongPtrW, HWND_TOPMOST,
+    SET_WINDOW_POS_FLAGS, SW_SHOWNOACTIVATE, SWP_FRAMECHANGED, SWP_NOACTIVATE, SWP_NOMOVE,
+    SWP_NOSIZE, SWP_NOZORDER, SetForegroundWindow, SetWindowLongPtrW, SetWindowPos, ShowWindow,
+    WS_EX_APPWINDOW, WS_EX_LAYERED, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW, WS_EX_TRANSPARENT,
 };
 
 use crate::island::geometry::PhysRect;
@@ -49,6 +49,7 @@ fn island_ex_style(current: u32) -> u32 {
 
 /// The island's window, for the system-event thread (0 when there is none).
 static ISLAND_HWND: AtomicIsize = AtomicIsize::new(0);
+static PREVIOUS_FOREGROUND: AtomicIsize = AtomicIsize::new(0);
 
 pub fn island_hwnd() -> Option<HWND> {
     match ISLAND_HWND.load(Ordering::Relaxed) {
@@ -151,11 +152,29 @@ pub fn set_island_text_input(window: &WebviewWindow, active: bool) {
         };
         if wanted != current {
             SetWindowLongPtrW(hwnd, GWL_EXSTYLE, wanted as isize);
+            let _ = SetWindowPos(
+                hwnd,
+                HWND(std::ptr::null_mut()),
+                0,
+                0,
+                0,
+                0,
+                SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_FRAMECHANGED,
+            );
         }
         if active {
+            let foreground = GetForegroundWindow();
+            if foreground != hwnd && !foreground.0.is_null() {
+                PREVIOUS_FOREGROUND.store(foreground.0 as isize, Ordering::Relaxed);
+            }
             let _ = SetForegroundWindow(hwnd);
             if let Err(e) = window.set_focus() {
                 log::debug!("could not activate text input in the island: {e}");
+            }
+        } else if GetForegroundWindow() == hwnd {
+            let previous = PREVIOUS_FOREGROUND.swap(0, Ordering::Relaxed);
+            if previous != 0 {
+                let _ = SetForegroundWindow(HWND(previous as *mut c_void));
             }
         }
     }

@@ -1,6 +1,7 @@
 import { useT } from "../../i18n";
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { recognizeImage } from "../../ipc/ocr";
+import { recording, useRecordingState } from "./recording";
 import "./capture-tools.css";
 
 type Tool = "pen" | "rectangle" | "arrow" | "blur" | "text" | "crop" | "pick";
@@ -64,9 +65,10 @@ function drawShape(ctx: CanvasRenderingContext2D, mode: DrawMode, from: Point, t
 
 export function CaptureToolsView() {
   const t = useT().capture;
-  const [stream, setStream] = useState<MediaStream | null>(null);
+  const recordingState = useRecordingState();
+  const stream = recordingState.stream;
+  const recordingActive = recordingState.phase === "active" || recordingState.phase === "starting" || recordingState.phase === "stopping";
   const [captured, setCaptured] = useState(false);
-  const [recording, setRecording] = useState(false);
   const [tool, setTool] = useState<Tool>("pen");
   const [color, setColor] = useState("#ff6259");
   const [picked, setPicked] = useState("#000000");
@@ -79,9 +81,6 @@ export function CaptureToolsView() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const magnifierRef = useRef<HTMLCanvasElement>(null);
   const [magnifier, setMagnifier] = useState<{ x: number; y: number; left: number; top: number } | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const recorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
   const drawRef = useRef<DrawState | null>(null);
 
   useEffect(() => {
@@ -91,39 +90,33 @@ export function CaptureToolsView() {
     void video.play().catch(() => setMessage(t.previewError));
   }, [stream]);
 
+  const previousPhase = useRef(recordingState.phase);
   useEffect(() => {
-    const current = streamRef;
-    return () => {
-      current.current?.getTracks().forEach((track) => track.stop());
-      if (recorderRef.current?.state === "recording") recorderRef.current.stop();
-    };
-  }, []);
+    if (recordingState.phase === "error") setMessage(t.recordError);
+    else if (recordingState.phase === "active") setMessage(t.recording);
+    else if (previousPhase.current === "stopping" && recordingState.phase === "idle") setMessage(t.recordSaved);
+    previousPhase.current = recordingState.phase;
+  }, [recordingState.phase, t.recordError, t.recording, t.recordSaved]);
 
   const chooseSource = async () => {
     setMessage("");
     setQr("");
     try {
-      const next = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30 }, audio: false });
-      streamRef.current = next;
-      setStream(next);
+      const next = await recording.chooseScreen();
+      if (!next) {
+        if (!recording.getSnapshot().error) setMessage(t.cancelled);
+        else setMessage(t.error);
+        return;
+      }
       setCaptured(false);
-      next.getVideoTracks()[0]?.addEventListener("ended", () => {
-        streamRef.current = null;
-        setStream(null);
-        setRecording(false);
-        setMessage(t.stopped);
-      }, { once: true });
     } catch (error) {
       setMessage(t.error);
     }
   };
 
   const stopSource = () => {
-    if (recorderRef.current?.state === "recording") recorderRef.current.stop();
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-    streamRef.current = null;
-    setStream(null);
-    setRecording(false);
+    recording.stopScreen();
+    setMessage(t.stopped);
   };
 
   const takeScreenshot = () => {
@@ -212,48 +205,7 @@ export function CaptureToolsView() {
     }
   };
 
-  const toggleRecording = () => {
-    if (recording) {
-      recorderRef.current?.stop();
-      return;
-    }
-    const source = streamRef.current;
-    if (!source) {
-      setMessage(t.recordFirst);
-      return;
-    }
-    if (typeof MediaRecorder === "undefined") {
-      setMessage(t.recordUnsupported);
-      return;
-    }
-    const mimeType = ["video/mp4", "video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"].find((type) => MediaRecorder.isTypeSupported(type));
-    try {
-      const recorder = new MediaRecorder(source, mimeType ? { mimeType } : undefined);
-      chunksRef.current = [];
-      recorder.ondataavailable = (event) => {
-        if (event.data.size) chunksRef.current.push(event.data);
-      };
-      recorder.onstop = () => {
-        const type = recorder.mimeType || "video/webm";
-        const blob = new Blob(chunksRef.current, { type });
-        const ext = type.includes("mp4") ? "mp4" : "webm";
-        download(blob, `Island-W-recording-${Date.now()}.${ext}`);
-        chunksRef.current = [];
-        setRecording(false);
-        setMessage(t.recordSaved);
-      };
-      recorder.onerror = () => {
-        setRecording(false);
-        setMessage(t.recordError);
-      };
-      recorderRef.current = recorder;
-      recorder.start(1000);
-      setRecording(true);
-      setMessage(t.recording);
-    } catch (error) {
-      setMessage(t.error);
-    }
-  };
+  const toggleRecording = () => recordingActive ? recording.stop() : recording.start();
 
   const sampleColor = (event: PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -403,9 +355,9 @@ export function CaptureToolsView() {
       <header className="capture-tools-head">
         <div><strong>{t.title}</strong><span>{t.hint}</span></div>
         <div className="capture-tools-actions">
-          {!stream ? <button type="button" onClick={chooseSource}>{t.choose}</button> : <button type="button" onClick={stopSource}>{t.stop}</button>}
+          {!stream ? <button type="button" onClick={chooseSource} disabled={recordingState.selecting}>{t.choose}</button> : <button type="button" onClick={stopSource}>{t.stop}</button>}
           <button type="button" onClick={takeScreenshot} disabled={!stream}>{t.screenshot}</button>
-          <button type="button" className={recording ? "is-recording" : ""} onClick={toggleRecording} disabled={!stream}>{recording ? t.stopRecording : t.record}</button>
+          <button type="button" className={recordingState.phase === "active" ? "is-recording" : ""} onClick={toggleRecording} disabled={!stream || recordingState.phase === "starting" || recordingState.phase === "stopping"}>{recordingActive ? t.stopRecording : t.record}</button>
         </div>
       </header>
       {stream && <video ref={videoRef} className="capture-live-preview" muted playsInline />}

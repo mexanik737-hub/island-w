@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useReducer, useRef, useState, type ReactNode, lazy, Suspense } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState, type Dispatch, type ReactNode, lazy, Suspense } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { createIslandController } from "../machine/controller";
-import { CALENDAR_ACTIVITY, CALENDAR_PEEK, initialState, reduce, surfaceOf, TIMER_ACTIVITY, type Surface, type Tab } from "../machine/island-machine";
+import { CALENDAR_ACTIVITY, CALENDAR_PEEK, initialState, reduce, surfaceOf, TIMER_ACTIVITY, type IslandEvent, type Surface, type Tab } from "../machine/island-machine";
 import { primaryActivity } from "../machine/arbiter";
 import { benchRequested, runBench } from "../dev/bench";
 // Development only: loaded on demand, so neither it nor its CSS ships.
@@ -34,7 +34,7 @@ import { launcherSize } from "../modules/launcher/search";
 import { onLauncher } from "../ipc/launcher";
 import { SYSTEM_PEEK_PREFIX, useSystemPeek, useSystemPeeks } from "../modules/system/store";
 import { SystemPeekView, systemPeekSize } from "../modules/system/SystemPeekView";
-import { onIslandNear, onIslandRest, onIslandToggle, setIslandMemory, setIslandPassThrough, setIslandTextInput, type RegionRect } from "../ipc/island";
+import { onIslandNear, onIslandRest, onIslandToggle, setIslandMemory, setIslandPassThrough, setIslandProcessStatus, setIslandTextInput, type RegionRect } from "../ipc/island";
 import { useIslandRegion } from "./region";
 import { useSettings } from "../settings/store";
 import { useApplyTheme } from "../theme/useApplyTheme";
@@ -50,6 +50,9 @@ import { MIRROR_SIZE, MirrorView } from "../modules/mirror/MirrorView";
 import { NotesView } from "../modules/notes/NotesView";
 import { TextView } from "../modules/text/TextView";
 import { CaptureToolsView } from "../modules/tools/CaptureToolsView";
+import { ProcessActivity } from "../modules/tools/ProcessActivity";
+import { recording, useRecordingState } from "../modules/tools/recording";
+import { usePhoneShareCount } from "../modules/shelf/share-status";
 import { startNotesService } from "../modules/notes/store";
 import { WeatherView } from "../modules/weather/WeatherView";
 import { startWeatherService } from "../modules/weather/store";
@@ -80,6 +83,7 @@ const CALENDAR_PEEK_MS = 6000;
 /** The tab bar's side padding, and the room each of its buttons takes. */
 const TAB_BAR_PADDING = 44;
 const TAB_SLOT = 38;
+const PROCESS_ACTIVITY_SIZE: [number, number, number] = [250, 34, 17];
 /** The bubble at the end of its rise, just before it meets the edge. */
 const RISEN: ShellTarget = { ...BIRTH, y: 0 };
 /** The bubble as it appears: below the edge, not yet painted. */
@@ -94,6 +98,8 @@ function viewFor(
   state: { tab: Tab; dragging: boolean; peekId: string | null; welcome: boolean; timer: boolean; timerSet: boolean },
   calendar: { meeting: CalendarEvent | null; shown: boolean; coming: readonly CalendarEvent[] },
   hasMedia: boolean,
+  processes: { recording: boolean; seconds: number; shares: number },
+  dispatch: Dispatch<IslandEvent>,
   onLauncherRows: (rows: number) => void,
 ): { key: string; content: ReactNode } {
   const { tab, dragging, peekId, welcome, timer, timerSet } = state;
@@ -105,6 +111,7 @@ function viewFor(
     case "idle":
       return { key: surface, content: <IdleClock /> };
     case "activity":
+      if (processes.recording || processes.shares > 0) return { key: "activity:processes", content: <ProcessActivity {...processes} dispatch={dispatch} /> };
       if (welcome) return { key: "activity:welcome", content: <WelcomePill /> };
       if (timer) return { key: "activity:timer", content: <TimerActivity /> };
       if (calendar.shown && calendar.meeting) return { key: "activity:calendar", content: <CalendarActivity event={calendar.meeting} /> };
@@ -155,6 +162,19 @@ export function Island() {
   useEffect(() => () => controller.dispose(), [controller]);
 
   const settings = useSettings();
+  const recordingState = useRecordingState();
+  const phoneShareCount = usePhoneShareCount();
+  const recordingActive = recordingState.phase === "starting" || recordingState.phase === "active" || recordingState.phase === "stopping";
+  const processes = { recording: recordingActive, seconds: recordingState.elapsedSeconds, shares: phoneShareCount };
+  useEffect(() => {
+    if (recordingActive) dispatch({ type: "activity.set", activity: { id: "screen-recording", priority: 70 } });
+    else dispatch({ type: "activity.clear", id: "screen-recording" });
+  }, [recordingActive]);
+  useEffect(() => {
+    if (phoneShareCount > 0) dispatch({ type: "activity.set", activity: { id: "phone-sharing", priority: 60 } });
+    else dispatch({ type: "activity.clear", id: "phone-sharing" });
+  }, [phoneShareCount]);
+  useEffect(() => setIslandProcessStatus(recordingActive, recordingState.elapsedSeconds, phoneShareCount), [recordingActive, recordingState.elapsedSeconds, phoneShareCount]);
   useEffect(() => {
     try { localStorage.setItem(LAST_TAB_KEY, state.tab); } catch { /* storage is optional */ }
   }, [state.tab]);
@@ -264,6 +284,25 @@ export function Island() {
   useEffect(() => dispatch({ type: "visibility", visible: shown }), [shown]);
   const shownRef = useRef(shown);
   shownRef.current = shown;
+
+  useEffect(() => {
+    let live = true;
+    let stops: (() => void)[] = [];
+    Promise.all([
+      listen("island://recording-stop", () => recording.stop()),
+      listen("island://app-quit", () => recording.stop()),
+      listen("island://shelf-open", () => {
+        setForced(true);
+        dispatch({ type: "visibility", visible: true });
+        dispatch({ type: "press" });
+        dispatch({ type: "tab.select", tab: "shelf" });
+      }),
+    ]).then((unlisten) => {
+      if (live) stops = unlisten;
+      else unlisten.forEach((stop) => stop());
+    }).catch(() => {});
+    return () => { live = false; stops.forEach((stop) => stop()); };
+  }, []);
 
   // A hidden island cannot see the pointer leave.
   useEffect(() => {
@@ -440,9 +479,10 @@ export function Island() {
   let size = mediaSize(surface, media.state, lyricsKind(lyrics));
   if (surface === "peek" && state.peek?.id.startsWith(SYSTEM_PEEK_PREFIX)) size = systemPeekSize(systemPeek);
   if (surface === "launcher") size = launcherSize(launcherRows);
-  if (surface === "activity" && welcoming) size = WELCOME_PILL_SIZE;
-  if (surface === "activity" && timing) size = TIMER_ACTIVITY_SIZE;
-  if (surface === "activity" && meetingShown) size = CALENDAR_ACTIVITY_SIZE;
+  if (surface === "activity" && (recordingActive || phoneShareCount > 0)) size = PROCESS_ACTIVITY_SIZE;
+  else if (surface === "activity" && welcoming) size = WELCOME_PILL_SIZE;
+  else if (surface === "activity" && timing) size = TIMER_ACTIVITY_SIZE;
+  else if (surface === "activity" && meetingShown) size = CALENDAR_ACTIVITY_SIZE;
   if (surface === "peek" && state.peek?.id === CALENDAR_PEEK) size = CALENDAR_PEEK_SIZE;
   if (surface === "expanded") {
     const [w, h, r] =
@@ -480,7 +520,11 @@ export function Island() {
   const tabOffset = showTabs ? TAB_BAR_HEIGHT : 0;
 
   const islandBox = targetBox(risen ? target : BIRTH, window.innerWidth);
-  const regionReady = useIslandRegion(islandBox ? [islandBox, ...debugRects] : debugRects, reducedMotion ? 120 : REGION_HOLD_MS * timeScale);
+  const characterBox = risen && target.height < 64 && settings.general.character !== "liquid"
+    ? { x: Math.max(0, Math.floor(window.innerWidth / 2 - 162)), y: 2, width: 50, height: 49 }
+    : null;
+  const regionRects = [...(islandBox ? [islandBox] : []), ...(characterBox ? [characterBox] : []), ...debugRects];
+  const regionReady = useIslandRegion(regionRects, reducedMotion ? 120 : REGION_HOLD_MS * timeScale);
   const preparedTarget = useRef(UNBORN);
   if (regionReady) preparedTarget.current = target;
 
@@ -489,6 +533,8 @@ export function Island() {
     { tab: state.tab, dragging: state.dragging, peekId: state.peek?.id ?? null, welcome: welcoming, timer: timing, timerSet: hasTimer },
     { meeting, shown: meetingShown, coming },
     hasMedia,
+    processes,
+    dispatch,
     setLauncherRows,
   );
   const content = risen ? view.content : null;
