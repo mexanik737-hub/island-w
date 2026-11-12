@@ -15,9 +15,15 @@
   --card: #121214;
   --card-hover: #1a1a1d;
   --text-1: #ffffff;
-  --text-2: rgba(255, 255, 255, 0.62);
-  --text-3: rgba(255, 255, 255, 0.36);
-  --fill-active: rgba(255, 255, 255, 0.12);
+  --text-2: color-mix(in srgb, var(--text-1) 62%, transparent);
+  --text-3: color-mix(in srgb, var(--text-1) 36%, transparent);
+  --fill-active: color-mix(in srgb, var(--text-1) 12%, transparent);
+  --control-surface: #141417;
+  --control-hover: #1c1c20;
+  --control-icon: #2a2a30;
+  --on-accent: #ffffff;
+  --accent-action: #0a84ff;
+  --accent-action-hover: #006fe6;
   --accent: #ffffff;
   --danger: #ff6b5e;
 
@@ -48,6 +54,12 @@ body {
   --text-2: rgba(20, 20, 25, 0.70);
   --text-3: rgba(20, 20, 25, 0.48);
   --fill-active: rgba(0, 0, 0, 0.09);
+  --control-surface: #ececf0;
+  --control-hover: #dfdfe6;
+  --control-icon: #d3d3da;
+  --on-accent: #ffffff;
+  --accent-action: #0878e8;
+  --accent-action-hover: #0067d1;
   --accent: #17171b;
   --danger: #c83228;
 }
