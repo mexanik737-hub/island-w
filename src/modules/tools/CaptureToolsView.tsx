@@ -1,6 +1,7 @@
 import { useT } from "../../i18n";
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { recognizeImage } from "../../ipc/ocr";
+import * as shelf from "../../ipc/shelf";
 import { recording, useRecordingState } from "./recording";
 import "./capture-tools.css";
 
@@ -155,6 +156,24 @@ export function CaptureToolsView() {
         setMessage(t.copied);
       } catch (error) {
         setMessage(t.error);
+      }
+    }, "image/png");
+  };
+
+  const addScreenshotToShelf = () => {
+    const canvas = canvasRef.current;
+    if (!canvas || !captured) return;
+    canvas.toBlob(async (blob) => {
+      if (!blob) {
+        setMessage(t.exportError);
+        return;
+      }
+      try {
+        const bytes = Array.from(new Uint8Array(await blob.arrayBuffer()));
+        await shelf.importFiles([{ name: `Island-W-${Date.now()}.png`, bytes }]);
+        setMessage(t.addedToShelf);
+      } catch {
+        setMessage(t.exportError);
       }
     }, "image/png");
   };
@@ -388,6 +407,7 @@ export function CaptureToolsView() {
             <span className="capture-picked"><i style={{ background: picked }} />{picked.toUpperCase()}</span>
             <button type="button" onClick={() => exportCanvas("copy")}>{t.copyPng}</button>
             <button type="button" onClick={() => exportCanvas("save")}>{t.savePng}</button>
+            <button type="button" onClick={addScreenshotToShelf}>{t.addToShelf}</button>
             <button type="button" onClick={scanQr}>{t.readQr}</button>
             <button type="button" onClick={extractText} disabled={ocrBusy}>{ocrBusy ? t.reading : t.extract}</button>
           </footer>

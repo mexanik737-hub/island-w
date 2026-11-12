@@ -154,7 +154,7 @@ pub fn set_island_text_input(window: &WebviewWindow, active: bool) {
             SetWindowLongPtrW(hwnd, GWL_EXSTYLE, wanted as isize);
             let _ = SetWindowPos(
                 hwnd,
-                HWND(std::ptr::null_mut()),
+                None,
                 0,
                 0,
                 0,

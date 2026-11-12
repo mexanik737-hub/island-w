@@ -59,8 +59,8 @@ pub fn shelf_share_phone(ids: Vec<u32>) -> Result<PhoneLink, String> {
     let files = crate::shelf::file_paths(&ids);
     if files.is_empty() {
         return Err(tr(
-            "Aucun fichier à envoyer (les dossiers ne s'envoient pas).",
             "No file to send (folders cannot be sent).",
+            "Нет файлов для отправки (папки отправить нельзя).",
         )
         .into());
     }
@@ -99,7 +99,7 @@ pub fn shelf_share_stop(token: String) {
 pub fn shelf_share_windows(app: AppHandle, ids: Vec<u32>) -> Result<(), String> {
     let files = crate::shelf::file_paths(&ids);
     if files.is_empty() {
-        return Err(tr("Aucun fichier à partager.", "No file to share.").into());
+        return Err(tr("No file to share.", "Нет файлов для передачи.").into());
     }
     let window = app
         .get_webview_window(crate::island::LABEL)
@@ -135,15 +135,15 @@ pub fn pick_ip(route: Option<IpAddr>, lan: &[Ipv4Addr]) -> Option<IpAddr> {
 /// The address and port phones reach Island at, its server started if needed.
 pub fn server_address() -> Result<(IpAddr, u16), String> {
     let ip = local_ip().ok_or(tr(
-        "Pas de réseau local : connecte le PC au Wi-Fi ou à une box.",
-        "No local network: connect the PC to Wi-Fi or a router.",
+        "No local network. Connect this PC to Wi-Fi or a router.",
+        "Нет локальной сети. Подключите компьютер к Wi-Fi или роутеру.",
     ))?;
     let port = server_port().map_err(|e| {
         format!(
             "{} {e}",
             tr(
-                "Le partage n'a pas pu démarrer :",
-                "Sharing could not start:"
+                "Local sharing could not start:",
+                "Не удалось запустить локальную передачу:",
             )
         )
     })?;
@@ -404,7 +404,7 @@ fn send_file(
 fn file_name(path: &Path) -> String {
     path.file_name()
         .map(|n| n.to_string_lossy().into_owned())
-        .unwrap_or_else(|| "fichier".into())
+        .unwrap_or_else(|| "file".into())
 }
 
 /// The name for clients that ignore `filename*`: ASCII, no quotes.

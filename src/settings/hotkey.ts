@@ -23,6 +23,7 @@ export interface KeyNames {
   space: string;
   none: string;
   twice: string;
+  keys: Record<string, string>;
 }
 
 const SHIFT = 16;
@@ -40,29 +41,33 @@ const isFunctionKey = (vk: number) => vk >= 0x70 && vk <= 0x87;
 const NAMED: Record<number, string> = {
   0x08: "⌫",
   0x09: "Tab",
-  0x0d: "Entrée",
-  0x13: "Pause",
-  0x21: "Page↑",
-  0x22: "Page↓",
-  0x23: "Fin",
-  0x24: "Début",
+  0x0d: "enter",
+  0x13: "pause",
+  0x21: "pageUp",
+  0x22: "pageDown",
+  0x23: "end",
+  0x24: "home",
   0x25: "←",
   0x26: "↑",
   0x27: "→",
   0x28: "↓",
-  0x2d: "Inser",
-  0x2e: "Suppr",
-  0x91: "Arrêt défil",
+  0x2d: "insert",
+  0x2e: "delete",
+  0x91: "scrollLock",
 };
 
 /** The name of a key from its code: letters and digits as on the key. */
 export function keyName(press: KeyPress, names: KeyNames): string {
   const vk = press.keyCode;
+  if (vk === SHIFT) return names.shift;
+  if (vk === CONTROL) return "Ctrl";
+  if (vk === ALT) return "Alt";
+  if (vk === WIN || vk === 92) return "Win";
   if (vk === 0x20) return names.space;
   if ((vk >= 0x41 && vk <= 0x5a) || (vk >= 0x30 && vk <= 0x39)) return String.fromCharCode(vk);
   if (isFunctionKey(vk)) return `F${vk - 0x6f}`;
   if (vk >= 0x60 && vk <= 0x69) return `Num ${vk - 0x60}`;
-  if (NAMED[vk]) return NAMED[vk];
+  if (NAMED[vk]) return names.keys[NAMED[vk]] ?? NAMED[vk];
   return press.key.length === 1 ? press.key.toUpperCase() : press.key;
 }
 
@@ -133,9 +138,11 @@ export function isSingleKey(hotkey: Hotkey): boolean {
 /** The shortcut, as shown: its label in this language's words, "×2" when pressed twice. */
 export function hotkeyLabel(hotkey: Hotkey, names: KeyNames): string {
   if (!hotkey.key) return names.none;
-  // Recorded in another language: Shift and Space in this one's words.
-  const label = hotkey.label
-    .replace(/^((?:[^+]+\+)*)(Maj|Shift)(\+|$)/, `$1${names.shift}$3`)
-    .replace(/(Espace|Space)$/, names.space);
+  const storedKey = hotkey.label.split("+").at(-1) ?? "";
+  const modifiers = [hotkey.ctrl && "Ctrl", hotkey.alt && "Alt", hotkey.shift && names.shift, hotkey.win && "Win"]
+    .filter((part): part is string => Boolean(part))
+    .map((part) => `${part}+`)
+    .join("");
+  const label = `${modifiers}${keyName({ keyCode: hotkey.key, key: storedKey, ctrlKey: false, altKey: false, shiftKey: false, metaKey: false }, names)}`;
   return hotkey.double ? `${label} ${names.twice}` : label;
 }

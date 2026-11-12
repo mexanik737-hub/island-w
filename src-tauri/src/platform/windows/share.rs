@@ -52,7 +52,25 @@ pub fn share_files(window: &WebviewWindow, paths: &[PathBuf]) -> Result<(), Stri
             .file_name()
             .map(|n| n.to_string_lossy().into_owned())
             .unwrap_or_default(),
-        _ => format!("{} fichiers", paths.len()),
+        _ => {
+            let count = paths.len();
+            match crate::i18n::lang() {
+                crate::i18n::Lang::En => format!("{count} files"),
+                crate::i18n::Lang::Ru => {
+                    let last_two = count % 100;
+                    let word = if (11..=14).contains(&last_two) {
+                        "файлов"
+                    } else {
+                        match count % 10 {
+                            1 => "файл",
+                            2..=4 => "файла",
+                            _ => "файлов",
+                        }
+                    };
+                    format!("{count} {word}")
+                }
+            }
+        }
     };
     SHARED.with_borrow_mut(|s| {
         *s = Some(Shared {

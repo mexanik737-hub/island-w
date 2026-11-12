@@ -1,822 +1,210 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { AnimatePresence, motion, Reorder } from "motion/react";
-import { listen } from "@tauri-apps/api/event";
-import { getCurrentWindow } from "@tauri-apps/api/window";
-import { openLink } from "../ipc/notifications";
-import { checkForUpdates, getUpdateStatus, installUpdate, onUpdateStatus, type UpdateStatus } from "../ipc/updates";
-import { checkCalendarLink } from "../ipc/calendar";
-import { islandShortcutHeld, setShortcutRecording } from "../ipc/island";
-import { better, hotkeyLabel, isSingleKey, pressed } from "./hotkey";
-import { getHeldShortcut, getMonitors, SHORTCUTS, type Hotkey, type Monitor, type Settings, type Shortcut } from "../ipc/settings";
-import { updateSettings, useSettings } from "./store";
-import { localeOf, useLang, useT } from "../i18n";
-import type { Tab } from "../machine/island-machine";
-import { orderTabs, TABS } from "../island/tabs";
-import { tabFace } from "../island/TabBar";
-import { CHARACTER_OPTIONS, CharacterSprite } from "../modules/characters/CharacterSprite";
-import { useApplyTheme } from "../theme/useApplyTheme";
+YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éí×^xõ:-jZ.¶›­–)Ş³V–×÷'B²W6TVffV7BÂW6U&VbÂW6U7FFRÂG—R&V7DæöFRÒg&öÒ'&V7B#°Ğ¦–×÷'B²æ–ÖFU&W6Væ6RÂÖ÷F–öâÂ&V÷&FW"Òg&öÒ&Ö÷F–öâ÷&V7B#°Ğ¦–×÷'B²Æ—7FVâÒg&öÒ$FW&’Ö2ö’öWfVçB#°Ğ¦–×÷'B²vWD7W'&VçEv–æF÷rÒg&öÒ$FW&’Ö2ö’÷v–æF÷r#°Ğ¦–×÷'B²÷VäÆ–æ²Òg&öÒ"ââö—2öæ÷F–f–6F–öç2#°Ğ¦–×÷'B²6†V6´f÷%WFFW2ÂvWEWFFU7FGW2Â–ç7FÆÅWFFRÂöåWFFU7FGW2ÂG—RWFFU7FGW2Òg&öÒ"ââö—2÷WFFW2#°Ğ¦–×÷'B²6†V6´6ÆVæF$Æ–æ²Òg&öÒ"ââö—2ö6ÆVæF"#°Ğ¦–×÷'B²—6ÆæE6†÷'F7WD†VÆBÂ6WE6†÷'F7WE&V6÷&F–ærÒg&öÒ"ââö—2ö—6ÆæB#°Ğ¦–×÷'B²&WGFW"Â†÷F¶W”Æ&VÂÂ—56–ævÆT¶W’Â&W76VBÒg&öÒ"âö†÷F¶W’#°Ğ¦–×÷'B²vWD†VÆE6†÷'F7WBÂvWDÖöæ—F÷'2Â4„õ%D5UE2ÂG—R†÷F¶W’ÂG—RÖöæ—F÷"ÂG—R6WGF–æw2ÂG—R6†÷'F7WBÒg&öÒ"ââö—2÷6WGF–æw2#°Ğ¦–×÷'B²WFFU6WGF–æw2ÂW6U6WGF–æw2Òg&öÒ"â÷7F÷&R#°Ğ¦–×÷'B²Æö6ÆTöbÂW6TÆærÂW6UBÒg&öÒ"ââö“†â#°Ğ¦–×÷'BG—R²F"Òg&öÒ"ââöÖ6†–æRö—6ÆæBÖÖ6†–æR#°Ğ¦–×÷'B²÷&FW%F'2ÂD%2Òg&öÒ"ââö—6ÆæB÷F'2#°Ğ¦–×÷'B²F$f6RÒg&öÒ"ââö—6ÆæBõF$&"#°Ğ¦–×÷'B²4„$5DU%ôõD”ôå2Â6†&7FW%7&—FRÒg&öÒ"ââöÖöGVÆW2ö6†&7FW'2ô6†&7FW%7&—FR#°Ğ¦–×÷'B²W6TÇ•F†VÖRÒg&öÒ"ââ÷F†VÖR÷W6TÇ•F†VÖR#°Ğ Ğ¦6öç7B–væ÷&RÒ‚’Óâ·Ó°Ğ¦6öç7B$UòÒ&‡GG3¢òöv—F‡V"æ6öÒöÖW†æ–³s3rÖ‡V"ö—6ÆæB×r#°Ğ Ğ§G—R6V7F–öâÒ&vVæW&Â"Â'F'2"Â&6ÆVæF""Â&ÆVæ6†W""Â&ÖVF–"Â&æ÷F–f–6F–öç2"Â&6Æ—&ö&B"Â'VV·2"Â&&÷WB#°Ğ Ğ¦6öç7B4T5D”ôå3¢²–C¢6V7F–öã²–6öã¢&V7DæöFRÕµÒÒ°Ğ¢²–C¢&vVæW&Â"Â–6öã¢Ä–6öâCÒ$Ó"V22Ób22e¤ÓB&ƒ&Ó"ƒ$Ó"Gc&Ó'c$Óbã2bã6ÃãBãFÓ‚ãb‚ãbãBãFÓÓãBÓãBãFÒÓ‚ãb‚ãbÓãBãB"óâÒÀĞ¢²–C¢'F'2"Â–6öã¢Ä–6öâCÒ$Ó2’ãVƒ„ÓRVƒF"""'c""Ó"$ƒV""Ó"Ó%cv"""Ó%¦Ó"ãR"ã&ƒ6Ó"ƒ2"óâÒÀĞ¢²–C¢&6ÆVæF""Â–6öã¢Ä–6öâCÒ$ÓRRãVƒFãRãRãRãWc$ãRãR’#ãTƒTãRãR2ãR•ctãRãRRRãU¦ÒÓãRVƒtÓ‚2ãWcFÓ‚ÓGcB"óâÒÀĞ¢²–C¢&ÆVæ6†W""Â–6öã¢Ä–6öâCÒ$Ó†rrÓBrrE¦ÓRÓ"BãRBãR"óâÒÀĞ¢²–C¢&ÖVF–"Â–6öã¢Ä–6öâCÒ$Ó’…cfÃÓ'c$Ó’†22Ób22b¦ÓÓ&22Ób22b¢"óâÒÀĞ¢²–C¢&æ÷F–f–6F–öç2"Â–6öã¢Ä–6öâCÒ$ÓbbãUcbb"cRãVÃãR&‚ÓVÃãRÓ%¤Ó#ãV"ã""ã"B"óâÒÀĞ¢²–C¢&6Æ—&ö&B"Â–6öã¢Ä–6öâCÒ$Ó‚ãRTƒv""Ó"'c&"""&ƒ"""Ó%cv""Ó"Ó&‚ÓãTÓ’Fƒgc4ƒ•cE¢"óâÒÀĞ¢²–C¢'VV·2"Â–6öã¢Ä–6öâCÒ$Ó2'32ãRÓb’Ób’b’bÓ2ãRbÓ’bÓ’ÓbÓ’Óe¦Ó’622Ób22e¢"óâÒÀĞ¢²–C¢&&÷WB"Â–6öã¢Ä–6öâCÒ$Ó"#’’Ó‚’’…¦ÓÓWbÓVÓÓ6‚ã"óâÒÀĞ¥Ó°Ğ Ğ¦gVæ7F–öâ–6öâ‡²BÓ¢²C¢7G&–ærÒ’°Ğ¢&WGW&â€Ğ¢Ç7frv–GFƒÒ#r"†V–v‡CÒ#r"f–Wt&÷ƒÒ##B#B"f–ÆÃÒ&æöæR"7G&ö¶SÒ&7W'&VçD6öÆ÷""7G&ö¶Uv–GFƒÒ#ã’"7G&ö¶TÆ–æV6Ò'&÷VæB"7G&ö¶TÆ–æV¦ö–ãÒ'&÷VæB"&–Ö†–FFVãÒ'G'VR#àĞ¢ÇF‚C×¶GÒóàĞ¢Â÷7fsàĞ¢“°Ğ§ĞĞ Ğ¢ò¢¢öæR6WGF–æs¢—G2æÖRÂv†B—BFöW2ÂæB—G26öçG&öÂâ¢ğĞ¦gVæ7F–öâ&÷r‡°Ğ¢F—FÆRÀĞ¢FW67&—F–öâÀĞ¢6†–ÆG&VâÀĞ¢F—6&ÆVBÒfÇ6RÀĞ¢7F6¶VBÒfÇ6RÀĞ§Ó¢°Ğ¢F—FÆS¢7G&–æs°Ğ¢FW67&—F–öãó¢&V7DæöFS°Ğ¢6†–ÆG&Vã¢&V7DæöFS°Ğ¢F—6&ÆVCó¢&ööÆVã°Ğ¢ò¢¢F†R6öçG&öÂvöW2VæFW"F†RFW‡B‡v–FR6öçG&öÇ2’â¢ğĞ¢7F6¶VCó¢&ööÆVã°Ğ§Ò’°Ğ¢&WGW&â€Ğ¢ÆF—b6Æ74æÖS×¶&÷rG¶F—6&ÆVBò'&÷rÒÖöfb"¢"'ÒG·7F6¶VBò'&÷rÒ×7F6¶VB"¢"'ÖÓàĞ¢ÆF—b6Æ74æÖSÒ'&÷r×FW‡B#àĞ¢ÆF—b6Æ74æÖSÒ'&÷r×F—FÆR#ç·F—FÆWÓÂöF—càĞ¢¶FW67&—F–öâbbÆF—b6Æ74æÖSÒ'&÷rÖFW62#ç¶FW67&—F–öçÓÂöF—cçĞĞ¢ÂöF—càĞ¢ÆF—b6Æ74æÖSÒ'&÷rÖ6öçG&öÂ#ç¶6†–ÆG&VçÓÂöF—càĞ¢ÂöF—càĞ¢“°Ğ§ĞĞ Ğ¦gVæ7F–öâFövvÆR‡²öâÂöä6†ævRÂÆ&VÂÂF—6&ÆVBÒfÇ6RÓ¢²öã¢&ööÆVã²öä6†ævR†öã¢&ööÆVâ“¢fö–C²Æ&VÃ¢7G&–æs²F—6&ÆVCó¢&ööÆVâÒ’°Ğ¢&WGW&â€Ğ¢Æ'WGFöâ6Æ74æÖS×¶FövvÆRG¶öâò'FövvÆRÒÖöâ"¢"'ÖÒ&öÆSÒ'7v—F6‚"&–Ö6†V6¶VC×¶öçÒ&–ÖÆ&VÃ×¶Æ&VÇÒF—6&ÆVC×¶F—6&ÆVGÒöä6Æ–6³×²‚’Óâöä6†ævR‚öâ—ÓàĞ¢ÆÖ÷F–öâç7â6Æ74æÖSÒ'FövvÆRÖ¶æö""Æ–÷WBG&ç6—F–öã×·²G—S¢'7&–ær"Â7F–ffæW73¢sÂF×–æs¢C×ÒóàĞ¢Âö'WGFöãàĞ¢“°Ğ§ĞĞ Ğ¦gVæ7F–öâ6†ö–6SÅBW‡FVæG27G&–æsâ‡²fÇVRÂ÷F–öç2Âöä6†ævRÂF—6&ÆVBÒfÇ6RÓ¢²fÇVS¢C²÷F–öç3¢²fÇVS¢C²Æ&VÃ¢7G&–ærÕµÓ²öä6†ævR‡fÇVS¢B“¢fö–C²F—6&ÆVCó¢&ööÆVâÒ’°Ğ¢&WGW&â€Ğ¢ÆF—b6Æ74æÖSÒ&6†ö–6R"&öÆSÒ'&F–öw&÷W#àĞ¢¶÷F–öç2æÖ‚†ò’Óâ€Ğ¢Æ'WGFöâ¶W“×¶òçfÇVWÒ&öÆSÒ'&F–ò"&–Ö6†V6¶VC×·fÇVRÓÓÒòçfÇVWÒ6Æ74æÖS×¶6†ö–6RÖ—FVÒG·fÇVRÓÓÒòçfÇVRò&6†ö–6RÖ—FVÒÒÖöâ"¢"'ÖÒF—6&ÆVC×¶F—6&ÆVGÒöä6Æ–6³×²‚’Óâöä6†ævR†òçfÇVR—ÓàĞ¢·fÇVRÓÓÒòçfÇVRbbÆÖ÷F–öâç7âÆ–÷WD–C×¶6†ö–6RÒG¶÷F–öç2æÖ‚‡‚’Óâ‚çfÇVR’æ¦ö–â‚—ÖÒ6Æ74æÖSÒ&6†ö–6R×–ÆÂ"G&ç6—F–öã×·²G—S¢'7&–ær"Â7F–ffæW73¢cÂF×–æs¢C"×ÒóçĞĞ¢Ç7â6Æ74æÖSÒ&6†ö–6RÖÆ&VÂ#ç¶òæÆ&VÇÓÂ÷7ãàĞ¢Âö'WGFöãàĞ¢’—ĞĞ¢ÂöF—càĞ¢“°Ğ§ĞĞ Ğ¦gVæ7F–öâw&÷W‡²F—FÆRÂ6†–ÆG&VâÓ¢²F—FÆSó¢7G&–æs²6†–ÆG&Vã¢&V7DæöFRÒ’°Ğ¢&WGW&â€Ğ¢Ç6V7F–öâ6Æ74æÖSÒ&w&÷W#àĞ¢·F—FÆRbbÆƒ"6Æ74æÖSÒ&w&÷W×F—FÆR#ç·F—FÆWÓÂöƒ#çĞĞ¢ÆF—b6Æ74æÖSÒ&w&÷WÖ&öG’#ç¶6†–ÆG&VçÓÂöF—càĞ¢Â÷6V7F–öãàĞ¢“°Ğ§ĞĞ Ğ¢ò¢¢Æ–W2öæR6†ævRFòF†R6WGF–æw3²6fRF†Bf–Ç26†÷w2ÖW76vRâ¢ğĞ¦gVæ7F–öâW6U6fR‚’°Ğ¢6öç7B¶W'&÷"Â6WDW'&÷%ÒÒW6U7FFSÇ7G&–ærÂçVÆÃâ†çVÆÂ“°Ğ¢6öç7B6fRÒ†6†ævS¢‡3¢6WGF–æw2’Óâ6WGF–æw2’Óâ°Ğ¢6WDW'&÷"†çVÆÂ“°Ğ¢WFFU6WGF–æw2†6†ævR’æ6F6‚‚†R’Óâ6WDW'&÷"…7G&–ær†R’’“°Ğ¢Ó°Ğ¢&WGW&â²6fRÂW'&÷"Ó°Ğ§ĞĞ Ğ¦6öç7Bäõô„õD´U“¢†÷F¶W’Ò²7G&Ã¢fÇ6RÂÇC¢fÇ6RÂ6†–gC¢fÇ6RÂv–ã¢fÇ6RÂ¶W“¢ÂÆ&VÃ¢""ÂF÷V&ÆS¢fÇ6RÓ°Ğ Ğ¢ò¢ Ğ¢¢6†÷'F7WB&V6÷&FVBg&öÒF†R¶W–&ö&C¢6Æ–6²Â&W72F†R¶W—2Â&VÆV6PĞ¢¢F†VÓ¢v†Bv2†VÆB—2F†R6†÷'F7WB†ÖöF–f–W"ÆöæRFöò’âW66PĞ¢¢6æ6VÇ3²F†R9rF¶W2—Bv’â¶W’ÆöæR6â&R6¶VBGv–6Râ6—2v†VàĞ¢¢æ÷F†W"Ç&VG’†öÆG2—BàĞ¢¢ğĞ¦gVæ7F–öâ6†÷'F7WE&V6÷&FW"‡²fÇVRÂöä6†ævRÓ¢²fÇVS¢†÷F¶W“²öä6†ævR††÷F¶W“¢†÷F¶W’“¢fö–BÒ’°Ğ¢6öç7BÖW76vW2ÒW6UB‚“°Ğ¢6öç7BBÒÖW76vW2ç6WGF–æw2ævVæW&Ã°Ğ¢6öç7BæÖW2Ò²6†–gC¢ÖW76vW2ç6†÷'F7WB‚$Ö¢"’Â76S¢ÖW76vW2ç6†÷'F7WB‚$W76R"’ÂæöæS¢Bææõ6†÷'F7WBÂGv–6S¢BçGv–6RÂ¶W—3¢Bæ¶W”æÖW2Ó°Ğ¢6öç7B·&V6÷&F–ærÂ6WE&V6÷&F–æuÒÒW6U7FFR†fÇ6R“°Ğ¢6öç7B·VæF–ærÂ6WEVæF–æuÒÒW6U7FFR‚""“°Ğ¢6öç7B·v&æ–ærÂ6WEv&æ–æuÒÒW6U7FFSÇ7G&–ærÂçVÆÃâ†çVÆÂ“°Ğ¢6öç7B6†ævRÒW6U&Vb†öä6†ævR“°Ğ¢6†ævRæ7W'&VçBÒöä6†ævS°Ğ Ğ¢W6TVffV7B‚‚’Óâ°Ğ¢–b‚&V6÷&F–ær’&WGW&ã°Ğ¢òòF†R7W'&VçB6†÷'F7WBÆWG2—G2¶W—2F‡&÷Vv‚ÖVçv†–ÆRàĞ¢6WE6†÷'F7WE&V6÷&F–ær‡G'VR“°Ğ¢ÆWB&W7C¢†÷F¶W’ÂçVÆÂÒçVÆÃ°Ğ¢ÆWBÆöæRÒfÇ6S°Ğ¢6öç7BF÷vâÒ†S¢¶W–&ö&DWfVçB’Óâ°Ğ¢Rç&WfVçDFVfVÇB‚“°Ğ¢Rç7F÷&÷vF–öâ‚“°Ğ¢–b†Ræ¶W’ÓÓÒ$W66R"bbRæ7G&Ä¶W’bbRæÇD¶W’bbRç6†–gD¶W’bbRæÖWF¶W’’°Ğ¢6WE&V6÷&F–ær†fÇ6R“°Ğ¢&WGW&ã°Ğ¢ĞĞ¢–b†Rç&WVB’&WGW&ã°Ğ¢6öç7B&V6÷&FVBÒ&W76VB†RÂæÖW2“°Ğ¢–b‡&V6÷&FVBæ¶–æBÓÓÒ&6æF–FFR"’°Ğ¢&W7BÒ&WGFW"†&W7BÂ&V6÷&FVBæ†÷F¶W’“°Ğ¢6WEVæF–ær††÷F¶W”Æ&VÂ‡²ââæ&W7BÂF÷V&ÆS¢fÇ6RÒÂæÖW2’“°Ğ¢6WEv&æ–ær†çVÆÂ“°Ğ¢ÒVÇ6R–b‡&V6÷&FVBæ¶–æBÓÓÒ'VæF–ær"’°Ğ¢6WEVæF–ær‡&V6÷&FVBæÆ&VÂ“°Ğ¢ÒVÇ6R°Ğ¢ÆöæRÒG'VS°Ğ¢ĞĞ¢Ó°Ğ¢òò&VÆV6VC¢v†Bv2†VÆB—2F†R6†÷'F7WBàĞ¢6öç7BWÒ†S¢¶W–&ö&DWfVçB’Óâ°Ğ¢Rç&WfVçDFVfVÇB‚“°Ğ¢–b†Ræ7G&Ä¶W’ÇÂRæÇD¶W’ÇÂRç6†–gD¶W’ÇÂRæÖWF¶W’’&WGW&ã°Ğ¢–b†&W7B’°Ğ¢6†ævRæ7W'&VçB†&W7B“°Ğ¢6WE&V6÷&F–ær†fÇ6R“°Ğ¢ÒVÇ6R°Ğ¢6WEv&æ–ær†ÆöæRòBç6†÷'F7WDÆöæR¢Bç6†÷'F7WDÖöF–f–W'2“°Ğ¢6WEVæF–ær‚""“°Ğ¢ĞĞ¢&W7BÒçVÆÃ°Ğ¢ÆöæRÒfÇ6S°Ğ¢Ó°Ğ¢6öç7BÆVfRÒ‚’Óâ6WE&V6÷&F–ær†fÇ6R“°Ğ¢v–æF÷ræFDWfVçDÆ—7FVæW"‚&¶W–F÷vâ"ÂF÷vâÂG'VR“°Ğ¢v–æF÷ræFDWfVçDÆ—7FVæW"‚&¶W—W"ÂWÂG'VR“°Ğ¢v–æF÷ræFDWfVçDÆ—7FVæW"‚&&ÇW""ÂÆVfR“°Ğ¢&WGW&â‚’Óâ°Ğ¢v–æF÷rç&VÖ÷fTWfVçDÆ—7FVæW"‚&¶W–F÷vâ"ÂF÷vâÂG'VR“°Ğ¢v–æF÷rç&VÖ÷fTWfVçDÆ—7FVæW"‚&¶W—W"ÂWÂG'VR“°Ğ¢v–æF÷rç&VÖ÷fTWfVçDÆ—7FVæW"‚&&ÇW""ÂÆVfR“°Ğ¢6WE6†÷'F7WE&V6÷&F–ær†fÇ6R“°Ğ¢6WEVæF–ær‚""“°Ğ¢Ó°Ğ¢ÒÂ·&V6÷&F–æuÒ“°Ğ Ğ¢òòöæ6R6WC¢FöW2v–æF÷w2v—fR—CğĞ¢6öç7B¶W’ÒG·fÇVRæ7G&ÇÒG·fÇVRæÇGÒG·fÇVRç6†–gGÒG·fÇVRçv–çÒG·fÇVRæ¶W—ÒG·fÇVRæF÷V&ÆWÖ°Ğ¢W6TVffV7B‚‚’Óâ°Ğ¢–b‚fÇVRæ¶W’’&WGW&ã°Ğ¢6öç7BF–ÖW"Ò6WEF–ÖV÷WB‚‚’Óâ°Ğ¢—6ÆæE6†÷'F7WD†VÆB‚Ğ¢çF†Vâ‚††VÆB’Óâ6WEv&æ–ær††VÆBòçVÆÂ¢Bç6†÷'F7WEF¶Vâ’Ğ¢æ6F6‚†–væ÷&R“°Ğ¢ÒÂC“°Ğ¢&WGW&â‚’Óâ6ÆV%F–ÖV÷WB‡F–ÖW"“°Ğ¢ÒÂ¶¶W•Ò“°Ğ Ğ¢&WGW&â€Ğ¢ÆF—b6Æ74æÖSÒ&†÷F¶W’Öf–VÆB#àĞ¢ÆF—b6Æ74æÖSÒ&†÷F¶W’×&÷r#àĞ¢Æ'WGFöàĞ¢6Æ74æÖS×¶†÷F¶W’G·&V6÷&F–ærò&†÷F¶W’Ò×&V6÷&F–ær"¢"'ÒG·fÇVRæ¶W’ò""¢&†÷F¶W’ÒÖæöæR'ÖĞĞ¢öä6Æ–6³×²‚’Óâ°Ğ¢6WEv&æ–ær†çVÆÂ“°Ğ¢6WE&V6÷&F–ær‚‡"’Óâ"“°Ğ¢×ĞĞ¢àĞ¢·&V6÷&F–æròVæF–ærÇÂBç&W74¶W—2¢†÷F¶W”Æ&VÂ‡fÇVRÂæÖW2—ĞĞ¢Âö'WGFöãàĞ¢·fÇVRæ¶W’ÓÒbb&V6÷&F–ærbb€Ğ¢Æ'WGFöâ6Æ74æÖSÒ&†÷F¶W’Ö6ÆV""&–ÖÆ&VÃ×·Bæ6ÆV%6†÷'F7WGÒF—FÆS×·Bæ6ÆV%6†÷'F7WGÒöä6Æ–6³×²‚’Óâöä6†ævR„äõô„õD´U’—ÓàĞ¢9pĞ¢Âö'WGFöãàĞ¢—ĞĞ¢ÂöF—càĞ¢¶—56–ævÆT¶W’‡fÇVR’bb&V6÷&F–ærbb€Ğ¢ÆF—b6Æ74æÖSÒ&†÷F¶W’ÖF÷V&ÆR#àĞ¢Ç7ãç·Bç&W75Gv–6WÓÂ÷7ãàĞ¢ÅFövvÆRÆ&VÃ×·Bç&W75Gv–6WÒöã×·fÇVRæF÷V&ÆWÒöä6†ævS×²†F÷V&ÆR’Óâöä6†ævR‡²ââçfÇVRÂF÷V&ÆRÒ—ÒóàĞ¢ÂöF—càĞ¢—ĞĞ¢·v&æ–ærbbÆF—b6Æ74æÖSÒ&†÷F¶W’×v&æ–ær#ç·v&æ–æwÓÂöF—cçĞĞ¢ÂöF—càĞ¢“°Ğ§ĞĞ Ğ¦gVæ7F–öâvVæW&Â‡²6WGF–æw2Â6fRÓ¢²6WGF–æw3¢6WGF–æw3²6fS¢&WGW&åG—SÇG—VöbW6U6fSå²'6fR%ÒÒ’°Ğ¢6öç7B¶Ööæ—F÷'2Â6WDÖöæ—F÷'5ÒÒW6U7FFSÄÖöæ—F÷%µÓâ…µÒ“°Ğ¢W6TVffV7B‚‚’Óâ°Ğ¢vWDÖöæ—F÷'2‚’çF†Vâ‡6WDÖöæ—F÷'2’æ6F6‚†–væ÷&R“°Ğ¢ÒÂµÒ“°Ğ¢6öç7BÖW76vW2ÒW6UB‚“°Ğ¢6öç7BBÒÖW76vW2ç6WGF–æw2ævVæW&Ã°Ğ¢6öç7BW6T6†&7FW$æÖRÒ†–C¢6WGF–æw5²&vVæW&Â%Õ²&6†&7FW"%Ò’ÓâÖW76vW2æ6†&7FW'5¶–EÓ°Ğ¢6öç7BrÒ6WGF–æw2ævVæW&Ã°Ğ¢6öç7B6WBÒ‡F6ƒ¢'F–ÃÅ6WGF–æw5²&vVæW&Â%Óâ’Óâ6fR‚‡2’Óâ‡²ââç2ÂvVæW&Ã¢²ââç2ævVæW&ÂÂââçF6‚ÒÒ’“°Ğ¢&WGW&â€Ğ¢ÃàĞ¢Äw&÷WàĞ¢Å&÷rF—FÆS×·Bç7F'GWÒFW67&—F–öã×·Bç7F'GW†–çGÓàĞ¢ÅFövvÆRÆ&VÃ×·Bç7F'GWÆ&VÇÒöã×¶rç7F'Ev—F…v–æF÷w7Òöä6†ævS×²†öâ’Óâ6WB‡²7F'Ev—F…v–æF÷w3¢öâÒ—ÒóàĞ¢Âõ&÷sàĞ¢Å&÷rF—FÆS×·BæÆæwVvWÒFW67&—F–öã×·BæÆæwVvT†–çGÓàĞ¢Ä6†ö–6PĞ¢fÇVS×¶ræÆæwVvWĞĞ¢öä6†ævS×²†ÆæwVvR’Óâ6WB‡²ÆæwVvRÒ—ĞĞ¢÷F–öç3×µ°Ğ¢²fÇVS¢'7—7FVÒ"ÂÆ&VÃ¢BæÆæwVvW2ç7—7FVÒÒÀĞ¢²fÇVS¢&Vâ"ÂÆ&VÃ¢BæÆæwVvW2æVâÒÀĞ¢²fÇVS¢''R"ÂÆ&VÃ¢BæÆæwVvW2ç'RÒÀĞ¢×ĞĞ¢óàĞ¢Âõ&÷sàĞ¢Å&÷rF—FÆS×·Bç67&VVçÒFW67&—F–öã×·Bç67&VVä†–çGÓàĞ¢Ç6VÆV7B6Æ74æÖSÒ'6VÆV7B"fÇVS×¶rç67&VVâóò"'Òöä6†ævS×²†R’Óâ6WB‡²67&VVã¢RçF&vWBçfÇVRÇÂçVÆÂÒ—ÓàĞ¢Æ÷F–öâfÇVSÒ"#ç·Bç&–Ö'•67&VVçÓÂö÷F–öãàĞ¢¶Ööæ—F÷'2æÖ‚†Ò’Óâ€Ğ¢Æ÷F–öâ¶W“×¶ÒææÖWÒfÇVS×¶ÒææÖWÓàĞ¢¶Òç&–Ö'’òBç&–Ö'’¢"'ĞĞ¢¶Òçv–GF‡Ò9r¶Òæ†V–v‡GÒ‡¶ÒææÖRç&WÆ6R‚õåÅÅÅÅÂåÅÂòÂ""—ÒĞ¢Âö÷F–öãàĞ¢’—ĞĞ¢Â÷6VÆV7CàĞ¢Âõ&÷sàĞ¢Âôw&÷WàĞ¢Äw&÷WF—FÆS×·Bæ6†&7FW'ÓàĞ¢ÆF—b6Æ74æÖSÒ&6†&7FW"×–6¶W"#àĞ¢´4„$5DU%ôõD”ôå2æÖ‚†÷F–öâ’Óâ€Ğ¢Æ'WGFöàĞ¢¶W“×¶÷F–öâæ–GĞĞ¢G—SÒ&'WGFöâ Ğ¢6Æ74æÖS×¶ræ6†&7FW"ÓÓÒ÷F–öâæ–Bò&6†&7FW"Ö÷F–öâ6†&7FW"Ö÷F–öâÒ×6VÆV7FVB"¢&6†&7FW"Ö÷F–öâ'ĞĞ¢&–×&W76VC×¶ræ6†&7FW"ÓÓÒ÷F–öâæ–GĞĞ¢öä6Æ–6³×²‚’Óâ6WB‡²6†&7FW#¢÷F–öâæ–BÒ—ĞĞ¢àĞ¢Ç7â6Æ74æÖSÒ&6†&7FW"Ö÷F–öâÖ'B#àĞ¢¶÷F–öâæ–BÓÓÒ&Æ—V–B"òÇ7â6Æ74æÖSÒ&6†&7FW"ÖÆ—V–B×&Wf–Wr"óâ¢Ä6†&7FW%7&—FR6†&7FW#×¶÷F–öâæ–GÒ&Wf–WróçĞĞ¢Â÷7ãàĞ¢Ç7ãç·W6T6†&7FW$æÖR†÷F–öâæ–B—ÓÂ÷7ãàĞ¢Âö'WGFöãàĞ¢’—ĞĞ¢ÂöF—càĞ¢Âôw&÷WàĞ¢Äw&÷WF—FÆS×·Bæ&V†f–÷W'ÓàĞ¢Å&÷rF—FÆS×·BçF†VÖWÒFW67&—F–öã×·BçF†VÖT†–çGÓàĞ¢Ä6†ö–6PĞ¢fÇVS×¶rçF†VÖWĞĞ¢öä6†ævS×²‡F†VÖR’Óâ6WB‡²F†VÖRÒ—ĞĞ¢÷F–öç3×µ°Ğ¢²fÇVS¢'7—7FVÒ"ÂÆ&VÃ¢BçF†VÖW2ç7—7FVÒÒÀĞ¢²fÇVS¢&F&²"ÂÆ&VÃ¢BçF†VÖW2æF&²ÒÀĞ¢²fÇVS¢&Æ–v‡B"ÂÆ&VÃ¢BçF†VÖW2æÆ–v‡BÒÀĞ¢×ĞĞ¢óàĞ¢Âõ&÷sàĞ¢Å&÷rF—FÆS×·Bæ†÷fW'ÒFW67&—F–öã×·Bæ†÷fW$†–çGÓàĞ¢ÅFövvÆRÆ&VÃ×·Bæ†÷fW'Òöã×¶ræ÷Väöä†÷fW'Òöä6†ævS×²†öâ’Óâ6WB‡²÷Väöä†÷fW#¢öâÒ—ÒóàĞ¢Âõ&÷sàĞ¢Å&÷rF—FÆS×·BæWFô†–FWÒFW67&—F–öã×·BæWFô†–FT†–çGÓàĞ¢ÅFövvÆRÆ&VÃ×·BæWFô†–FWÒöã×¶ræWFô†–FWÒöä6†ævS×²†öâ’Óâ6WB‡²WFô†–FS¢öâÒ—ÒóàĞ¢Âõ&÷sàĞ¢Å&÷rF—FÆS×·Bç75F‡&÷Vv‡ÒFW67&—F–öã×·Bç75F‡&÷Vv„†–çGÓàĞ¢ÅFövvÆRÆ&VÃ×·Bç75F‡&÷Vv‡Òöã×¶rç75F‡&÷Vv‡Òöä6†ævS×²†öâ’Óâ6WB‡²75F‡&÷Vvƒ¢öâÒ—ÒóàĞ¢Âõ&÷sàĞ¢Å&÷rF—FÆS×·Bæ—6ÆæE6†÷'F7WGÒFW67&—F–öã×·Bæ—6ÆæE6†÷'F7WD†–çGÓàĞ¢Å6†÷'F7WE&V6÷&FW"fÇVS×¶ræ—6ÆæE6†÷'F7WGÒöä6†ævS×²†—6ÆæE6†÷'F7WB’Óâ6WB‡²—6ÆæE6†÷'F7WBÒ—ÒóàĞ¢Âõ&÷sàĞ¢Å&÷rF—FÆS×·BægVÆÇ67&VVçÒFW67&—F–öã×·BægVÆÇ67&VVä†–çGÓàĞ¢ÅFövvÆRÆ&VÃ×·BægVÆÇ67&VVçÒöã×¶ræ†–FT–ägVÆÇ67&VVçÒöä6†ævS×²†öâ’Óâ6WB‡²†–FT–ägVÆÇ67&VVã¢öâÒ—ÒóàĞ¢Âõ&÷sàĞ¢Å&÷rF—FÆS×·BæÖ÷F–öçÒFW67&—F–öã×·BæÖ÷F–öä†–çGÓàĞ¢Ä6†ö–6PĞ¢fÇVS×¶ræÖ÷F–öçĞĞ¢öä6†ævS×²†Ö÷F–öâ’Óâ6WB‡²Ö÷F–öâÒ—ĞĞ¢÷F–öç3×µ°Ğ¢²fÇVS¢'7—7FVÒ"ÂÆ&VÃ¢BæÖ÷F–öç2ç7—7FVÒÒÀĞ¢²fÇVS¢'&VGV6VB"ÂÆ&VÃ¢BæÖ÷F–öç2ç&VGV6VBÒÀĞ¢²fÇVS¢&gVÆÂ"ÂÆ&VÃ¢BæÖ÷F–öç2ægVÆÂÒÀĞ¢×ĞĞ¢óàĞ¢Âõ&÷sàĞ¢Âôw&÷WàĞ¢ÂóàĞ¢“°Ğ§ĞĞ Ğ¦gVæ7F–öâw&—‚’°Ğ¢&WGW&â€Ğ¢Ç7frv–GFƒÒ#B"†V–v‡CÒ#B"f–Wt&÷ƒÒ##B#B"f–ÆÃÒ&7W'&VçD6öÆ÷""&–Ö†–FFVãÒ'G'VR#àĞ¢µ³bÂ"Â…ÒæÖ‚‡’’Óâ³’ÂUÒæÖ‚‡‚’ÓâÆ6—&6ÆR¶W“×¶G·‡ÒÒG·—ÖÒ7ƒ×·‡Ò7“×·—Ò#Ò#ãb"óâ’—ĞĞ¢Â÷7fsàĞ¢“°Ğ§ĞĞ Ğ¢ò¢¢F†R—6ÆæBw2F'3¢G&vvVB–çFò÷&FW"ÂV6‚6†÷vâ÷"†–FFVââ†öÖR7F—2f—'7Bâ¢ğĞ¦gVæ7F–öâF'2‡²6WGF–æw2Â6fRÓ¢²6WGF–æw3¢6WGF–æw3²6fS¢&WGW&åG—SÇG—VöbW6U6fSå²'6fR%ÒÒ’°Ğ¢6öç7BÖW76vW2ÒW6UB‚“°Ğ¢6öç7BBÒÖW76vW2ç6WGF–æw2çF'3°Ğ¢6öç7B6fVBÒ6WGF–æw2çF'2æ÷&FW"æ¦ö–â‚“°Ğ¢6öç7B'&ævRÒ‚’Óâ÷&FW%F'2‡6WGF–æw2çF'2æ÷&FW"’æÖ‚†FVb’ÓâFVbæ–B’æf–ÇFW"‚†–B’Óâ–BÓÒ&†öÖR"“°Ğ¢6öç7B¶÷&FW"Â6WD÷&FW%ÒÒW6U7FFSÅF%µÓâ†'&ævR“°Ğ¢6öç7BÆFW7BÒW6U&Vb†÷&FW"“°Ğ¢ÆFW7Bæ7W'&VçBÒ÷&FW#°Ğ¢òò6†ævVBVÇ6Wv†W&R†æ÷F†W"v–æF÷r“¢föÆÆ÷ràĞ¢W6TVffV7B‚‚’Óâ6WD÷&FW"†'&ævR‚’’Â·6fVEÒ“°Ğ¢6öç7B†–FFVâÒ6WGF–æw2çF'2æ†–FFVã°Ğ¢6öç7B6öÖÖ—BÒ‚’ÓàĞ¢6fR‚‡2’Óâ°Ğ¢òò–G2F†—2fW'6–öâFöW2æ÷B¶æ÷r†ÇVv–âw2’¶VWF†V—"Æ6RBF†RVæBàĞ¢6öç7BVæ¶æ÷vâÒ2çF'2æ÷&FW"æf–ÇFW"‚†–B’ÓâD%2ç6öÖR‚†FVb’İyãÛh‘éì¶»§q«^vË[˜[YH¼'äáHÛ[šÓX™[
+
+_OÜÜ[ƒBˆ]ÛˆÛ\ÜÓ˜[YOH˜Ø[[[šË\™[[İ™HˆÛÛXÚÏ^Ê
+HOˆ™[[İ™J
+_OƒBˆİœ™[[İ™_CBˆØ]ÛƒBˆÙ]ƒBˆ
+J_CBˆÙ]ƒBˆ
+_CBˆÔ›İÏƒBˆ›İÈ]O^İœ™[Z[™H\ØÜš\[Û^İœ™[Z[™[OƒBˆÚÚXÙCBˆ˜[YO^Ôİš[™ÊÙ][™ÜË˜Ø[[™\‹œ™[Z[™Z[]\Ê_CBˆÛÚ[™ÙO^ÊŠHOˆØ]™J
+ÊHOˆ
+È‹‹œËØ[[™\ˆÈ‹‹œË˜Ø[[™\‹™[Z[™Z[]\Îˆ[X™\ŠŠHHJJ_CBˆÜ[ÛœÏ^ÖÈH‹ŒL‹ŒMH—K›X\
 
-const ignore = () => {};
-const REPO = "https://github.com/mexanik737-hub/island-w";
+ŠHOˆ
+È˜[YNˆ‹X™[ˆ›Z[]\Ê[X™\ŠŠJHJJ_CBˆÏƒBˆÔ›İÏƒBˆÑÜ›İ\ƒBˆÜ›İ\]O^İšİßOƒBˆ]ˆÛ\ÜÓ˜[YOH˜Ø[Z[ƒBˆİ™ÛÛÙÛ_OÜƒBˆİ›İ]ÛÚßOÜƒBˆİšXÛİYOÜƒBˆÛ\ÜÓ˜[YOH˜Ø[Z[\ÙXÜ™]İœÙXÜ™]OÜƒBˆÙ]ƒBˆÑÜ›İ\ƒBˆÏƒBˆ
+NÃBŸCBƒB™[˜İ[Ûˆ][˜Ú\ŠÈÙ][™ÜËØ]™HNˆÈÙ][™ÜÎˆÙ][™ÜÎÈØ]™Nˆ™]\›•\O\[Ùˆ\ÙTØ]™O–ÈœØ]™H—HJHÃBˆÛÛœİY\ÜØYÙ\ÈH\ÙU
 
-type Section = "general" | "tabs" | "calendar" | "launcher" | "media" | "notifications" | "clipboard" | "peeks" | "about";
+NÃBˆÛÛœİHY\ÜØYÙ\ËœÙ][™ÜË›][˜Ú\ÃBˆÛÛœİX™[HY\ÜØYÙ\ËœÚÜİ]ÃBˆÛÛœİHÙ][™ÜË›][˜Ú\ÃBˆÛÛœİÚ[Ù][HH\ÙTİ]OÚÜİ][Š[
+NÃBˆ\ÙQY™™Xİ
 
-const SECTIONS: { id: Section; icon: ReactNode }[] = [
-  { id: "general", icon: <Icon d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM4 12h2m12 0h2M12 4v2m0 12v2M6.3 6.3l1.4 1.4m8.6 8.6 1.4 1.4m0-11.4-1.4 1.4m-8.6 8.6-1.4 1.4" /> },
-  { id: "tabs", icon: <Icon d="M3 9.5h18M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Zm2.5 2.2h3m2 0h3" /> },
-  { id: "calendar", icon: <Icon d="M5 5.5h14a1.5 1.5 0 0 1 1.5 1.5v12A1.5 1.5 0 0 1 19 20.5H5A1.5 1.5 0 0 1 3.5 19V7A1.5 1.5 0 0 1 5 5.5Zm-1.5 5h17M8 3.5v4m8-4v4" /> },
-  { id: "launcher", icon: <Icon d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14Zm5-2 4.5 4.5" /> },
-  { id: "media", icon: <Icon d="M9 18V6l11-2v12M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm11-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /> },
-  { id: "notifications", icon: <Icon d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15l1.5-2ZM10 20.5a2.2 2.2 0 0 0 4 0" /> },
-  { id: "clipboard", icon: <Icon d="M8.5 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1.5M9 4h6v3H9V4Z" /> },
-  { id: "peeks", icon: <Icon d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6Zm9 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" /> },
-  { id: "about", icon: <Icon d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-5v-5m0-3h.01" /> },
-];
 
-function Icon({ d }: { d: string }) {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d={d} />
-    </svg>
-  );
-}
+HOˆÃBˆËÈH˜XÚÙ[™\Y\ÈH™]ÈÚÜİ]š\œİˆ™XYÚ]]ÛÈY\‹ƒBˆÛÛœİ[Y\ˆHÙ][Y[İ]
 
-/** One setting: its name, what it does, and its control. */
-function Row({
-  title,
-  description,
-  children,
-  disabled = false,
-  stacked = false,
-}: {
-  title: string;
-  description?: ReactNode;
-  children: ReactNode;
-  disabled?: boolean;
-  /** The control goes under the text (wide controls). */
-  stacked?: boolean;
-}) {
-  return (
-    <div className={`row ${disabled ? "row--off" : ""} ${stacked ? "row--stacked" : ""}`}>
-      <div className="row-text">
-        <div className="row-title">{title}</div>
-        {description && <div className="row-desc">{description}</div>}
-      </div>
-      <div className="row-control">{children}</div>
-    </div>
-  );
-}
 
-function Toggle({ on, onChange, label, disabled = false }: { on: boolean; onChange(on: boolean): void; label: string; disabled?: boolean }) {
-  return (
-    <button className={`toggle ${on ? "toggle--on" : ""}`} role="switch" aria-checked={on} aria-label={label} disabled={disabled} onClick={() => onChange(!on)}>
-      <motion.span className="toggle-knob" layout transition={{ type: "spring", stiffness: 700, damping: 40 }} />
-    </button>
-  );
-}
+HOˆÙ][ÚÜİ]
 
-function Choice<T extends string>({ value, options, onChange, disabled = false }: { value: T; options: { value: T; label: string }[]; onChange(value: T): void; disabled?: boolean }) {
-  return (
-    <div className="choice" role="radiogroup">
-      {options.map((o) => (
-        <button key={o.value} role="radio" aria-checked={value === o.value} className={`choice-item ${value === o.value ? "choice-item--on" : ""}`} disabled={disabled} onClick={() => onChange(o.value)}>
-          {value === o.value && <motion.span layoutId={`choice-${options.map((x) => x.value).join()}`} className="choice-pill" transition={{ type: "spring", stiffness: 600, damping: 42 }} />}
-          <span className="choice-label">{o.label}</span>
-        </button>
-      ))}
-    </div>
-  );
-}
+K[ŠÙ][
+K˜Ø]Ú
+YÛ›Ü™JKL
+NÃBˆ™]\›ˆ
 
-function Group({ title, children }: { title?: string; children: ReactNode }) {
-  return (
-    <section className="group">
-      {title && <h2 className="group-title">{title}</h2>}
-      <div className="group-body">{children}</div>
-    </section>
-  );
-}
+HOˆÛX\•[Y[İ]
+[Y\ŠNÃBˆKÛ™[˜X›YœÚÜİ]JNÃBˆÛÛœİÙ]H
+]Úˆ\X[Ù][™ÜÖÈ›][˜Ú\ˆ—OŠHOˆØ]™J
+ÊHOˆ
+È‹‹œË][˜Ú\ˆÈ‹‹œË›][˜Ú\‹‹‹œ]ÚHJJNÃBˆÛÛœİZÙ[ˆH™[˜X›Y	‰ˆ[OOHœÚÜİ]ÃBˆ™]\›ˆ
+BˆƒBˆÜ›İ\ƒBˆ›İÈ]O^İ›][˜Ú\ŸH\ØÜš\[Û^İ›][˜Ú\’[OƒBˆÙÙÛHX™[^İ›][˜Ú\ŸHÛ^Û™[˜X›YHÛÚ[™ÙO^ÊÛŠHOˆÙ]
+È[˜X›YˆÛˆJ_HÏƒBˆÔ›İÏƒBˆ›İÃBˆ]O^İœÚÜİ]CBˆİXÚÙYBˆ\ØX›Y^È[™[˜X›YCBˆ\ØÜš\[Û^ÃBˆZÙ[ˆÈ
+BˆÜ[ˆÛ\ÜÓ˜[YOHØ\›ˆƒBˆİZÙ[ŠX™[
+œÚÜİ]
+J_CBˆÚ[ÈZÙ[•\Ú[™ÊX™[
+[
+JHˆZÙ[“›Û™_CBˆÜÜ[ƒBˆ
+Hˆ
+BˆœÚÜİ][Bˆ
+CBˆCBˆƒBˆÚÚXÙH˜[YO^ÛœÚÜİ]H\ØX›Y^È[™[˜X›YHÛÚ[™ÙO^ÊÚÜİ]
+HOˆÙ]
+ÈÚÜİ]J_HÜ[ÛœÏ^ÔÒÔ•ÕUË›X\
 
-/** Applies one change to the settings; a save that fails shows a message. */
-function useSave() {
-  const [error, setError] = useState<string | null>(null);
-  const save = (change: (s: Settings) => Settings) => {
-    setError(null);
-    updateSettings(change).catch((e) => setError(String(e)));
-  };
-  return { save, error };
-}
+ÊHOˆ
+È˜[YNˆËX™[ˆX™[
+ÊHJJ_HÏƒBˆÔ›İÏƒBˆÑÜ›İ\ƒBˆÜ›İ\]O^İ™š[\ßOƒBˆ›İÈ]O^İš[™^š[\ßH\ØX›Y^È[™[˜X›YH\ØÜš\[Û^İš[™^š[\Ò[OƒBˆÙÙÛHX™[^İš[™^š[\ßHÛ^Ûš[™^š[\ßH\ØX›Y^È[™[˜X›YHÛÚ[™ÙO^ÊÛŠHOˆÙ]
+È[™^š[\ÎˆÛˆJ_HÏƒBˆÔ›İÏƒBˆÑÜ›İ\ƒBˆÏƒBˆ
+NÃBŸCBƒB™[˜İ[ÛˆYYXJÈÙ][™ÜËØ]™HNˆÈÙ][™ÜÎˆÙ][™ÜÎÈØ]™Nˆ™]\›•\O\[Ùˆ\ÙTØ]™O–ÈœØ]™H—HJHÃBˆÛÛœİH\ÙU
 
-const NO_HOTKEY: Hotkey = { ctrl: false, alt: false, shift: false, win: false, key: 0, label: "", double: false };
+KœÙ][™ÜË›YYXNÃBˆÛÛœİ[™ÈH\ÙS[™Ê
+NÃBˆÛÛœİHHÙ][™ÜË›YYXNÃBˆÛÛœİÙ]H
+]Úˆ\X[Ù][™ÜÖÈ›YYXH—OŠHOˆØ]™J
+ÊHOˆ
+È‹‹œËYYXNˆÈ‹‹œË›YYXK‹‹œ]ÚHJJNÃBˆÛÛœİÙXÛÛ™ÈH
+K›\šXÜÓÙ™œÙ]\ÈÈL
+KÓØØ[Tİš[™ÊØØ[SÙŠ[™ÊKÈZ[š[][Qœ˜Xİ[Û‘YÚ]ÎˆKX^[][Qœ˜Xİ[Û‘YÚ]ÎˆKÚYÛ‘\Ü^Nˆ™^Ù\™\›ÈˆJNÃBˆ™]\›ˆ
+BˆÜ›İ\ƒBˆ›İÈ]O^İ›\šXÜßH\ØÜš\[Û^İ›\šXÜÒ[OƒBˆÙÙÛHX™[^İ›\šXÜßHÛ^ÛK›\šXÜßHÛÚ[™ÙO^ÊÛŠHOˆÙ]
+È\šXÜÎˆÛˆJ_HÏƒBˆÔ›İÏƒBˆ›İÈ]O^İ›™]X\Ù_H\ØX›Y^È[K›\šXÜßH\ØÜš\[Û^İ›™]X\ÙR[OƒBˆÙÙÛHX™[^İ›™]X\ÙSX™[HÛ^ÛK›™]X\Ù_H\ØX›Y^È[K›\šXÜßHÛÚ[™ÙO^ÊÛŠHOˆÙ]
+È™]X\ÙNˆÛˆJ_HÏƒBˆÔ›İÏƒBˆ›İÈ]O^İ›Ù™œÙ]H\ØX›Y^È[K›\šXÜßH\ØÜš\[Û^İ›Ù™œÙ][OƒBˆ]ˆÛ\ÜÓ˜[YOH›Ù™œÙ]ƒBˆ[œ]BˆÛ\ÜÓ˜[YOHœ˜[™ÙHƒBˆ\OHœ˜[™ÙHƒBˆZ[^ËLŒCBˆX^^ÌŒCBˆİ\^ÌLCBˆ˜[YO^ÛK›\šXÜÓÙ™œÙ]\ßCBˆ\ØX›Y^È[K›\šXÜßCBˆİ[O^ŞÈ‹KYš[ˆ	Ê
+K›\šXÜÓÙ™œÙ]\È
+ÈŒ
+HÈ
+H
+ˆLIXH\È™XXİÔÔÔ›Ü\Y\ßCBˆÛÚ[™ÙO^ÊJHOˆÙ]
+È\šXÜÓÙ™œÙ]\Îˆ[X™\ŠK\™Ù]˜[YJHJ_CBˆÏƒBˆÜ[ˆÛ\ÜÓ˜[YOH›Ù™œÙ]]˜[YHÛK›\šXÜÓÙ™œÙ]\ÈOOHÈŒÈˆˆ	ÜÙXÛÛ™ßHØOÜÜ[ƒBˆÛK›\šXÜÓÙ™œÙ]\ÈOOH	‰ˆ
+Bˆ]ÛˆÛ\ÜÓ˜[YOH›[šÈˆÛÛXÚÏ^Ê
+HOˆÙ]
+È\šXÜÓÙ™œÙ]\ÎˆJ_OƒBˆİœ™\Ù]CBˆØ]ÛƒBˆ
+_CBˆÙ]ƒBˆÔ›İÏƒBˆÑÜ›İ\ƒBˆ
+NÃBŸCBƒB™[˜İ[Ûˆ›İYšXØ][ÛœÊÈÙ][™ÜËØ]™HNˆÈÙ][™ÜÎˆÙ][™ÜÎÈØ]™Nˆ™]\›•\O\[Ùˆ\ÙTØ]™O–ÈœØ]™H—HJHÃBˆÛÛœİH\ÙU
 
-/**
- * A shortcut recorded from the keyboard: click, press the keys, release
- * them: what was held is the shortcut (a modifier alone too). Escape
- * cancels; the Ã— takes it away. A key alone can be asked twice. Says when
- * another app already holds it.
- */
-function ShortcutRecorder({ value, onChange }: { value: Hotkey; onChange(hotkey: Hotkey): void }) {
-  const messages = useT();
-  const t = messages.settings.general;
-  const names = { shift: messages.shortcut("Maj"), space: messages.shortcut("Espace"), none: t.noShortcut, twice: t.twice };
-  const [recording, setRecording] = useState(false);
-  const [pending, setPending] = useState("");
-  const [warning, setWarning] = useState<string | null>(null);
-  const change = useRef(onChange);
-  change.current = onChange;
+KœÙ][™ÜË››İYšXØ][ÛœÎÃBˆÛÛœİˆHÙ][™ÜË››İYšXØ][ÛœÎÃBˆÛÛœİÙ]H
+]Úˆ\X[Ù][™ÜÖÈ››İYšXØ][ÛœÈ—OŠHOˆØ]™J
+ÊHOˆ
+È‹‹œË›İYšXØ][ÛœÎˆÈ‹‹œË››İYšXØ][ÛœË‹‹œ]ÚHJJNÃBˆ™]\›ˆ
+BˆÜ›İ\ƒBˆ›İÈ]O^İ™[˜X›YH\ØÜš\[Û^İ™[˜X›Y[OƒBˆÙÙÛHX™[^İ™[˜X›YHÛ^Û‹™[˜X›YHÛÚ[™ÙO^ÊÛŠHOˆÙ]
+È[˜X›YˆÛˆJ_HÏƒBˆÔ›İÏƒBˆ›İÈ]O^İœYZßH\ØX›Y^È[‹™[˜X›YH\ØÜš\[Û^İœYZÒ[OƒBˆÙÙÛHX™[^İœYZÓX™[HÛ^Û‹œYZßH\ØX›Y^È[‹™[˜X›YHÛÚ[™ÙO^ÊÛŠHOˆÙ]
+ÈYZÎˆÛˆJ_HÏƒBˆÔ›İÏƒBˆÑÜ›İ\ƒBˆ
+NÃBŸCBƒB™[˜İ[ÛˆÛ\›Ø\™
+ÈÙ][™ÜËØ]™HNˆÈÙ][™ÜÎˆÙ][™ÜÎÈØ]™Nˆ™]\›•\O\[Ùˆ\ÙTØ]™O–ÈœØ]™H—HJHÃBˆÛÛœİH\ÙU
 
-  useEffect(() => {
-    if (!recording) return;
-    // The current shortcut lets its keys through meanwhile.
-    setShortcutRecording(true);
-    let best: Hotkey | null = null;
-    let alone = false;
-    const down = (e: KeyboardEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (e.key === "Escape" && !e.ctrlKey && !e.altKey && !e.shiftKey && !e.metaKey) {
-        setRecording(false);
-        return;
-      }
-      if (e.repeat) return;
-      const recorded = pressed(e, names);
-      if (recorded.kind === "candidate") {
-        best = better(best, recorded.hotkey);
-        setPending(hotkeyLabel({ ...best, double: false }, names));
-        setWarning(null);
-      } else if (recorded.kind === "pending") {
-        setPending(recorded.label);
-      } else {
-        alone = true;
-      }
-    };
-    // Released: what was held is the shortcut.
-    const up = (e: KeyboardEvent) => {
-      e.preventDefault();
-      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
-      if (best) {
-        change.current(best);
-        setRecording(false);
-      } else {
-        setWarning(alone ? t.shortcutAlone : t.shortcutModifiers);
-        setPending("");
-      }
-      best = null;
-      alone = false;
-    };
-    const leave = () => setRecording(false);
-    window.addEventListener("keydown", down, true);
-    window.addEventListener("keyup", up, true);
-    window.addEventListener("blur", leave);
-    return () => {
-      window.removeEventListener("keydown", down, true);
-      window.removeEventListener("keyup", up, true);
-      window.removeEventListener("blur", leave);
-      setShortcutRecording(false);
-      setPending("");
-    };
-  }, [recording]);
+KœÙ][™ÜË˜Û\›Ø\™ÃBˆ™]\›ˆ
+BˆƒBˆÜ›İ\]O^İ˜Û\›Ø\™OƒBˆ›İÈ]O^İš\İÜ_H\ØÜš\[Û^İš\İÜR[OƒBˆÙÙÛHX™[^İš\İÜ_HÛ^ÜÙ][™ÜË˜Û\›Ø\™™[˜X›YHÛÚ[™ÙO^ÊÛŠHOˆØ]™J
+ÊHOˆ
+È‹‹œËÛ\›Ø\™ˆÈ[˜X›YˆÛˆHJJ_HÏƒBˆÔ›İÏƒBˆÑÜ›İ\ƒBˆÜ›İ\]O^İœÚ[ŸOƒBˆ›İÈ]O^İšÙY\H\ØÜš\[Û^İšÙY\[OƒBˆÙÙÛHX™[^İšÙY\X™[HÛ^ÜÙ][™ÜËœÚ[‹šÙY\HÛÚ[™ÙO^ÊÛŠHOˆØ]™J
+ÊHOˆ
+È‹‹œËÚ[ˆÈÙY\ˆÛˆHJJ_HÏƒBˆÔ›İÏƒBˆÑÜ›İ\ƒBˆÏƒBˆ
+NÃBŸCBƒB™[˜İ[ÛˆYZÜÊÈÙ][™ÜËØ]™HNˆÈÙ][™ÜÎˆÙ][™ÜÎÈØ]™Nˆ™]\›•\O\[Ùˆ\ÙTØ]™O–ÈœØ]™H—HJHÃBˆÛÛœİH\ÙU
 
-  // Once set: does Windows give it?
-  const key = `${value.ctrl}${value.alt}${value.shift}${value.win}${value.key}${value.double}`;
-  useEffect(() => {
-    if (!value.key) return;
-    const timer = setTimeout(() => {
-      islandShortcutHeld()
-        .then((held) => setWarning(held ? null : t.shortcutTaken))
-        .catch(ignore);
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [key]);
+KœÙ][™ÜËœYZÜÎÃBˆÛÛœİHÙ][™ÜËœYZÜÎÃBˆÛÛœİÙ]H
+]Úˆ\X[Ù][™ÜÖÈœYZÜÈ—OŠHOˆØ]™J
+ÊHOˆ
+È‹‹œËYZÜÎˆÈ‹‹œËœYZÜË‹‹œ]ÚHJJNÃBˆ™]\›ˆ
+BˆÜ›İ\ƒBˆ›İÈ]O^İœİÙ\ŸH\ØÜš\[Û^İœİÙ\’[OƒBˆÙÙÛHX™[^İœİÙ\“X™[HÛ^ÜœİÙ\ŸHÛÚ[™ÙO^ÊÛŠHOˆÙ]
+ÈİÙ\ˆÛˆJ_HÏƒBˆÔ›İÏƒBˆ›İÈ]O^İ˜]Y[ßH\ØÜš\[Û^İ˜]Y[Ò[OƒBˆÙÙÛHX™[^İ˜]Y[ÓX™[HÛ^Ü˜]Y[Ñ]šXÙ_HÛÚ[™ÙO^ÊÛŠHOˆÙ]
+È]Y[Ñ]šXÙNˆÛˆJ_HÏƒBˆÔ›İÏƒBˆ›İÈ]O^İ˜›Y]ÛİH\ØÜš\[Û^İ˜›Y]Ûİ[OƒBˆÙÙÛHX™[^İ˜›Y]ÛİX™[HÛ^Ü˜›Y]ÛİHÛÚ[™ÙO^ÊÛŠHOˆÙ]
+È›Y]ÛİˆÛˆJ_HÏƒBˆÔ›İÏƒBˆ›İÈ]O^İ˜Ø\ßH\ØÜš\[Û^İ˜Ø\Ò[OƒBˆÙÙÛHX™[^İ˜Ø\ÓX™[HÛ^Ü˜Ø\ÓØÚßHÛÚ[™ÙO^ÊÛŠHOˆÙ]
+ÈØ\ÓØÚÎˆÛˆJ_HÏƒBˆÔ›İÏƒBˆ›İÈ]O^İ›Û[Y_H\ØÜš\[Û^İ›Û[YR[OƒBˆÙÙÛHX™[^İ›Û[YSX™[HÛ^Ü›Û[Y_HÛÚ[™ÙO^ÊÛŠHOˆÙ]
+È›Û[YNˆÛˆJ_HÏƒBˆÔ›İÏƒBˆÑÜ›İ\ƒBˆ
+NÃBŸCBƒB‹ÊŠˆH\]Hİ]KÙ\İ\œ™[HH˜XÚÙ[™	ÜÈ]™[Ëˆ
+‹ÃB™[˜İ[Ûˆ\ÙU\]Tİ]\Ê
+Nˆ\]Tİ]\È[ÃBˆÛÛœİÜİ]\ËÙ]İ]\×HH\ÙTİ]O\]Tİ]\È[Š[
+NÃBˆ\ÙQY™™Xİ
 
-  return (
-    <div className="hotkey-field">
-      <div className="hotkey-row">
-        <button
-          className={`hotkey ${recording ? "hotkey--recording" : ""} ${value.key ? "" : "hotkey--none"}`}
-          onClick={() => {
-            setWarning(null);
-            setRecording((r) => !r);
-          }}
-        >
-          {recording ? pending || t.pressKeys : hotkeyLabel(value, names)}
-        </button>
-        {value.key !== 0 && !recording && (
-          <button className="hotkey-clear" aria-label={t.clearShortcut} title={t.clearShortcut} onClick={() => onChange(NO_HOTKEY)}>
-            Ã—
-          </button>
-        )}
-      </div>
-      {isSingleKey(value) && !recording && (
-        <div className="hotkey-double">
-          <span>{t.pressTwice}</span>
-          <Toggle label={t.pressTwice} on={value.double} onChange={(double) => onChange({ ...value, double })} />
-        </div>
-      )}
-      {warning && <div className="hotkey-warning">{warning}</div>}
-    </div>
-  );
-}
 
-function General({ settings, save }: { settings: Settings; save: ReturnType<typeof useSave>["save"] }) {
-  const [monitors, setMonitors] = useState<Monitor[]>([]);
-  useEffect(() => {
-    getMonitors().then(setMonitors).catch(ignore);
-  }, []);
-  const messages = useT();
-  const t = messages.settings.general;
-  const useCharacterName = (id: Settings["general"]["character"]) => messages.characters[id];
-  const g = settings.general;
-  const set = (patch: Partial<Settings["general"]>) => save((s) => ({ ...s, general: { ...s.general, ...patch } }));
-  return (
-    <>
-      <Group>
-        <Row title={t.startup} description={t.startupHint}>
-          <Toggle label={t.startupLabel} on={g.startWithWindows} onChange={(on) => set({ startWithWindows: on })} />
-        </Row>
-        <Row title={t.language} description={t.languageHint}>
-          <Choice
-            value={g.language}
-            onChange={(language) => set({ language })}
-            options={[
-              { value: "system", label: t.languages.system },
-              { value: "en", label: t.languages.en },
-              { value: "ru", label: t.languages.ru },
-            ]}
-          />
-        </Row>
-        <Row title={t.screen} description={t.screenHint}>
-          <select className="select" value={g.screen ?? ""} onChange={(e) => set({ screen: e.target.value || null })}>
-            <option value="">{t.primaryScreen}</option>
-            {monitors.map((m) => (
-              <option key={m.name} value={m.name}>
-                {m.primary ? t.primary : ""}
-                {m.width} Ã— {m.height} ({m.name.replace(/^\\\\\.\\/, "")})
-              </option>
-            ))}
-          </select>
-        </Row>
-      </Group>
-      <Group title={t.character}>
-        <div className="character-picker">
-          {CHARACTER_OPTIONS.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              className={g.character === option.id ? "character-option character-option--selected" : "character-option"}
-              aria-pressed={g.character === option.id}
-              onClick={() => set({ character: option.id })}
-            >
-              <span className="character-option-art">
-                {option.id === "liquid" ? <span className="character-liquid-preview" /> : <CharacterSprite character={option.id} preview />}
-              </span>
-              <span>{useCharacterName(option.id)}</span>
-            </button>
-          ))}
-        </div>
-      </Group>
-      <Group title={t.behaviour}>
-        <Row title={t.theme} description={t.themeHint}>
-          <Choice
-            value={g.theme}
-            onChange={(theme) => set({ theme })}
-            options={[
-              { value: "system", label: t.themes.system },
-              { value: "dark", label: t.themes.dark },
-              { value: "light", label: t.themes.light },
-            ]}
-          />
-        </Row>
-        <Row title={t.hover} description={t.hoverHint}>
-          <Toggle label={t.hover} on={g.openOnHover} onChange={(on) => set({ openOnHover: on })} />
-        </Row>
-        <Row title={t.autoHide} description={t.autoHideHint}>
-          <Toggle label={t.autoHide} on={g.autoHide} onChange={(on) => set({ autoHide: on })} />
-        </Row>
-        <Row title={t.passThrough} description={t.passThroughHint}>
-          <Toggle label={t.passThrough} on={g.passThrough} onChange={(on) => set({ passThrough: on })} />
-        </Row>
-        <Row title={t.islandShortcut} description={t.islandShortcutHint}>
-          <ShortcutRecorder value={g.islandShortcut} onChange={(islandShortcut) => set({ islandShortcut })} />
-        </Row>
-        <Row title={t.fullscreen} description={t.fullscreenHint}>
-          <Toggle label={t.fullscreen} on={g.hideInFullscreen} onChange={(on) => set({ hideInFullscreen: on })} />
-        </Row>
-        <Row title={t.motion} description={t.motionHint}>
-          <Choice
-            value={g.motion}
-            onChange={(motion) => set({ motion })}
-            options={[
-              { value: "system", label: t.motions.system },
-              { value: "reduced", label: t.motions.reduced },
-              { value: "full", label: t.motions.full },
-            ]}
-          />
-        </Row>
-      </Group>
-    </>
-  );
-}
+HOˆÃBˆ]İÜˆ
 
-function Grip() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      {[6, 12, 18].map((y) => [9, 15].map((x) => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.6" />))}
-    </svg>
-  );
-}
 
-/** The island's tabs: dragged into order, each shown or hidden. Home stays first. */
-function Tabs({ settings, save }: { settings: Settings; save: ReturnType<typeof useSave>["save"] }) {
-  const messages = useT();
-  const t = messages.settings.tabs;
-  const saved = settings.tabs.order.join();
-  const arrange = () => orderTabs(settings.tabs.order).map((def) => def.id).filter((id) => id !== "home");
-  const [order, setOrder] = useState<Tab[]>(arrange);
-  const latest = useRef(order);
-  latest.current = order;
-  // Changed elsewhere (another window): follow.
-  useEffect(() => setOrder(arrange()), [saved]);
-  const hidden = settings.tabs.hidden;
-  const commit = () =>
-    save((s) => {
-      // Ids this version does not know (a plugin's) keep their place at the end.
-      const unknown = s.tabs.order.filter((id) => !TABS.some((def) => def.id === id));
-      return { ...s, tabs: { ...s.tabs, order: ["home", ...latest.current, ...unknown] } };
-    });
-  const show = (id: Tab, on: boolean) =>
-    save((s) => {
-      const others = s.tabs.hidden.filter((h) => h !== id);
-      return { ...s, tabs: { ...s.tabs, hidden: on ? others : [...others, id] } };
-    });
-  return (
-    <>
-      <Group>
-        <div className="tab-row tab-row--fixed">
-          <span className="tab-row-grip" />
-          <span className="tab-row-icon">{tabFace("home", messages.tabs, false).icon}</span>
-          <div className="row-text">
-            <div className="row-title">{t.home}</div>
-            <div className="row-desc">{t.homeHint}</div>
-          </div>
-        </div>
-        <Reorder.Group axis="y" values={order} onReorder={setOrder} className="tab-list">
-          {order.map((id) => {
-            const def = TABS.find((d) => d.id === id)!;
-            const { label, icon } = tabFace(id, messages.tabs, false);
-            const on = !hidden.includes(id);
-            return (
-              <Reorder.Item key={id} value={id} className="tab-row" onDragEnd={commit} whileDrag={{ scale: 1.02, boxShadow: "0 8px 24px rgba(0,0,0,0.5)", zIndex: 1 }}>
-                <span className="tab-row-grip" title={t.drag}>
-                  <Grip />
-                </span>
-                <span className={`tab-row-icon ${on ? "" : "tab-row-icon--off"}`}>{icon}</span>
-                <div className="row-text">
-                  <div className="row-title">{label}</div>
-                  <div className="row-desc">{def.when === "always" ? t.always : t.content}</div>
-                </div>
-                <Toggle label={t.show(label)} on={on} onChange={(next) => show(id, next)} />
-              </Reorder.Item>
-            );
-          })}
-        </Reorder.Group>
-      </Group>
-      <p className="tab-hint">{t.hint}</p>
-    </>
-  );
-}
+HOˆ›ÚY
+H[™Yš[™YÃBˆÛ•\]Tİ]\ÊÙ]İ]\ÊCBˆ[Š
+[›\İ[ŠHOˆÃBˆİÜH[›\İ[ÃBˆ™]\›ˆÙ]\]Tİ]\Ê
+NÃBˆJCBˆ[ŠÙ]İ]\ÊCBˆ˜Ø]Ú
+YÛ›Ü™JNÃBˆ™]\›ˆ
 
-/** A secret link, recognisable but not shown whole: "Google Â· â€¦a1b2". */
-function linkLabel(link: string): string {
-  let host = "";
-  try {
-    host = new URL(link.replace(/^webcal:/i, "https:")).hostname;
-  } catch {
-    return "â€¦";
-  }
-  const name = host.includes("google.") ? "Google" : host.includes("outlook.") || host.includes("office365.") ? "Outlook" : host.includes("icloud.") ? "iCloud" : host;
-  const end = link.replace(/\.ics$/i, "").slice(-4);
-  return `${name} Â· â€¦${end}`;
-}
+HOˆİÜËŠ
+NÃBˆK×JNÃBˆ™]\›ˆİ]\ÎÃBŸCBƒB™[˜İ[Ûˆ\]\ÊÈÙ][™ÜËØ]™HNˆÈÙ][™ÜÎˆÙ][™ÜÎÈØ]™Nˆ™]\›•\O\[Ùˆ\ÙTØ]™O–ÈœØ]™H—HJHÃBˆÛÛœİH\ÙU
 
-/** The calendars (secret iCal links) and the reminder. */
-function Calendar({ settings, save }: { settings: Settings; save: ReturnType<typeof useSave>["save"] }) {
-  const t = useT().settings.calendar;
-  const [link, setLink] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
-  const links = settings.calendar.links;
-  const add = () => {
-    const value = link.trim();
-    if (!value || busy) return;
-    if (links.includes(value)) {
-      setMessage({ ok: false, text: t.already });
-      return;
-    }
-    setBusy(true);
-    setMessage(null);
-    checkCalendarLink(value)
-      .then((check) => {
-        save((s) => ({ ...s, calendar: { ...s.calendar, links: [...s.calendar.links, value] } }));
-        setLink("");
-        setMessage({ ok: true, text: t.added(check.name, check.upcoming) });
-      })
-      .catch((e) => setMessage({ ok: false, text: t.failed(String(e)) }))
-      .finally(() => setBusy(false));
-  };
-  const remove = (gone: string) => save((s) => ({ ...s, calendar: { ...s.calendar, links: s.calendar.links.filter((l) => l !== gone) } }));
-  return (
-    <>
-      <Group>
-        <Row title={t.links} description={t.linksHint} stacked>
-          <div className="cal-add">
-            <input
-              className="input"
-              value={link}
-              placeholder={t.placeholder}
-              spellCheck={false}
-              autoComplete="off"
-              onChange={(e) => setLink(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") add();
-              }}
-            />
-            <button className="button button--main" disabled={busy || !link.trim()} onClick={add}>
-              {busy ? t.checking : t.add}
-            </button>
-          </div>
-          {message && <div className={`cal-message ${message.ok ? "" : "cal-message--error"}`}>{message.text}</div>}
-          {links.length > 0 && (
-            <div className="cal-links">
-              {links.map((l) => (
-                <div key={l} className="cal-link">
-                  <span className="cal-link-name">ğŸ“… {linkLabel(l)}</span>
-                  <button className="cal-link-remove" onClick={() => remove(l)}>
-                    {t.remove}
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </Row>
-        <Row title={t.remind} description={t.remindHint}>
-          <Choice
-            value={String(settings.calendar.remindMinutes)}
-            onChange={(v) => save((s) => ({ ...s, calendar: { ...s.calendar, remindMinutes: Number(v) } }))}
-            options={["5", "10", "15"].map((v) => ({ value: v, label: t.minutes(Number(v)) }))}
-          />
-        </Row>
-      </Group>
-      <Group title={t.how}>
-        <div className="cal-help">
-          <p>{t.google}</p>
-          <p>{t.outlook}</p>
-          <p>{t.icloud}</p>
-          <p className="cal-help-secret">{t.secret}</p>
-        </div>
-      </Group>
-    </>
-  );
-}
+KœÙ][™ÜË\]\ÎÃBˆÛÛœİİ]\ÈH\ÙU\]Tİ]\Ê
+NÃBˆÛÛœİÚ[œİ[\œ›Ü‹Ù][œİ[\œ›Ü—HH\ÙTİ]Oİš[™È[Š[
+NÃBˆYˆ
+\İ]\ÊH™]\›ˆ[ÃBˆÛÛœİ\ŞHHİ]\Ë˜ÚXÚÚ[™Èİ]\Ëš[œİ[[™ÎÃBˆÛÛœİ^Hİ]\Ëš[œİ[[™ÃBˆÈš[œİ[[™ÃBˆˆİ]\Ë˜ÚXÚÚ[™ÃBˆÈ˜ÚXÚÚ[™ÃBˆˆİ]\Ë˜]˜Z[X›CBˆÈ˜]˜Z[X›Jİ]\Ë˜]˜Z[X›JCBˆˆ\Ñ]NÃBˆ™]\›ˆ
+BˆÜ›İ\]O^İ]_OƒBˆ›İÈ]O^İ^H\ØÜš\[Û^Ú[œİ[\œ›ÜˆÏÈİ]\Ë™\œ›ÜˆÏÈœÚYÛ™YOƒBˆÜİ]\Ë˜]˜Z[X›HÈ
+Bˆ]ÛƒBˆÛ\ÜÓ˜[YOH˜]Ûˆ]Û‹K[XZ[ˆƒBˆ\ØX›Y^Ø\Ş_CBˆÛÛXÚÏ^Ê
+HOˆÃBˆÙ][œİ[\œ›ÜŠ[
+NÃBˆ[œİ[\]J
+K˜Ø]Ú
 
-function Launcher({ settings, save }: { settings: Settings; save: ReturnType<typeof useSave>["save"] }) {
-  const messages = useT();
-  const t = messages.settings.launcher;
-  const label = messages.shortcut;
-  const l = settings.launcher;
-  const [held, setHeld] = useState<Shortcut | null>(null);
-  useEffect(() => {
-    // The backend applies a new shortcut first: read what it holds after.
-    const timer = setTimeout(() => getHeldShortcut().then(setHeld).catch(ignore), 250);
-    return () => clearTimeout(timer);
-  }, [l.enabled, l.shortcut]);
-  const set = (patch: Partial<Settings["launcher"]>) => save((s) => ({ ...s, launcher: { ...s.launcher, ...patch } }));
-  const taken = l.enabled && held !== l.shortcut;
-  return (
-    <>
-      <Group>
-        <Row title={t.launcher} description={t.launcherHint}>
-          <Toggle label={t.launcher} on={l.enabled} onChange={(on) => set({ enabled: on })} />
-        </Row>
-        <Row
-          title={t.shortcut}
-          stacked
-          disabled={!l.enabled}
-          description={
-            taken ? (
-              <span className="warn">
-                {t.taken(label(l.shortcut))}
-                {held ? t.takenUsing(label(held)) : t.takenNone}
-              </span>
-            ) : (
-              t.shortcutHint
-            )
-          }
-        >
-          <Choice value={l.shortcut} disabled={!l.enabled} onChange={(shortcut) => set({ shortcut })} options={SHORTCUTS.map((s) => ({ value: s, label: label(s) }))} />
-        </Row>
-      </Group>
-      <Group title={t.files}>
-        <Row title={t.indexFiles} disabled={!l.enabled} description={t.indexFilesHint}>
-          <Toggle label={t.indexFiles} on={l.indexFiles} disabled={!l.enabled} onChange={(on) => set({ indexFiles: on })} />
-        </Row>
-      </Group>
-    </>
-  );
-}
 
-function Media({ settings, save }: { settings: Settings; save: ReturnType<typeof useSave>["save"] }) {
-  const t = useT().settings.media;
-  const lang = useLang();
-  const m = settings.media;
-  const set = (patch: Partial<Settings["media"]>) => save((s) => ({ ...s, media: { ...s.media, ...patch } }));
-  const seconds = (m.lyricsOffsetMs / 1000).toLocaleString(localeOf(lang), { minimumFractionDigits: 1, maximumFractionDigits: 1, signDisplay: "exceptZero" });
-  return (
-    <Group>
-      <Row title={t.lyrics} description={t.lyricsHint}>
-        <Toggle label={t.lyrics} on={m.lyrics} onChange={(on) => set({ lyrics: on })} />
-      </Row>
-      <Row title={t.netease} disabled={!m.lyrics} description={t.neteaseHint}>
-        <Toggle label={t.neteaseLabel} on={m.netease} disabled={!m.lyrics} onChange={(on) => set({ netease: on })} />
-      </Row>
-      <Row title={t.offset} disabled={!m.lyrics} description={t.offsetHint}>
-        <div className="offset">
-          <input
-            className="range"
-            type="range"
-            min={-2000}
-            max={2000}
-            step={100}
-            value={m.lyricsOffsetMs}
-            disabled={!m.lyrics}
-            style={{ "--fill": `${((m.lyricsOffsetMs + 2000) / 4000) * 100}%` } as React.CSSProperties}
-            onChange={(e) => set({ lyricsOffsetMs: Number(e.target.value) })}
-          />
-          <span className="offset-value">{m.lyricsOffsetMs === 0 ? "0 s" : `${seconds} s`}</span>
-          {m.lyricsOffsetMs !== 0 && (
-            <button className="link" onClick={() => set({ lyricsOffsetMs: 0 })}>
-              {t.reset}
-            </button>
-          )}
-        </div>
-      </Row>
-    </Group>
-  );
-}
+HOˆÙ][œİ[\œ›ÜŠš[œİ[˜Z[Y
+JNÃBˆ_CBˆƒBˆİš[œİ[CBˆØ]ÛƒBˆ
+Hˆ
+Bˆ]ÛˆÛ\ÜÓ˜[YOH˜]Ûˆˆ\ØX›Y^Ø\Ş_HÛÛXÚÏ^Ê
+HOˆÚXÚÑ›Ü•\]\Ê
+K˜Ø]Ú
+YÛ›Ü™J_OƒBˆİ˜ÚXÚßCBˆØ]ÛƒBˆ
+_CBˆÔ›İÏƒBˆ›İÈ]O^İ˜]]ßH\ØÜš\[Û^İ˜]]Ò[OƒBˆÙÙÛCBˆX™[^İ˜]]ßCBˆÛ^ÜÙ][™ÜË™Ù[™\˜[˜ÚXÚÕ\]\ßCBˆÛÚ[™ÙO^ÊÛŠHOˆØ]™J
+ÊHOˆ
+È‹‹œËÙ[™\˜[ˆÈ‹‹œË™Ù[™\˜[ÚXÚÕ\]\ÎˆÛˆHJJ_CBˆÏƒBˆÔ›İÏƒBˆÑÜ›İ\ƒBˆ
+NÃBŸCBƒB‹ÊŠˆ\Û[™	ÜÈXÛÛˆ
+Ü˜Ë]]\šKÚXÛÛœËÜÛİ\˜ÙKœİ™Ø
+NˆHÛİYÙˆ]ZY\˜K™]Kˆ
+‹ÃB™[˜İ[Ûˆ\ÙÛÊ
+HÃBˆ™]\›ˆ
+Bˆİ™ÈÛ\ÜÓ˜[YOH˜X›İ][X\šÈˆšY]Ğ›ŞHŒˆ›ÛOHš[YÈˆ\šXK[X™[H’\Û[™ƒBˆÈš[HˆÍÌLÍ™™ˆƒBˆÚ\˜ÛHŞHŒÌ‹ŒˆˆŞOHŒ‹HˆHŒM‹ˆˆÏƒBˆÚ\˜ÛHŞHŒMËÈˆŞOHŒÍ‹HˆHŒLËÈˆÏƒBˆÚ\˜ÛHŞH‹ŒÈˆŞOHŒÍ‹HˆHŒLËÈˆÏƒBˆ[\ÙHŞHŒÌˆˆŞOHˆˆHŒMÈˆOHŒLËŒÈˆÏƒBˆÙÏƒBˆÈš[HˆÙ™™ˆƒBˆ™XİHŒŒKHˆOHŒ‹ˆÚYHËˆZYÚHŒMˆHŒËHˆ˜[œÙ›Ü›OHœ›İ]JNHKÌË
+HˆÏƒBˆ™XİHŒÍˆˆOHŒŒËÈˆÚYHËˆZYÚHŒMˆHŒËHˆ˜[œÙ›Ü›OHœ›İ]JNHÎHÌÊHˆÏƒBˆÙÏƒBˆÜİ™ÏƒBˆ
+NÃBŸCBƒB™[˜İ[ÛˆX›İ]
+ÈÙ][™ÜËØ]™HNˆÈÙ][™ÜÎˆÙ][™ÜÎÈØ]™Nˆ™]\›•\O\[Ùˆ\ÙTØ]™O–ÈœØ]™H—HJHÃBˆÛÛœİH\ÙU
 
-function Notifications({ settings, save }: { settings: Settings; save: ReturnType<typeof useSave>["save"] }) {
-  const t = useT().settings.notifications;
-  const n = settings.notifications;
-  const set = (patch: Partial<Settings["notifications"]>) => save((s) => ({ ...s, notifications: { ...s.notifications, ...patch } }));
-  return (
-    <Group>
-      <Row title={t.enabled} description={t.enabledHint}>
-        <Toggle label={t.enabled} on={n.enabled} onChange={(on) => set({ enabled: on })} />
-      </Row>
-      <Row title={t.peek} disabled={!n.enabled} description={t.peekHint}>
-        <Toggle label={t.peekLabel} on={n.peek} disabled={!n.enabled} onChange={(on) => set({ peek: on })} />
-      </Row>
-    </Group>
-  );
-}
+KœÙ][™ÜË˜X›İ]ÃBˆÛÛœİİ]\ÈH\ÙU\]Tİ]\Ê
+NÃBˆ™]\›ˆ
+Bˆ]ˆÛ\ÜÓ˜[YOH˜X›İ]ƒBˆ\ÙÛÈÏƒBˆ]ˆÛ\ÜÓ˜[YOH˜X›İ][˜[YH’\Û[™Ù]ƒBˆ]ˆÛ\ÜÓ˜[YOH˜X›İ]]™\œÚ[Ûˆİ™\œÚ[ÛŠİ]\ÏË˜İ\œ™[ÏÈˆŠ_OÙ]ƒBˆÛ\ÜÓ˜[YOH˜X›İ]]^İ^OÜƒBˆ]ˆÛ\ÜÓ˜[YOH˜X›İ][[šÜÈƒBˆ]ÛˆÛ\ÜÓ˜[YOH˜]ÛˆˆÛÛXÚÏ^Ê
+HOˆÜ[“[šÊ‘TÊK˜Ø]Ú
+YÛ›Ü™J_OƒBˆİœÛİ\˜Ù_CBˆØ]ÛƒBˆ]ÛˆÛ\ÜÓ˜[YOH˜]ÛˆˆÛÛXÚÏ^Ê
+HOˆÜ[“[šÊ	Ô‘TßKÚ\ÜİY\Ø
+K˜Ø]Ú
+YÛ›Ü™J_OƒBˆİœ™\ÜCBˆØ]ÛƒBˆÙ]ƒBˆ]ˆÛ\ÜÓ˜[YOH˜X›İ]]\]\ÈƒBˆ\]\ÈÙ][™ÜÏ^ÜÙ][™ÜßHØ]™O^ÜØ]™_HÏƒBˆÙ]ƒBˆÙ]ƒBˆ
+NÃBŸCBƒB˜ÛÛœİ\ÔÙXİ[ÛˆH
+Îˆİš[™ÊNˆÈ\ÈÙXİ[ÛˆOˆÑPÕSÓ”ËœÛÛYJ
+
+HOˆšYOOHÊNÃBƒB‹ÊŠƒBˆ
+ˆHÚ[™İÉÜÈİÛˆ]H˜\ˆ˜YÈ]È[İ™HHÚ[™İÎÈZ[š[Z^™H
+ÈCBˆ
+ˆ\ÚØ˜\ŠH[™ÛÜÙK›İ[™È[ÙKƒBˆ
+‹ÃB™[˜İ[Ûˆ]P˜\ŠÈ]HNˆÈ]Nˆİš[™ÈJHÃBˆÛÛœİH\ÙU
 
-function Clipboard({ settings, save }: { settings: Settings; save: ReturnType<typeof useSave>["save"] }) {
-  const t = useT().settings.clipboard;
-  return (
-    <>
-      <Group title={t.clipboard}>
-        <Row title={t.history} description={t.historyHint}>
-          <Toggle label={t.history} on={settings.clipboard.enabled} onChange={(on) => save((s) => ({ ...s, clipboard: { enabled: on } }))} />
-        </Row>
-      </Group>
-      <Group title={t.shelf}>
-        <Row title={t.keep} description={t.keepHint}>
-          <Toggle label={t.keepLabel} on={settings.shelf.keep} onChange={(on) => save((s) => ({ ...s, shelf: { keep: on } }))} />
-        </Row>
-      </Group>
-    </>
-  );
-}
+KœÙ][™ÜÎÃBˆÛÛœİÚ[ˆHÙ]İ\œ™[Ú[™İÊ
+NÃBˆ™]\›ˆ
+BˆXY\ˆÛ\ÜÓ˜[YOH]X˜\ˆˆ]K]]\šKY˜YË\™YÚ[ÛƒBˆÜ[ˆÛ\ÜÓ˜[YOH]X˜\‹[ÙÛÈˆ]K]]\šKY˜YË\™YÚ[Ûˆ\šXKZY[HYHƒBˆİ™ÈÚYHŒMˆˆZYÚHŒMˆˆšY]Ğ›ŞHŒƒBˆÈš[HˆÍÌLÍ™™ˆƒBˆÚ\˜ÛHŞHŒÌ‹ŒˆˆŞOHŒ‹HˆHŒM‹ˆˆÏƒBˆÚ\˜ÛHŞHŒMËÈˆŞOHŒÍ‹HˆHŒLËÈˆÏƒBˆÚ\˜ÛHŞH‹ŒÈˆŞOHŒÍ‹HˆHŒLËÈˆÏƒBˆ[\ÙHŞHŒÌˆˆŞOHˆˆHŒMÈˆOHŒLËŒÈˆÏƒBˆÙÏƒBˆÜİ™ÏƒBˆÜÜ[ƒBˆÜ[ˆÛ\ÜÓ˜[YOH]X˜\‹]]Hˆ]K]]\šKY˜YË\™YÚ[ÛƒBˆİ]_CBˆÜÜ[ƒBˆ]ÛˆÛ\ÜÓ˜[YOH]X˜\‹X]Ûˆˆ\šXK[X™[^İ›Z[š[Z^™_H]O^İ›Z[š[Z^™_HÛÛXÚÏ^Ê
+HOˆÚ[‹›Z[š[Z^™J
+K˜Ø]Ú
+YÛ›Ü™J_OƒBˆİ™ÈÚYHŒLˆZYÚHŒLˆšY]Ğ›ŞHŒLLˆ\šXKZY[HYHƒBˆ]H“LHZˆİ›ÚÙOH˜İ\œ™[ÛÛÜˆˆİ›ÚÙUÚYHŒKŒˆˆÏƒBˆÜİ™ÏƒBˆØ]ÛƒBˆ]ÛˆÛ\ÜÓ˜[YOH]X˜\‹X]Ûˆ]X˜\‹X]Û‹KXÛÜÙHˆ\šXK[X™[^İ˜ÛÜÙ_H]O^İ˜ÛÜÙ_HÛÛXÚÏ^Ê
+HOˆÚ[‹˜ÛÜÙJ
+K˜Ø]Ú
+YÛ›Ü™J_OƒBˆİ™ÈÚYHŒLˆZYÚHŒLˆšY]Ğ›ŞHŒLLˆ\šXKZY[HYHƒBˆ]H›LKHKHÈÛLMËMÈÈˆİ›ÚÙOH˜İ\œ™[ÛÛÜˆˆİ›ÚÙUÚYHŒKŒˆˆÏƒBˆÜİ™ÏƒBˆØ]ÛƒBˆÚXY\ƒBˆ
+NÃBŸCBƒB™^Ü[˜İ[ÛˆÙ][™ÜĞ\
 
-function Peeks({ settings, save }: { settings: Settings; save: ReturnType<typeof useSave>["save"] }) {
-  const t = useT().settings.peeks;
-  const p = settings.peeks;
-  const set = (patch: Partial<Settings["peeks"]>) => save((s) => ({ ...s, peeks: { ...s.peeks, ...patch } }));
-  return (
-    <Group>
-      <Row title={t.power} description={t.powerHint}>
-        <Toggle label={t.powerLabel} on={p.power} onChange={(on) => set({ power: on })} />
-      </Row>
-      <Row title={t.audio} description={t.audioHint}>
-        <Toggle label={t.audioLabel} on={p.audioDevice} onChange={(on) => set({ audioDevice: on })} />
-      </Row>
-      <Row title={t.bluetooth} description={t.bluetoothHint}>
-        <Toggle label={t.bluetoothLabel} on={p.bluetooth} onChange={(on) => set({ bluetooth: on })} />
-      </Row>
-      <Row title={t.caps} description={t.capsHint}>
-        <Toggle label={t.capsLabel} on={p.capsLock} onChange={(on) => set({ capsLock: on })} />
-      </Row>
-      <Row title={t.volume} description={t.volumeHint}>
-        <Toggle label={t.volumeLabel} on={p.volume} onChange={(on) => set({ volume: on })} />
-      </Row>
-    </Group>
-  );
-}
+HÃBˆÛÛœİÙ][™ÜÈH\ÙTÙ][™ÜÊ
+NÃBˆ\ÙP\U[YJÙ][™ÜË™Ù[™\˜[[YJNÃBˆÛÛœİÈØ]™K\œ›ÜˆHH\ÙTØ]™J
+NÃBˆËÈÜ[™YÛˆHÙXİ[Ûˆ
+ˆØX›İ]‹œ›ÛHH˜^IÜÈ\]H][JHÜˆÛÈÚİÈÛ™KƒBˆÛÛœİÜÙXİ[Û‹Ù]ÙXİ[Û—HH\ÙTİ]OÙXİ[ÛŠ
 
-/** The update state, kept current by the backend's events. */
-function useUpdateStatus(): UpdateStatus | null {
-  const [status, setStatus] = useState<UpdateStatus | null>(null);
-  useEffect(() => {
-    let stop: (() => void) | undefined;
-    onUpdateStatus(setStatus)
-      .then((unlisten) => {
-        stop = unlisten;
-        return getUpdateStatus();
-      })
-      .then(setStatus)
-      .catch(ignore);
-    return () => stop?.();
-  }, []);
-  return status;
-}
+HOˆÃBˆÛÛœİ\ÚÙYHØØ][Û‹š\ÚœÛXÙJJNÃBˆ™]\›ˆ\ÔÙXİ[ÛŠ\ÚÙY
+HÈ\ÚÙYˆ™Ù[™\˜[ÃBˆJNÃBˆ\ÙQY™™Xİ
 
-function Updates({ settings, save }: { settings: Settings; save: ReturnType<typeof useSave>["save"] }) {
-  const t = useT().settings.updates;
-  const status = useUpdateStatus();
-  const [installError, setInstallError] = useState<string | null>(null);
-  if (!status) return null;
-  const busy = status.checking || status.installing;
-  const text = status.installing
-    ? t.installing
-    : status.checking
-      ? t.checking
-      : status.available
-        ? t.available(status.available)
-        : t.upToDate;
-  return (
-    <Group title={t.title}>
-      <Row title={text} description={installError ?? status.error ?? t.signed}>
-        {status.available ? (
-          <button
-            className="button button--main"
-            disabled={busy}
-            onClick={() => {
-              setInstallError(null);
-              installUpdate().catch(() => setInstallError(t.installFailed));
-            }}
-          >
-            {t.install}
-          </button>
-        ) : (
-          <button className="button" disabled={busy} onClick={() => checkForUpdates().catch(ignore)}>
-            {t.check}
-          </button>
-        )}
-      </Row>
-      <Row title={t.auto} description={t.autoHint}>
-        <Toggle
-          label={t.auto}
-          on={settings.general.checkUpdates}
-          onChange={(on) => save((s) => ({ ...s, general: { ...s.general, checkUpdates: on } }))}
-        />
-      </Row>
-    </Group>
-  );
-}
 
-/** Island's icon (`src-tauri/icons/source.svg`): the cloud of quiera.eu. */
-function AppLogo() {
-  return (
-    <svg className="about-mark" viewBox="0 0 64 64" role="img" aria-label="Island">
-      <g fill="#7136ff">
-        <circle cx="32.2" cy="26.9" r="16.6" />
-        <circle cx="17.7" cy="36.5" r="13.7" />
-        <circle cx="46.3" cy="36.5" r="13.7" />
-        <ellipse cx="32" cy="42" rx="17" ry="13.3" />
-      </g>
-      <g fill="#fff">
-        <rect x="21.9" y="26.8" width="7.8" height="14" rx="3.9" transform="rotate(-9 25.8 33.8)" />
-        <rect x="34.6" y="23.7" width="7.8" height="14" rx="3.9" transform="rotate(-9 38.5 30.7)" />
-      </g>
-    </svg>
-  );
-}
+HOˆÃBˆÛÛœİİÜH\İ[İš[™ÏŠœÙ][™ÜÎ‹ËÜÙXİ[Ûˆ‹
+JHOˆ\ÔÙXİ[ÛŠKœ^[ØY
+H	‰ˆÙ]ÙXİ[ÛŠKœ^[ØY
+JNÃBˆ™]\›ˆ
 
-function About({ settings, save }: { settings: Settings; save: ReturnType<typeof useSave>["save"] }) {
-  const t = useT().settings.about;
-  const status = useUpdateStatus();
-  return (
-    <div className="about">
-      <AppLogo />
-      <div className="about-name">Island</div>
-      <div className="about-version">{t.version(status?.current ?? "")}</div>
-      <p className="about-text">{t.text}</p>
-      <div className="about-links">
-        <button className="button" onClick={() => openLink(REPO).catch(ignore)}>
-          {t.source}
-        </button>
-        <button className="button" onClick={() => openLink(`${REPO}/issues`).catch(ignore)}>
-          {t.report}
-        </button>
-      </div>
-      <div className="about-updates">
-        <Updates settings={settings} save={save} />
-      </div>
-    </div>
-  );
-}
+HOˆÃBˆİÜ[Š
+[›\İ[ŠHOˆ[›\İ[Š
+JK˜Ø]Ú
+YÛ›Ü™JNÃBˆNÃBˆK×JNÃBˆÛÛœİH\ÙU
 
-const isSection = (s: string): s is Section => SECTIONS.some((x) => x.id === s);
+KœÙ][™ÜÎÃBˆËÈHÚ[™İÉÜÈ]H›ÛİÜÈH[™İXYÙKƒBˆ\ÙQY™™Xİ
 
-/**
- * The window's own title bar: drag it to move the window; minimize (to the
- * taskbar) and close, nothing else.
- */
-function TitleBar({ title }: { title: string }) {
-  const t = useT().settings;
-  const win = getCurrentWindow();
-  return (
-    <header className="titlebar" data-tauri-drag-region>
-      <span className="titlebar-logo" data-tauri-drag-region aria-hidden="true">
-        <svg width="16" height="16" viewBox="0 0 64 64">
-          <g fill="#7136ff">
-            <circle cx="32.2" cy="26.9" r="16.6" />
-            <circle cx="17.7" cy="36.5" r="13.7" />
-            <circle cx="46.3" cy="36.5" r="13.7" />
-            <ellipse cx="32" cy="42" rx="17" ry="13.3" />
-          </g>
-        </svg>
-      </span>
-      <span className="titlebar-title" data-tauri-drag-region>
-        {title}
-      </span>
-      <button className="titlebar-button" aria-label={t.minimize} title={t.minimize} onClick={() => win.minimize().catch(ignore)}>
-        <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
-          <path d="M1 5h8" stroke="currentColor" strokeWidth="1.2" />
-        </svg>
-      </button>
-      <button className="titlebar-button titlebar-button--close" aria-label={t.close} title={t.close} onClick={() => win.close().catch(ignore)}>
-        <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
-          <path d="m1.5 1.5 7 7m0-7-7 7" stroke="currentColor" strokeWidth="1.2" />
-        </svg>
-      </button>
-    </header>
-  );
-}
 
-export function SettingsApp() {
-  const settings = useSettings();
-  useApplyTheme(settings.general.theme);
-  const { save, error } = useSave();
-  // Opened on a section ("#about", from the tray's update item) or told to show one.
-  const [section, setSection] = useState<Section>(() => {
-    const asked = location.hash.slice(1);
-    return isSection(asked) ? asked : "general";
-  });
-  useEffect(() => {
-    const stop = listen<string>("settings://section", (e) => isSection(e.payload) && setSection(e.payload));
-    return () => {
-      stop.then((unlisten) => unlisten()).catch(ignore);
-    };
-  }, []);
-  const t = useT().settings;
-  // The window's title follows the language.
-  useEffect(() => {
-    document.title = t.windowTitle;
-  }, [t.windowTitle]);
+HOˆÃBˆØİ[Y[]HHÚ[™İÕ]NÃBˆKİÚ[™İÕ]WJNÃBƒBˆ™]\›ˆ
+Bˆ]ˆÛ\ÜÓ˜[YOHÚ[™İÈƒBˆ]P˜\ˆ]OH’\Û[™ˆÏƒBˆ]ˆÛ\ÜÓ˜[YOH˜\ƒBˆ˜]ˆÛ\ÜÓ˜[YOH›˜]ˆƒBˆ]ˆÛ\ÜÓ˜[YOH›˜]‹]]HİÚ[™İÕ]_OÙ]ƒBˆÔÑPÕSÓ”Ë›X\
 
-  return (
-    <div className="window">
-      <TitleBar title="Island" />
-      <div className="app">
-      <nav className="nav">
-        <div className="nav-title">{t.windowTitle}</div>
-        {SECTIONS.map((s) => (
-          <button key={s.id} className={`nav-item ${s.id === section ? "nav-item--on" : ""}`} onClick={() => setSection(s.id)}>
-            {s.id === section && <motion.span layoutId="nav-pill" className="nav-pill" transition={{ type: "spring", stiffness: 550, damping: 42 }} />}
-            <span className="nav-icon">{s.icon}</span>
-            <span className="nav-label">{t.sections[s.id]}</span>
-          </button>
-        ))}
-      </nav>
-      <main className="main">
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div key={section} className="page" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.16 }}>
-            {section !== "about" && <h1 className="page-title">{t.sections[section]}</h1>}
-            {section === "general" && <General settings={settings} save={save} />}
-            {section === "tabs" && <Tabs settings={settings} save={save} />}
-            {section === "calendar" && <Calendar settings={settings} save={save} />}
-            {section === "launcher" && <Launcher settings={settings} save={save} />}
-            {section === "media" && <Media settings={settings} save={save} />}
-            {section === "notifications" && <Notifications settings={settings} save={save} />}
-            {section === "clipboard" && <Clipboard settings={settings} save={save} />}
-            {section === "peeks" && <Peeks settings={settings} save={save} />}
-            {section === "about" && <About settings={settings} save={save} />}
-          </motion.div>
-        </AnimatePresence>
-        {error && <div className="error">{t.saveError(error)}</div>}
-      </main>
-      </div>
-    </div>
-  );
-}
+ÊHOˆ
+Bˆ]ÛˆÙ^O^ÜËšYHÛ\ÜÓ˜[YO^Ø˜]‹Z][H	ÜËšYOOHÙXİ[ÛˆÈ›˜]‹Z][KK[ÛˆˆˆˆŸXHÛÛXÚÏ^Ê
+HOˆÙ]ÙXİ[ÛŠËšY
+_OƒBˆÜËšYOOHÙXİ[Ûˆ	‰ˆ[İ[Û‹œÜ[ˆ^[İ]YH›˜]‹\[ˆÛ\ÜÓ˜[YOH›˜]‹\[ˆ˜[œÚ][Û^ŞÈ\NˆœÜš[™È‹İY™›™\ÜÎˆML[\[™Îˆˆ_HÏŸCBˆÜ[ˆÛ\ÜÓ˜[YOH›˜]‹ZXÛÛˆÜËšXÛÛŸOÜÜ[ƒBˆÜ[ˆÛ\ÜÓ˜[YOH›˜]‹[X™[İœÙXİ[ÛœÖÜËšY_OÜÜ[ƒBˆØ]ÛƒBˆ
+J_CBˆÛ˜]ƒBˆXZ[ˆÛ\ÜÓ˜[YOH›XZ[ˆƒBˆ[š[X]T™\Ù[˜ÙH[ÙOHØZ]ˆ[š]X[^Ù˜[Ù_OƒBˆ[İ[Û‹™]ˆÙ^O^ÜÙXİ[ÛŸHÛ\ÜÓ˜[YOHœYÙHˆ[š]X[^ŞÈÜXÚ]NˆNˆˆ_H[š[X]O^ŞÈÜXÚ]NˆKNˆ_H^]^ŞÈÜXÚ]NˆNˆM_H˜[œÚ][Û^ŞÈ\˜][ÛˆŒMˆ_OƒBˆÜÙXİ[ÛˆOOH˜X›İ]ˆ	‰ˆHÛ\ÜÓ˜[YOHœYÙK]]HİœÙXİ[ÛœÖÜÙXİ[Û—_OÚOŸCBˆÜÙXİ[ÛˆOOH™Ù[™\˜[ˆ	‰ˆÙ[™\˜[Ù][™ÜÏ^ÜÙ][™ÜßHØ]™O^ÜØ]™_HÏŸCBˆÜÙXİ[ÛˆOOHXœÈˆ	‰ˆXœÈÙ][™ÜÏ^ÜÙ][™ÜßHØ]™O^ÜØ]™_HÏŸCBˆÜÙXİ[ÛˆOOH˜Ø[[™\ˆˆ	‰ˆØ[[™\ˆÙ][™ÜÏ^ÜÙ][™ÜßHØ]™O^ÜØ]™_HÏŸCBˆÜÙXİ[ÛˆOOH›][˜Ú\ˆˆ	‰ˆ][˜Ú\ˆÙ][™ÜÏ^ÜÙ][™ÜßHØ]™O^ÜØ]™_HÏŸCBˆÜÙXİ[ÛˆOOH›YYXHˆ	‰ˆYYXHÙ][™ÜÏ^ÜÙ][™ÜßHØ]™O^ÜØ]™_HÏŸCBˆÜÙXİ[ÛˆOOH››İYšXØ][ÛœÈˆ	‰ˆ›İYšXØ][ÛœÈÙ][™ÜÏ^ÜÙ][™ÜßHØ]™O^ÜØ]™_HÏŸCBˆÜÙXİ[ÛˆOOH˜Û\›Ø\™ˆ	‰ˆÛ\›Ø\™Ù][™ÜÏ^ÜÙ][™ÜßHØ]™O^ÜØ]™_HÏŸCBˆÜÙXİ[ÛˆOOHœYZÜÈˆ	‰ˆYZÜÈÙ][™ÜÏ^ÜÙ][™ÜßHØ]™O^ÜØ]™_HÏŸCBˆÜÙXİ[ÛˆOOH˜X›İ]ˆ	‰ˆX›İ]Ù][™ÜÏ^ÜÙ][™ÜßHØ]™O^ÜØ]™_HÏŸCBˆÛ[İ[Û‹™]ƒBˆĞ[š[X]T™\Ù[˜ÙOƒBˆÙ\œ›Üˆ	‰ˆ]ˆÛ\ÜÓ˜[YOH™\œ›ÜˆİœØ]™Q\œ›ÜŠ\œ›ÜŠ_OÙ]ŸCBˆÛXZ[ƒBˆÙ]ƒBˆÙ]ƒBˆ
+NÃBŸCB
