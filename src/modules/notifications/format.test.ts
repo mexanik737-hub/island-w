@@ -25,7 +25,7 @@ describe("arrivedLabel", () => {
   const now = new Date(2026, 9, 29, 15, 0).getTime();
   it("gives the time today, then yesterday, then the date", () => {
     expect(arrivedLabel(new Date(2026, 9, 29, 14, 5).getTime(), now)).toBe("14:05");
-    expect(arrivedLabel(new Date(2026, 9, 28, 9, 30).getTime(), now)).toBe("hier 09:30");
+    expect(arrivedLabel(new Date(2026, 9, 28, 9, 30).getTime(), now)).toBe("yesterday 09:30");
     expect(arrivedLabel(new Date(2026, 9, 20, 9, 30).getTime(), now)).toMatch(/20/);
   });
 });

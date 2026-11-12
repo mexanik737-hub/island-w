@@ -1,10 +1,7 @@
-import { en } from "./en";
 import type { Messages } from "./index";
 
 export const ru: Messages = {
-  ...en,
   tabs: {
-    ...en.tabs,
     playing: "Сейчас играет",
     clock: "Часы",
     controls: "Управление",
@@ -28,7 +25,6 @@ export const ru: Messages = {
   percent: (n) => n + "%",
   shortcut: (stored) => stored.replace("Espace", "Пробел").replace("Maj", "Shift"),
   media: {
-    ...en.media,
     nowPlaying: "Сейчас играет",
     unknownTitle: "Неизвестный трек",
     previous: "Предыдущий трек",
@@ -42,7 +38,6 @@ export const ru: Messages = {
     source: (n, total) => "Источник " + n + " из " + total,
   },
   controls: {
-    ...en.controls,
     input: "Микрофон",
     inputs: "Микрофоны",
     noInput: "Микрофон не подключён",
@@ -70,7 +65,6 @@ export const ru: Messages = {
     confirm: "Нажмите ещё раз",
   },
   clipboard: {
-    ...en.clipboard,
     pin: "Закрепить",
     unpin: "Открепить",
     remove: "Удалить из истории",
@@ -81,7 +75,6 @@ export const ru: Messages = {
     clear: "Очистить",
   },
   notifications: {
-    ...en.notifications,
     open: (app) => "Открыть " + app,
     dismiss: "Скрыть уведомление",
     empty: "Нет уведомлений",
@@ -89,7 +82,6 @@ export const ru: Messages = {
     clearAll: "Очистить всё",
   },
   shelf: {
-    ...en.shelf,
     remove: "Убрать с полки",
     send: "Отправить на телефон",
     sendAll: "Отправить всё на телефон",
@@ -99,7 +91,6 @@ export const ru: Messages = {
     clear: "Очистить",
   },
   phone: {
-    ...en.phone,
     qrLabel: "QR-код ссылки",
     expired: "Срок истёк",
     scan: "Отсканируйте телефоном",
@@ -113,7 +104,6 @@ export const ru: Messages = {
     back: "Назад",
   },
   peeks: {
-    ...en.peeks,
     charging: "Заряжается",
     onBattery: "Работает от батареи",
     battery: (percent) => "Батарея: " + percent + "%",
@@ -125,7 +115,6 @@ export const ru: Messages = {
     updateHow: "Значок Island › Установить",
   },
   launcher: {
-    ...en.launcher,
     placeholder: "Приложение, файл, поиск, вычисление…",
     indexing: "Индексируем файлы…",
     open: "Открыть ↵",
@@ -148,7 +137,6 @@ export const ru: Messages = {
     denied: "Windows заблокировала камеру: Параметры › Конфиденциальность и защита › Камера › Разрешить классическим приложениям доступ к камере.",
   },
   calendar: {
-    ...en.calendar,
     inMinutes: (n) => "через " + n + " мин",
     now: "Сейчас",
     today: "Сегодня",
@@ -158,7 +146,6 @@ export const ru: Messages = {
     empty: "Ближайших событий нет",
   },
   timer: {
-    ...en.timer,
     title: "Таймер",
     pomodoro: "Помодоро",
     done: "Время вышло",
@@ -173,7 +160,6 @@ export const ru: Messages = {
     paused: "Пауза",
   },
   welcome: {
-    ...en.welcome,
     pill: "Добро пожаловать в Island",
     hover: "наведите на меня",
     click: "нажмите на меня",
@@ -220,13 +206,11 @@ export const ru: Messages = {
     next: "Далее",
   },
   settings: {
-    ...en.settings,
     windowTitle: "Настройки",
     minimize: "Свернуть",
     close: "Закрыть",
     saveError: (error) => "Не удалось сохранить настройку: " + error,
     sections: {
-      ...en.settings.sections,
       general: "Общие",
       tabs: "Вкладки",
       calendar: "Календарь",
@@ -238,11 +222,13 @@ export const ru: Messages = {
       about: "О программе",
     },
     calendar: {
-      ...en.settings.calendar,
       links: "Календари",
       linksHint: "Вставьте секретную ссылку iCal: остров покажет встречи и поможет открыть Teams, Meet или Zoom. Вход в аккаунт не требуется.",
       add: "Добавить",
       checking: "Проверка…",
+      placeholder: "https://calendar.google.com/calendar/ical/…/basic.ics",
+      added: (name, count) => `${name ?? "Календарь"} добавлен · событий на этой неделе: ${count}`,
+      minutes: (n) => `${n} мин`,
       failed: (error) => "Ссылка не работает: " + error,
       already: "Этот календарь уже добавлен.",
       remove: "Удалить",
@@ -255,7 +241,6 @@ export const ru: Messages = {
       secret: "Эти ссылки дают доступ ко всему календарю. Island хранит их только на этом ПК и не записывает в логи.",
     },
     tabs: {
-      ...en.settings.tabs,
       home: "Главная",
       homeHint: "Музыка или часы, если музыка не играет. Всегда первая: остров открывается на ней.",
       always: "Всегда на панели",
@@ -265,13 +250,12 @@ export const ru: Messages = {
       hint: "Перетащите вкладки, чтобы изменить порядок. Скрытая вкладка появится автоматически, когда на ней возникнет событие.",
     },
     general: {
-      ...en.settings.general,
       startup: "Запускать Island вместе с Windows",
       startupHint: "Остров появится сразу после входа в систему.",
       startupLabel: "Запускать вместе с Windows",
       language: "Язык",
       languageHint: "«Системный» использует язык интерфейса Windows.",
-      languages: { system: "Системный", fr: "Французский", en: "Английский", ru: "Русский" },
+      languages: { system: "Системный", en: "Английский", ru: "Русский" },
       screen: "Экран",
       screenHint: "Экран, на котором находится остров. Если он отключён, остров переместится на основной экран.",
       primaryScreen: "Основной экран",
@@ -301,7 +285,6 @@ export const ru: Messages = {
       motions: { system: "Системная", reduced: "Уменьшенная", full: "Полная" },
     },
     launcher: {
-      ...en.settings.launcher,
       launcher: "Командная строка",
       launcherHint: "Сочетание клавиш открывает поиск приложений, файлов, вычислений и веб-поиск.",
       shortcut: "Сочетание клавиш",
@@ -314,7 +297,6 @@ export const ru: Messages = {
       indexFilesHint: "Island индексирует файлы дисков в памяти и обновляет список в фоне. Системные папки, кеши и игровые движки исключены.",
     },
     media: {
-      ...en.settings.media,
       lyrics: "Синхронизированные тексты песен",
       lyricsHint: "Текст песни прокручивается вместе с музыкой. Для поиска отправляются только название, исполнитель, альбом и длительность.",
       netease: "Построчная синхронизация NetEase",
@@ -325,7 +307,6 @@ export const ru: Messages = {
       reset: "Сбросить",
     },
     notifications: {
-      ...en.settings.notifications,
       enabled: "Уведомления на острове",
       enabledHint: "Уведомления Windows появляются во вкладке с колокольчиком. Они не сохраняются и не отправляются.",
       peek: "Показывать на острове",
@@ -333,7 +314,6 @@ export const ru: Messages = {
       peekHint: "Карточка каждого уведомления на 5 секунд. Не показывается в режиме «Не беспокоить».",
     },
     clipboard: {
-      ...en.settings.clipboard,
       clipboard: "Буфер обмена",
       history: "История буфера обмена",
       historyHint: "Скопированные за сеанс элементы показываются во вкладке. Данные не записываются на диск; копии из менеджеров паролей пропускаются.",
@@ -343,7 +323,6 @@ export const ru: Messages = {
       keepHint: "Файлы, перетащенные на остров, останутся после закрытия Island. Сохраняются только пути к файлам, не их копии.",
     },
     peeks: {
-      ...en.settings.peeks,
       power: "Зарядное устройство",
       powerHint: "При подключении и отключении зарядки.",
       powerLabel: "Индикатор зарядки",
@@ -361,7 +340,6 @@ export const ru: Messages = {
       volumeLabel: "Индикатор громкости",
     },
     updates: {
-      ...en.settings.updates,
       title: "Обновления",
       installing: "Загрузка и установка… Island перезапустится.",
       checking: "Проверка…",
@@ -375,7 +353,6 @@ export const ru: Messages = {
       autoHint: "При запуске и затем каждые 6 часов. Island сообщит о новой версии; без вашего разрешения ничего не устанавливается.",
     },
     about: {
-      ...en.settings.about,
       version: (version) => "Версия " + version,
       text: "Остров в верхней части экрана для музыки, файлов и быстрых команд. Свободное ПО под лицензией GPL-3.0.",
       source: "Исходный код",
@@ -383,7 +360,6 @@ export const ru: Messages = {
     },
   },
   notes: {
-    ...en.notes,
     notes: "Заметки", reminders: "Напоминания", folder: "Папка", newFolder: "Новая папка", newNote: "Новая заметка",
     enableNotifications: "Включить уведомления", search: "Поиск заметок", untitled: "Без названия", emptyNote: "Пустая заметка",
     noNotes: "В этой папке пока нет заметок.", delete: "Удалить", bold: "Жирный", italic: "Курсив", strike: "Зачёркнутый",
@@ -397,7 +373,6 @@ export const ru: Messages = {
     noReminders: "Напоминаний пока нет.",
   },
   weather: {
-    ...en.weather,
     weather: "Погода", chooseCity: "Выберите город", cityOrPlace: "Город или место", find: "Найти",
     enterCity: "Введите город, чтобы увидеть прогноз. Island не использует геолокацию устройства.",
     wind: "Ветер", humidity: "Влажность", rain: "Осадки", nextHours: "Ближайшие часы", weekAhead: "На неделю",

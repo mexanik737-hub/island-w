@@ -238,7 +238,6 @@ function General({ settings, save }: { settings: Settings; save: ReturnType<type
             onChange={(language) => set({ language })}
             options={[
               { value: "system", label: t.languages.system },
-              { value: "fr", label: t.languages.fr },
               { value: "en", label: t.languages.en },
               { value: "ru", label: t.languages.ru },
             ]}

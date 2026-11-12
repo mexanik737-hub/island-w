@@ -98,10 +98,10 @@ pub struct General {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum Language {
-    /// Windows display language: Russian, French, or English by default.
+    /// Windows display language: Russian or English by default.
     #[default]
+    #[serde(alias = "fr")]
     System,
-    Fr,
     En,
     Ru,
 }
@@ -406,7 +406,7 @@ pub fn open_window_at(app: &AppHandle, section: Option<&str>) {
         None => "settings.html".to_owned(),
     };
     let built = tauri::WebviewWindowBuilder::new(app, WINDOW, tauri::WebviewUrl::App(page.into()))
-        .title(crate::i18n::tr("Réglages de Island", "Island settings"))
+        .title(crate::i18n::tr3("", "Island settings", "Настройки Island"))
         .inner_size(780.0, 560.0)
         .min_inner_size(680.0, 460.0)
         .theme(Some(tauri::Theme::Dark))

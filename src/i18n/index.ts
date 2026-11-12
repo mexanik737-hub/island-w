@@ -1,28 +1,20 @@
-/**
- * Quiera's languages. Texts live in one dictionary per language: `fr` is
- * the source, and `en` must have every entry (its type is `fr`'s), so a
- * text missing in English fails the build.
- *
- * The language is the setting's, or for "system" Windows' display
- * language (the web view's navigator.language): Russian, French, or English.
- */
+/** RU/EN messages, following the saved preference or system language. */
 import { useSettings, settingsNow } from "../settings/store";
 import type { Language } from "../ipc/settings";
-import { fr } from "./fr";
 import { en } from "./en";
 import { ru } from "./ru";
 
-export type Messages = typeof fr;
-export type Lang = "fr" | "en" | "ru";
+export type Messages = typeof en;
+export type Lang = "en" | "ru";
 
 export function resolveLang(setting: Language, system = navigator.language): Lang {
-  if (setting === "fr" || setting === "en" || setting === "ru") return setting;
+  if (setting === "en" || setting === "ru") return setting;
   const detected = system.toLowerCase();
   if (detected.startsWith("ru")) return "ru";
-  return detected.startsWith("fr") ? "fr" : "en";
+  return "en";
 }
 
-const DICTIONARIES: Record<Lang, Messages> = { fr, en, ru };
+const DICTIONARIES: Record<Lang, Messages> = { en, ru };
 
 /** The texts in the current language, re-rendering when it changes. */
 export function useT(): Messages {
@@ -36,7 +28,7 @@ export function tNow(): Messages {
 
 /** "fr-FR" or "en-GB": for dates, numbers and sorting. */
 export function localeOf(lang: Lang): string {
-  return lang === "fr" ? "fr-FR" : lang === "ru" ? "ru-RU" : "en-GB";
+  return lang === "ru" ? "ru-RU" : "en-GB";
 }
 
 export function useLang(): Lang {
