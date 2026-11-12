@@ -212,6 +212,7 @@ pub fn run() {
             dev_bench_requested,
             dev_shelf_add,
             weather::weather_forecast,
+            weather::weather_search,
             weather::weather_forecast_at,
             ocr::ocr_image,
             currency::currency_rate

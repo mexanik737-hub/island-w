@@ -401,7 +401,7 @@ export function Island() {
         : state.tab === "tools"
         ? [620, 340, 22]
         : state.tab === "weather"
-        ? [560, 250, 22]
+        ? [620, 330, 22]
         : state.tab === "mirror"
         ? MIRROR_SIZE
         : state.tab === "calendar"
@@ -428,7 +428,7 @@ export function Island() {
   const tabOffset = showTabs ? TAB_BAR_HEIGHT : 0;
 
   const islandBox = targetBox(risen ? target : BIRTH, window.innerWidth);
-  useIslandRegion(islandBox ? [islandBox, ...debugRects] : debugRects, REGION_HOLD_MS);
+  useIslandRegion(islandBox ? [islandBox, ...debugRects] : debugRects, reducedMotion ? 120 : REGION_HOLD_MS * timeScale);
 
   const view = viewFor(
     surface,
