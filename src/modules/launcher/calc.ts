@@ -86,6 +86,6 @@ export function calculate(input: string): number | null {
 }
 
 /** "1 234,5" in French, "1,234.5" in English: up to 10 decimals. */
-export function formatNumber(value: number, locale = "fr-FR"): string {
+export function formatNumber(value: number, locale = "en-GB"): string {
   return value.toLocaleString(locale, { maximumFractionDigits: 10 });
 }

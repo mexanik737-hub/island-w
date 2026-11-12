@@ -47,7 +47,7 @@ export function tNow(): Messages {
   return DICTIONARIES[resolveLang(settingsNow().general.language, systemLanguage)];
 }
 
-/** "fr-FR" or "en-GB": for dates, numbers and sorting. */
+/** RU/EN locale for dates, numbers and sorting. */
 export function localeOf(lang: Lang): string {
   return lang === "ru" ? "ru-RU" : "en-GB";
 }

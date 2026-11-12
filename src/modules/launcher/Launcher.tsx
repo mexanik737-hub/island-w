@@ -121,7 +121,7 @@ function Row({ result, selected, copied }: { result: Result; selected: boolean; 
             <span className="launch-title">{result.text}</span>
             <span className="launch-sub">{result.powershell ? "PowerShell" : "Command Prompt"}</span>
           </span>
-          <span className="launch-hint">{selected ? "Run command" : "Terminal"}</span>
+          <span className="launch-hint">{selected ? t.runCommand : t.terminal}</span>
         </>
       );
     case "reminder":
@@ -130,9 +130,9 @@ function Row({ result, selected, copied }: { result: Result; selected: boolean; 
           <span className="launch-icon launch-icon--glyph">◷</span>
           <span className="launch-text">
             <span className="launch-title">{result.text}</span>
-            <span className="launch-sub">{new Date(result.at).toLocaleString()}</span>
+            <span className="launch-sub">{new Date(result.at).toLocaleString(locale)}</span>
           </span>
-          <span className="launch-hint">{selected ? "Add reminder" : result.repeat}</span>
+          <span className="launch-hint">{selected ? t.addReminder : t.repeats[result.repeat]}</span>
         </>
       );
     case "timer":
@@ -161,7 +161,7 @@ function Row({ result, selected, copied }: { result: Result; selected: boolean; 
         <>
           <span className="launch-icon launch-icon--glyph">⇄</span>
           <span className="launch-title">{result.display}</span>
-          <span className="launch-hint">{copied ? t.copiedCheck : selected ? t.copy : "Convert"}</span>
+          <span className="launch-hint">{copied ? t.copiedCheck : selected ? t.copy : t.convert}</span>
         </>
       );
     case "calc":
@@ -179,7 +179,7 @@ function Row({ result, selected, copied }: { result: Result; selected: boolean; 
             <GearIcon />
           </span>
           <span className="launch-title">{t.settings}</span>
-          <span className="launch-hint">{selected ? t.open : "Quiera"}</span>
+          <span className="launch-hint">{selected ? t.open : "Island"}</span>
         </>
       );
     case "web":
@@ -277,8 +277,8 @@ export function Launcher({ onRows }: { onRows(rows: number): void }) {
         openFile(result.file, reveal).catch(ignore);
         break;
       case "command":
-        runShellCommand(result.text, result.powershell).then(() => setExecutionError(null)).catch((error) => {
-          setExecutionError(String(error));
+        runShellCommand(result.text, result.powershell).then(() => setExecutionError(null)).catch(() => {
+          setExecutionError(t.executionError);
         });
         break;
       case "reminder":
@@ -303,7 +303,7 @@ export function Launcher({ onRows }: { onRows(rows: number): void }) {
             setCopied(true);
             setTimeout(() => closeLauncher(true).catch(ignore), 500);
           })
-          .catch((error) => setExecutionError(String(error)));
+          .catch(() => setExecutionError(t.currencyError));
         break;
       case "convert":
         navigator.clipboard

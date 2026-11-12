@@ -120,6 +120,10 @@ export const en = {
     updateHow: "Island icon › Install",
   },
   launcher: {
+    runCommand: "Run command", terminal: "Terminal", addReminder: "Add reminder", convert: "Convert",
+    repeats: { none: "Once", daily: "Daily", weekly: "Weekly" },
+    executionError: "Could not run this command. Check the command and try again.",
+    currencyError: "Could not fetch or copy the rate. Check your connection and try again.",
     placeholder: "An app, a file, “images”, a calculation…",
     currencyRate: "Daily reference rate · fetched on selection",
     fetchCopy: "Fetch & copy", currency: "Currency",

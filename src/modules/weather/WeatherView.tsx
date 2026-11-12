@@ -43,6 +43,7 @@ export function WeatherView() {
     if (forecast && Date.now() - cache.savedAt >= WEATHER_CACHE_FOR) {
       void load({ label: forecast.city, lat: forecast.lat, lon: forecast.lon });
     }
+    return () => { request.current++; };
     // Refresh the saved coordinates once when the weather tab is first opened.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -3,10 +3,10 @@ import { countdown, formatSize, shelfContentSize } from "./format";
 
 describe("formatSize", () => {
   it("picks a readable unit", () => {
-    expect(formatSize(3, "fr")).toBe("3 o");
-    expect(formatSize(402_300, "fr")).toBe("402 Ko");
-    expect(formatSize(2_400_000, "fr")).toBe("2,4 Mo");
-    expect(formatSize(1_500_000_000, "fr")).toBe("1,5 Go");
+    expect(formatSize(3)).toBe("3 B");
+    expect(formatSize(402_300)).toBe("402 KB");
+    expect(formatSize(2_400_000, "ru-RU", ["Б", "КБ", "МБ"])).toBe("2,4 МБ");
+    expect(formatSize(1_500_000_000)).toBe("1.5 GB");
   });
 });
 

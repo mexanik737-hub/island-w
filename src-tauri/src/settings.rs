@@ -480,6 +480,13 @@ pub fn settings_set(app: AppHandle, settings: Settings) -> Result<(), String> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn removed_french_preference_migrates_without_losing_settings() {
+        let old: super::Settings =
+            serde_json::from_str(r#"{"general":{"language":"fr","openOnHover":false}}"#).unwrap();
+        assert_eq!(old.general.language, super::Language::System);
+        assert!(!old.general.open_on_hover);
+    }
     use super::*;
 
     fn temp(name: &str) -> PathBuf {
