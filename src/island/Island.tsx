@@ -560,7 +560,7 @@ export function Island() {
               top: tabOffset,
               width: viewSize.width,
               height: viewSize.height - tabOffset,
-              x: "-50%",
+              transform: "translateX(-50%)",
               display: surface === "expanded" && state.tab === "tools" ? "block" : "none",
             }}
           >
