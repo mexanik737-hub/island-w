@@ -20,6 +20,7 @@ import { startShelf, useShelf } from "../modules/shelf/store";
 import { useFileDrop } from "../modules/shelf/useFileDrop";
 import { TAB_BAR_HEIGHT, TabBar } from "./TabBar";
 import { orderTabs, tabShown } from "./tabs";
+import { persistLastTab, restoreLastTab } from "./last-tab";
 import { clipboardContentSize } from "../modules/clipboard/format";
 import { ClipboardView } from "../modules/clipboard/ClipboardView";
 import { startClipboard, useClipboard } from "../modules/clipboard/store";
@@ -62,15 +63,9 @@ import "./island.css";
 
 /** The welcome's activity: above music, so a first launch is greeted. */
 const WELCOME = "welcome";
-const LAST_TAB_KEY = "island-w:last-tab";
-const TABS: Tab[] = ["home", "text", "notes", "tools", "weather", "timer", "calendar", "controls", "mirror", "shelf", "clipboard", "notifications"];
 function initialIslandState() {
-  try {
-    const saved = localStorage.getItem(LAST_TAB_KEY) as Tab | null;
-    return saved && TABS.includes(saved) ? { ...initialState, tab: saved } : initialState;
-  } catch {
-    return initialState;
-  }
+  const saved = restoreLastTab(localStorage);
+  return saved === "home" ? initialState : { ...initialState, tab: saved };
 }
 /** The welcome pill appears once the island has settled after its birth. */
 const WELCOME_DELAY_MS = 1500;
@@ -176,7 +171,7 @@ export function Island() {
   }, [phoneShareCount]);
   useEffect(() => setIslandProcessStatus(recordingActive, recordingState.elapsedSeconds, phoneShareCount), [recordingActive, recordingState.elapsedSeconds, phoneShareCount]);
   useEffect(() => {
-    try { localStorage.setItem(LAST_TAB_KEY, state.tab); } catch { /* storage is optional */ }
+    persistLastTab(state.tab, localStorage);
   }, [state.tab]);
 
   // Native WS_EX_NOACTIVATE protects the overlay while idle. Drop it only
