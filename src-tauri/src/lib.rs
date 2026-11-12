@@ -213,6 +213,7 @@ pub fn run() {
             dev_shelf_add,
             weather::weather_forecast,
             weather::weather_search,
+            i18n::system_language,
             weather::weather_forecast_at,
             ocr::ocr_image,
             currency::currency_rate

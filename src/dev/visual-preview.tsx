@@ -15,6 +15,7 @@ Object.assign(window, { __TAURI_INTERNALS__: {
   transformCallback: () => ++callbackId,
   unregisterCallback: () => {},
   invoke: async (command: string) => {
+    if (command === "system_language") return language;
     if (command === "settings_get") return settings;
     if (command === "settings_monitors") return [{ name: "Display", primary: true }];
     if (command === "weather_search") return [{ label: "Москва, Россия", lat: 55.75, lon: 37.62 }, { label: "Москва, Тверская область, Россия", lat: 57, lon: 35 }];

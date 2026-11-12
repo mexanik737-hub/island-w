@@ -8,6 +8,15 @@ pub enum Lang {
     En,
     Ru,
 }
+
+#[tauri::command]
+pub fn system_language() -> &'static str {
+    if platform::system_prefers_russian() {
+        "ru"
+    } else {
+        "en"
+    }
+}
 pub fn lang() -> Lang {
     match settings::get().general.language {
         Language::Ru => Lang::Ru,
