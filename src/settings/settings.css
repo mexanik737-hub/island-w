@@ -174,7 +174,7 @@ button {
 .group-body {
   overflow: hidden;
   border-radius: 14px;
-  background: #101012;
+  background: var(--card);
 }
 
 .row {
@@ -243,7 +243,7 @@ button {
   padding: 10px 16px 10px 10px;
   box-sizing: border-box;
   border-top: 1px solid color-mix(in srgb, var(--text-1) 5%, transparent);
-  background: #101012;
+  background: var(--card);
 }
 
 .tab-row--fixed {
@@ -308,7 +308,7 @@ button {
   padding: 0 12px;
   border: 0;
   border-radius: 9px;
-  background: #1c1c20;
+  background: var(--card-hover);
   color: var(--text-1);
   font: 600 12px var(--font-ui);
   font-variant-numeric: tabular-nums;
@@ -317,7 +317,7 @@ button {
 }
 
 .hotkey:hover {
-  background: #26262b;
+  background: var(--fill-active);
 }
 
 .hotkey--none {
@@ -385,7 +385,7 @@ button {
   padding: 0 11px;
   border: 0;
   border-radius: 9px;
-  background: #1c1c20;
+  background: var(--card-hover);
   color: var(--text-1);
   font: 500 12px var(--font-ui);
   outline: none;
@@ -461,7 +461,7 @@ button {
   padding: 3px;
   border: 0;
   border-radius: 13px;
-  background: #3a3a40;
+  background: var(--fill-active);
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
@@ -487,7 +487,7 @@ button {
   display: flex;
   padding: 3px;
   border-radius: 10px;
-  background: #1c1c20;
+  background: var(--card-hover);
 }
 
 .choice-item {
@@ -529,7 +529,7 @@ button {
   padding: 0 10px;
   border: 0;
   border-radius: 9px;
-  background: #1c1c20;
+  background: var(--card-hover);
   color: var(--text-1);
   font: 600 12px var(--font-ui);
   outline: none;
@@ -590,7 +590,7 @@ button {
   padding: 0 14px;
   border: 0;
   border-radius: 9px;
-  background: #1c1c20;
+  background: var(--card-hover);
   color: var(--text-1);
   font-weight: 600;
   cursor: pointer;
@@ -598,7 +598,7 @@ button {
 }
 
 .button:hover {
-  background: #26262b;
+  background: var(--fill-active);
 }
 
 .error {
