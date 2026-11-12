@@ -406,7 +406,7 @@ pub fn open_window_at(app: &AppHandle, section: Option<&str>) {
         None => "settings.html".to_owned(),
     };
     let built = tauri::WebviewWindowBuilder::new(app, WINDOW, tauri::WebviewUrl::App(page.into()))
-        .title(crate::i18n::tr3("", "Island settings", "Настройки Island"))
+        .title(crate::i18n::tr("Island settings", "Настройки Island"))
         .inner_size(780.0, 560.0)
         .min_inner_size(680.0, 460.0)
         .theme(Some(tauri::Theme::Dark))

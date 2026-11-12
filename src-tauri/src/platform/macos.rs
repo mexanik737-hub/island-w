@@ -166,14 +166,6 @@ pub fn lan_addresses() -> Vec<std::net::Ipv4Addr> {
     Vec::new()
 }
 
-/// Whether the system shows itself in French (from LANG / LC_ALL).
-pub fn system_prefers_french() -> bool {
-    ["LC_ALL", "LC_MESSAGES", "LANG"]
-        .iter()
-        .find_map(|v| std::env::var(v).ok().filter(|s| !s.is_empty()))
-        .is_some_and(|l| l.to_lowercase().starts_with("fr"))
-}
-
 pub fn allow_island_camera(_window: &WebviewWindow) {}
 
 /// No agents' channel on this platform yet: nothing is received.

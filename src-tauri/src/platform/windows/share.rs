@@ -40,8 +40,8 @@ pub fn share_files(window: &WebviewWindow, paths: &[PathBuf]) -> Result<(), Stri
             .and_then(|f| f.cast::<IStorageItem>())
             .map_err(|_| {
                 crate::i18n::tr(
-                    "Un fichier a été déplacé ou ne peut pas être lu.",
                     "A file was moved or cannot be read.",
+                    "Файл перемещён или недоступен для чтения.",
                 )
                 .to_owned()
             })?;

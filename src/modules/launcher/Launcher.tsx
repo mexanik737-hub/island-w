@@ -151,9 +151,9 @@ function Row({ result, selected, copied }: { result: Result; selected: boolean; 
           <span className="launch-icon launch-icon--glyph">¤</span>
           <span className="launch-text">
             <span className="launch-title">{result.amount} {result.from} → {result.to}</span>
-            <span className="launch-sub">Daily reference rate · fetched on selection</span>
+            <span className="launch-sub">{t.currencyRate}</span>
           </span>
-          <span className="launch-hint">{selected ? "Fetch & copy" : "Currency"}</span>
+          <span className="launch-hint">{selected ? t.fetchCopy : t.currency}</span>
         </>
       );
     case "convert":

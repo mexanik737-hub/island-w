@@ -1,4 +1,4 @@
-//! Sending Shelf files to a phone. Quiera serves them on the local network at
+//! Sending Shelf files to a phone. Island serves them on the local network at
 //! an unguessable link shown as a QR code: the phone's camera opens it and the
 //! files download, on iPhone and Android alike, with no app. A link lasts ten
 //! minutes, and nothing goes through the Internet. The other way is Windows'
@@ -132,7 +132,7 @@ pub fn pick_ip(route: Option<IpAddr>, lan: &[Ipv4Addr]) -> Option<IpAddr> {
     }
 }
 
-/// The address and port phones reach Quiera at, its server started if needed.
+/// The address and port phones reach Island at, its server started if needed.
 pub fn server_address() -> Result<(IpAddr, u16), String> {
     let ip = local_ip().ok_or(tr(
         "Pas de réseau local : connecte le PC au Wi-Fi ou à une box.",
@@ -269,7 +269,7 @@ fn handle(stream: TcpStream) -> io::Result<()> {
     let mut reader = BufReader::new(stream.try_clone()?);
     let request = read_line(&mut reader)?;
     // Of the headers, only the phone's language: its page is written in it.
-    let mut french = false;
+    let mut russian = false;
     loop {
         let line = read_line(&mut reader)?;
         if line.trim().is_empty() {
@@ -278,7 +278,7 @@ fn handle(stream: TcpStream) -> io::Result<()> {
         if let Some((name, value)) = line.split_once(':')
             && name.trim().eq_ignore_ascii_case("accept-language")
         {
-            french = prefers_french(value);
+            russian = prefers_russian(value);
         }
     }
     let mut words = request.split_whitespace();
@@ -299,21 +299,25 @@ fn handle(stream: TcpStream) -> io::Result<()> {
             &mut out,
             "200 OK",
             "text/html; charset=utf-8",
-            page(&token, &files, french).as_bytes(),
+            page(&token, &files, russian).as_bytes(),
             head,
         ),
-        Route::File { path, inline } => send_file(&mut out, &path, inline, head, french),
+        Route::File { path, inline } => send_file(&mut out, &path, inline, head, russian),
         Route::Expired => reply(
             &mut out,
             "410 Gone",
             "text/html; charset=utf-8",
             message_page(
-                french,
-                pick(french, "Ce lien a expiré", "This link has expired"),
+                russian,
                 pick(
-                    french,
-                    "Renvoie le fichier depuis Quiera pour avoir un nouveau code.",
-                    "Send the file again from Quiera to get a new code.",
+                    russian,
+                    "Срок действия ссылки истёк",
+                    "This link has expired",
+                ),
+                pick(
+                    russian,
+                    "Отправьте файл из Island ещё раз, чтобы получить новый код.",
+                    "Send the file again from Island to get a new code.",
                 ),
             )
             .as_bytes(),
@@ -324,11 +328,11 @@ fn handle(stream: TcpStream) -> io::Result<()> {
             "404 Not Found",
             "text/html; charset=utf-8",
             message_page(
-                french,
-                pick(french, "Introuvable", "Not found"),
+                russian,
+                pick(russian, "Не найдено", "Not found"),
                 pick(
-                    french,
-                    "Cette adresse ne mène à rien.",
+                    russian,
+                    "По этому адресу ничего нет.",
                     "This address leads nowhere.",
                 ),
             )
@@ -361,15 +365,15 @@ fn send_file(
     path: &Path,
     inline: bool,
     head: bool,
-    french: bool,
+    russian: bool,
 ) -> io::Result<()> {
     let Ok(mut file) = File::open(path) else {
         let body = message_page(
-            french,
-            pick(french, "Fichier introuvable", "File not found"),
+            russian,
+            pick(russian, "Файл не найден", "File not found"),
             pick(
-                french,
-                "Il a été déplacé ou supprimé du PC.",
+                russian,
+                "Файл перемещён или удалён с компьютера.",
                 "It was moved or deleted on the PC.",
             ),
         );
@@ -475,10 +479,10 @@ pub fn escape_html(text: &str) -> String {
     out
 }
 
-/// "2,4 Mo", "812 Ko": as the island writes sizes.
-pub fn format_size(bytes: u64, french: bool) -> String {
-    let units = if french {
-        ["o", "Ko", "Mo", "Go", "To"]
+/// "2,4 Mo", "812 КБ": as the island writes sizes.
+pub fn format_size(bytes: u64, russian: bool) -> String {
+    let units = if russian {
+        ["Б", "КБ", "МБ", "ГБ", "ТБ"]
     } else {
         ["B", "KB", "MB", "GB", "TB"]
     };
@@ -492,31 +496,35 @@ pub fn format_size(bytes: u64, french: bool) -> String {
         format!("{} {}", value.round(), units[unit])
     } else {
         let text = format!("{:.1} {}", value, units[unit]).replace(".0 ", " ");
-        // French writes a decimal comma: "2,5 Mo".
-        if french { text.replace('.', ",") } else { text }
+        // French writes a decimal comma: "2,5 МБ".
+        if russian {
+            text.replace('.', ",")
+        } else {
+            text
+        }
     }
 }
 
 const STYLE: &str = "body{margin:0;background:#111;color:#fff;font:16px/1.4 system-ui,-apple-system,'Segoe UI',sans-serif}main{max-width:520px;margin:0 auto;padding:28px 16px 40px}h1{font-size:22px;margin:0 0 4px}p{color:#9a9aa1;margin:0 0 22px}.file{display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:10px;border-radius:16px;background:#1d1d20}.file img{width:56px;height:56px;object-fit:cover;border-radius:10px;flex:none}.name{flex:1;min-width:0;overflow-wrap:anywhere;font-weight:600}.size{display:block;color:#9a9aa1;font-size:13px;font-weight:500}a.get{flex:none;padding:10px 16px;border-radius:999px;background:#fff;color:#111;font-weight:700;text-decoration:none}footer{margin-top:24px;color:#6b6b73;font-size:13px}";
 
 /// Whether an Accept-Language header puts French first ("fr-FR,fr;q=0.9,…").
-pub fn prefers_french(accept_language: &str) -> bool {
+pub fn prefers_russian(accept_language: &str) -> bool {
     accept_language
         .trim()
         .to_ascii_lowercase()
-        .starts_with("fr")
+        .starts_with("ru")
 }
 
-fn pick(french: bool, fr: &'static str, en: &'static str) -> &'static str {
-    if french { fr } else { en }
+fn pick(russian: bool, ru: &'static str, en: &'static str) -> &'static str {
+    if russian { ru } else { en }
 }
 
-fn page(token: &str, files: &[PathBuf], french: bool) -> String {
+fn page(token: &str, files: &[PathBuf], russian: bool) -> String {
     let mut rows = String::new();
     for (i, path) in files.iter().enumerate() {
         let name = escape_html(&file_name(path));
         let size = std::fs::metadata(path)
-            .map(|m| format_size(m.len(), french))
+            .map(|m| format_size(m.len(), russian))
             .unwrap_or_default();
         let preview = if is_image(path) {
             format!(
@@ -528,39 +536,39 @@ fn page(token: &str, files: &[PathBuf], french: bool) -> String {
         let _ = write!(
             rows,
             "<div class=\"file\">{preview}<span class=\"name\">{name}<span class=\"size\">{size}</span></span><a class=\"get\" href=\"/s/{token}/{i}\">{download}</a></div>",
-            download = pick(french, "Télécharger", "Download"),
+            download = pick(russian, "Скачать", "Download"),
         );
     }
-    let count = match (files.len(), french) {
-        (1, true) => "1 fichier".to_owned(),
-        (n, true) => format!("{n} fichiers"),
+    let count = match (files.len(), russian) {
+        (1, true) => "1 файл".to_owned(),
+        (n, true) => format!("Файлов: {n}"),
         (1, false) => "1 file".to_owned(),
         (n, false) => format!("{n} files"),
     };
-    let (lang, heading, intro, footer) = if french {
+    let (lang, heading, intro, footer) = if russian {
         (
-            "fr",
-            "Envoyé depuis Quiera",
-            "le lien expire 10 minutes après sa création dans Quiera. Pour garder une photo dans tes photos, touche-la longuement.",
-            "Les fichiers viennent directement du PC, sur ton réseau local.",
+            "ru",
+            "Отправлено из Island",
+            "Ссылка действует 10 минут после создания в Island. Для сохранения фотографии нажмите на неё и удерживайте.",
+            "Файлы передаются прямо с компьютера по локальной сети.",
         )
     } else {
         (
             "en",
-            "Sent from Quiera",
-            "the link expires 10 minutes after it was made in Quiera. To keep a photo in your photos, press and hold it.",
+            "Sent from Island",
+            "the link expires 10 minutes after it was made in Island. To keep a photo in your photos, press and hold it.",
             "The files come straight from the PC, over your local network.",
         )
     };
     format!(
-        "<!doctype html><html lang=\"{lang}\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"robots\" content=\"noindex\"><title>Quiera · {count}</title><style>{STYLE}</style></head><body><main><h1>{heading}</h1><p>{count} · {intro}</p>{rows}<footer>{footer}</footer></main></body></html>"
+        "<!doctype html><html lang=\"{lang}\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"robots\" content=\"noindex\"><title>Island · {count}</title><style>{STYLE}</style></head><body><main><h1>{heading}</h1><p>{count} · {intro}</p>{rows}<footer>{footer}</footer></main></body></html>"
     )
 }
 
-fn message_page(french: bool, title: &str, text: &str) -> String {
-    let lang = if french { "fr" } else { "en" };
+fn message_page(russian: bool, title: &str, text: &str) -> String {
+    let lang = if russian { "ru" } else { "en" };
     format!(
-        "<!doctype html><html lang=\"{lang}\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"robots\" content=\"noindex\"><title>Quiera · {title}</title><style>{STYLE}</style></head><body><main><h1>{title}</h1><p>{text}</p></main></body></html>"
+        "<!doctype html><html lang=\"{lang}\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"robots\" content=\"noindex\"><title>Island · {title}</title><style>{STYLE}</style></head><body><main><h1>{title}</h1><p>{text}</p></main></body></html>"
     )
 }
 
@@ -736,20 +744,20 @@ mod tests {
 
     #[test]
     fn the_phone_page_speaks_the_phone_language() {
-        assert!(prefers_french("fr-FR,fr;q=0.9,en;q=0.8"));
-        assert!(prefers_french(" FR"));
-        assert!(!prefers_french("en-US,en;q=0.9,fr;q=0.8"));
-        assert!(!prefers_french(""));
-        assert!(page("t", &[], true).contains("Envoyé depuis Quiera"));
-        assert!(page("t", &[], false).contains("Sent from Quiera"));
+        assert!(prefers_russian("ru-RU,ru;q=0.9,en;q=0.8"));
+        assert!(prefers_russian(" RU"));
+        assert!(!prefers_russian("en-US,en;q=0.9,ru;q=0.8"));
+        assert!(!prefers_russian(""));
+        assert!(page("t", &[], true).contains("Отправлено из Island"));
+        assert!(page("t", &[], false).contains("Sent from Island"));
     }
 
     #[test]
     fn sizes_read_like_the_island() {
-        assert_eq!(format_size(512, true), "512 o");
-        assert_eq!(format_size(812_000, true), "812 Ko");
-        assert_eq!(format_size(2_480_000, true), "2,5 Mo");
-        assert_eq!(format_size(3_000_000, true), "3 Mo");
+        assert_eq!(format_size(512, true), "512 Б");
+        assert_eq!(format_size(812_000, true), "812 КБ");
+        assert_eq!(format_size(2_480_000, true), "2,5 МБ");
+        assert_eq!(format_size(3_000_000, true), "3 МБ");
         assert_eq!(format_size(2_480_000, false), "2.5 MB");
         assert_eq!(format_size(3_000_000, false), "3 MB");
     }

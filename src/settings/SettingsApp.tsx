@@ -223,7 +223,9 @@ function General({ settings, save }: { settings: Settings; save: ReturnType<type
   useEffect(() => {
     getMonitors().then(setMonitors).catch(ignore);
   }, []);
-  const t = useT().settings.general;
+  const messages = useT();
+  const t = messages.settings.general;
+  const useCharacterName = (id: Settings["general"]["character"]) => messages.characters[id];
   const g = settings.general;
   const set = (patch: Partial<Settings["general"]>) => save((s) => ({ ...s, general: { ...s.general, ...patch } }));
   return (
@@ -255,7 +257,7 @@ function General({ settings, save }: { settings: Settings; save: ReturnType<type
           </select>
         </Row>
       </Group>
-      <Group title="Character">
+      <Group title={t.character}>
         <div className="character-picker">
           {CHARACTER_OPTIONS.map((option) => (
             <button
@@ -268,7 +270,7 @@ function General({ settings, save }: { settings: Settings; save: ReturnType<type
               <span className="character-option-art">
                 {option.id === "liquid" ? <span className="character-liquid-preview" /> : <CharacterSprite character={option.id} preview />}
               </span>
-              <span>{option.name}</span>
+              <span>{useCharacterName(option.id)}</span>
             </button>
           ))}
         </div>

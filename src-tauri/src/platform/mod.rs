@@ -25,8 +25,8 @@ pub use linux::{
     set_microphone_mute, set_microphone_volume, set_radio, set_webview_memory_low, share_files,
     show_island_window, start_bluetooth_watch, start_clipboard_watch, start_launcher_hotkey,
     start_media, start_notification_watch, start_peek_watch, start_system_watch,
-    system_prefers_french, system_prefers_russian, wait_for_process_exit, watch_file_drops,
-    watch_webview, write_clipboard,
+    system_prefers_russian, wait_for_process_exit, watch_file_drops, watch_webview,
+    write_clipboard,
 };
 #[cfg(target_os = "macos")]
 pub use macos::{
@@ -39,8 +39,8 @@ pub use macos::{
     set_microphone_mute, set_microphone_volume, set_radio, set_webview_memory_low, share_files,
     show_island_window, start_bluetooth_watch, start_clipboard_watch, start_launcher_hotkey,
     start_media, start_notification_watch, start_peek_watch, start_system_watch,
-    system_prefers_french, system_prefers_russian, wait_for_process_exit, watch_file_drops,
-    watch_webview, write_clipboard,
+    system_prefers_russian, wait_for_process_exit, watch_file_drops, watch_webview,
+    write_clipboard,
 };
 #[cfg(target_os = "windows")]
 pub use windows::{
@@ -53,8 +53,8 @@ pub use windows::{
     set_microphone_mute, set_microphone_volume, set_radio, set_webview_memory_low, share_files,
     show_island_window, start_bluetooth_watch, start_clipboard_watch, start_launcher_hotkey,
     start_media, start_notification_watch, start_peek_watch, start_system_watch,
-    system_prefers_french, system_prefers_russian, wait_for_process_exit, watch_file_drops,
-    watch_webview, write_clipboard,
+    system_prefers_russian, wait_for_process_exit, watch_file_drops, watch_webview,
+    write_clipboard,
 };
 
 /// What the system tells the island about.
