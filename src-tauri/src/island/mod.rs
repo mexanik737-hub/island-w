@@ -118,6 +118,12 @@ pub fn island_shortcut_recording(recording: bool) {
     }
 }
 
+/// Enables normal foreground activation only while a text field is in use.
+#[tauri::command]
+pub fn island_text_input(window: WebviewWindow, active: bool) {
+    platform::set_island_text_input(&window, active);
+}
+
 /// Asks the web view to keep its memory low while the island is closed.
 #[tauri::command]
 pub fn island_memory(window: WebviewWindow, low: bool) {

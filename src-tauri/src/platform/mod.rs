@@ -21,12 +21,12 @@ pub use linux::{
     lower_thread_priority, notifications_quiet, on_island_hotkey, pointer, prepare_island_window,
     raise_island, read_controls, restore_focus, set_app_mute, set_app_volume, set_autostart,
     set_default_input, set_default_output, set_island_click_through, set_island_hotkey,
-    set_island_region, set_launcher_hotkey, set_master_mute, set_master_volume,
-    set_microphone_mute, set_microphone_volume, set_radio, set_webview_memory_low, share_files,
-    show_island_window, start_bluetooth_watch, start_clipboard_watch, start_launcher_hotkey,
-    start_media, start_notification_watch, start_peek_watch, start_system_watch,
-    system_prefers_russian, wait_for_process_exit, watch_file_drops, watch_webview,
-    write_clipboard,
+    set_island_region, set_island_text_input, set_launcher_hotkey, set_master_mute,
+    set_master_volume, set_microphone_mute, set_microphone_volume, set_radio,
+    set_webview_memory_low, share_files, show_island_window, start_bluetooth_watch,
+    start_clipboard_watch, start_launcher_hotkey, start_media, start_notification_watch,
+    start_peek_watch, start_system_watch, system_prefers_russian, wait_for_process_exit,
+    watch_file_drops, watch_webview, write_clipboard,
 };
 #[cfg(target_os = "macos")]
 pub use macos::{
@@ -35,12 +35,12 @@ pub use macos::{
     lower_thread_priority, notifications_quiet, on_island_hotkey, pointer, prepare_island_window,
     raise_island, read_controls, restore_focus, set_app_mute, set_app_volume, set_autostart,
     set_default_input, set_default_output, set_island_click_through, set_island_hotkey,
-    set_island_region, set_launcher_hotkey, set_master_mute, set_master_volume,
-    set_microphone_mute, set_microphone_volume, set_radio, set_webview_memory_low, share_files,
-    show_island_window, start_bluetooth_watch, start_clipboard_watch, start_launcher_hotkey,
-    start_media, start_notification_watch, start_peek_watch, start_system_watch,
-    system_prefers_russian, wait_for_process_exit, watch_file_drops, watch_webview,
-    write_clipboard,
+    set_island_region, set_island_text_input, set_launcher_hotkey, set_master_mute,
+    set_master_volume, set_microphone_mute, set_microphone_volume, set_radio,
+    set_webview_memory_low, share_files, show_island_window, start_bluetooth_watch,
+    start_clipboard_watch, start_launcher_hotkey, start_media, start_notification_watch,
+    start_peek_watch, start_system_watch, system_prefers_russian, wait_for_process_exit,
+    watch_file_drops, watch_webview, write_clipboard,
 };
 #[cfg(target_os = "windows")]
 pub use windows::{
@@ -49,12 +49,12 @@ pub use windows::{
     lower_thread_priority, notifications_quiet, on_island_hotkey, pointer, prepare_island_window,
     raise_island, read_controls, restore_focus, set_app_mute, set_app_volume, set_autostart,
     set_default_input, set_default_output, set_island_click_through, set_island_hotkey,
-    set_island_region, set_launcher_hotkey, set_master_mute, set_master_volume,
-    set_microphone_mute, set_microphone_volume, set_radio, set_webview_memory_low, share_files,
-    show_island_window, start_bluetooth_watch, start_clipboard_watch, start_launcher_hotkey,
-    start_media, start_notification_watch, start_peek_watch, start_system_watch,
-    system_prefers_russian, wait_for_process_exit, watch_file_drops, watch_webview,
-    write_clipboard,
+    set_island_region, set_island_text_input, set_launcher_hotkey, set_master_mute,
+    set_master_volume, set_microphone_mute, set_microphone_volume, set_radio,
+    set_webview_memory_low, share_files, show_island_window, start_bluetooth_watch,
+    start_clipboard_watch, start_launcher_hotkey, start_media, start_notification_watch,
+    start_peek_watch, start_system_watch, system_prefers_russian, wait_for_process_exit,
+    watch_file_drops, watch_webview, write_clipboard,
 };
 
 /// What the system tells the island about.

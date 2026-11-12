@@ -25,9 +25,9 @@ use windows::Win32::Graphics::Gdi::{
 use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VK_LBUTTON};
 use windows::Win32::UI::WindowsAndMessaging::{
     GWL_EXSTYLE, GetCursorPos, GetWindowLongPtrW, HWND_TOPMOST, SET_WINDOW_POS_FLAGS,
-    SW_SHOWNOACTIVATE, SWP_FRAMECHANGED, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SetWindowLongPtrW,
-    SetWindowPos, ShowWindow, WS_EX_APPWINDOW, WS_EX_LAYERED, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW,
-    WS_EX_TRANSPARENT,
+    SW_SHOWNOACTIVATE, SWP_FRAMECHANGED, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE,
+    SetForegroundWindow, SetWindowLongPtrW, SetWindowPos, ShowWindow, WS_EX_APPWINDOW,
+    WS_EX_LAYERED, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW, WS_EX_TRANSPARENT,
 };
 
 use crate::island::geometry::PhysRect;
@@ -131,6 +131,32 @@ pub fn set_island_click_through(on: bool) {
         };
         if wanted != current {
             SetWindowLongPtrW(hwnd, GWL_EXSTYLE, wanted as isize);
+        }
+    }
+}
+
+/// Temporarily makes the island an ordinary keyboard target while a text
+/// control owns WebView focus. The default no-activate behavior is restored
+/// as soon as the last text control loses focus.
+pub fn set_island_text_input(window: &WebviewWindow, active: bool) {
+    let Some(hwnd) = hwnd(window) else { return };
+    // SAFETY: hwnd is the live island window; activation is requested only
+    // after the user interacts with one of its text controls.
+    unsafe {
+        let current = GetWindowLongPtrW(hwnd, GWL_EXSTYLE) as u32;
+        let wanted = if active {
+            current & !WS_EX_NOACTIVATE.0
+        } else {
+            current | WS_EX_NOACTIVATE.0
+        };
+        if wanted != current {
+            SetWindowLongPtrW(hwnd, GWL_EXSTYLE, wanted as isize);
+        }
+        if active {
+            let _ = SetForegroundWindow(hwnd);
+            if let Err(e) = window.set_focus() {
+                log::debug!("could not activate text input in the island: {e}");
+            }
         }
     }
 }

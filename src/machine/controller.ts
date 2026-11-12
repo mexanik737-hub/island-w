@@ -41,6 +41,7 @@ export interface IslandController {
   showPeek(id: string, holdMs?: number): void;
   /** Off: hovering only grows the island; a click opens it. */
   setOpenOnHover(on: boolean): void;
+  setAutoHide(on: boolean): void;
   /** Files dragged from another app entered, left, or were dropped. */
   dragEnter(): void;
   dragLeave(): void;
@@ -157,6 +158,10 @@ export function createIslandController(
     setOpenOnHover(on) {
       openDelay = on ? (timing.hoverOpenMs ?? 0) : null;
       if (!on) open = clear(open);
+    },
+
+    setAutoHide(on) {
+      dispatch({ type: "auto-hide", enabled: on });
     },
 
     showPeek(id, holdMs = timing.peekHoldMs) {

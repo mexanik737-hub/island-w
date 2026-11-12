@@ -278,6 +278,8 @@ export const en = {
       themes: { system: "System", dark: "Dark", light: "Light" },
       hover: "Open on hover",
       hoverHint: "Otherwise the island opens on click, and hovering only makes it grow a little.",
+      autoHide: "Automatically hide the island",
+      autoHideHint: "Close the expanded island after the pointer leaves it.",
       passThrough: "Let clicks through",
       passThroughHint: "The closed island does not block your browser's tabs under it: a click goes to the window. To open it, rest the pointer on it for a moment.",
       islandShortcut: "Island shortcut",

@@ -21,23 +21,19 @@ export function PhoneShare({ items, onBack }: { items: ShelfItem[]; onBack(): vo
   const ids = items.map((i) => i.id);
   const key = ids.join(",");
 
-  // A link for these files, ended as soon as it leaves the screen (back, the
-  // files changed, a new code): an old code must not keep serving them.
+  // The Rust server owns links independently from this view. The component
+  // can disappear while the user switches tabs or folds the island.
   useEffect(() => {
     let alive = true;
-    let token: string | null = null;
     setState(null);
     shelf
       .shareToPhone(key.split(",").map(Number))
       .then((link) => {
-        token = link.token;
         if (alive) setState({ link, until: Date.now() + link.expiresInSecs * 1000 });
-        else shelf.stopPhoneShare(link.token).catch(() => {});
       })
       .catch((e) => alive && setState({ error: String(e) }));
     return () => {
       alive = false;
-      if (token) shelf.stopPhoneShare(token).catch(() => {});
     };
   }, [key, attempt]);
 
@@ -76,7 +72,10 @@ export function PhoneShare({ items, onBack }: { items: ShelfItem[]; onBack(): vo
         </span>
         <div className="phone-actions">
           {expired || (state && "error" in state) ? (
-            <button className="phone-btn phone-btn--main" onClick={() => setAttempt((n) => n + 1)}>
+            <button className="phone-btn phone-btn--main" onClick={() => {
+              if (state && "link" in state) shelf.stopPhoneShare(state.link.token).catch(() => {});
+              setAttempt((n) => n + 1);
+            }}>
               {t.newCode}
             </button>
           ) : (
@@ -91,7 +90,10 @@ export function PhoneShare({ items, onBack }: { items: ShelfItem[]; onBack(): vo
               {t.shareWindows}
             </button>
           )}
-          <button className="phone-btn" onClick={onBack}>
+          <button className="phone-btn" onClick={() => {
+            if (state && "link" in state) shelf.stopPhoneShare(state.link.token).catch(() => {});
+            onBack();
+          }}>
             {t.back}
           </button>
         </div>

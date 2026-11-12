@@ -33,7 +33,8 @@ pub use crash::install_crash_logger;
 pub use file_drop::watch_file_drops;
 pub use island::reassert_topmost as raise_island;
 pub use island::{
-    pointer, prepare_island_window, set_island_click_through, set_island_region, show_island_window,
+    pointer, prepare_island_window, set_island_click_through, set_island_region,
+    set_island_text_input, show_island_window,
 };
 pub use language::system_prefers_russian;
 pub use launcher::{

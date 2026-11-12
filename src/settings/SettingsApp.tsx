@@ -290,6 +290,9 @@ function General({ settings, save }: { settings: Settings; save: ReturnType<type
         <Row title={t.hover} description={t.hoverHint}>
           <Toggle label={t.hover} on={g.openOnHover} onChange={(on) => set({ openOnHover: on })} />
         </Row>
+        <Row title={t.autoHide} description={t.autoHideHint}>
+          <Toggle label={t.autoHide} on={g.autoHide} onChange={(on) => set({ autoHide: on })} />
+        </Row>
         <Row title={t.passThrough} description={t.passThroughHint}>
           <Toggle label={t.passThrough} on={g.passThrough} onChange={(on) => set({ passThrough: on })} />
         </Row>

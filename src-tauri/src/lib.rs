@@ -150,6 +150,7 @@ pub fn run() {
             island::passthrough::island_pass_through,
             island::island_shortcut_held,
             island::island_shortcut_recording,
+            island::island_text_input,
             system::get_fullscreen,
             media::get_media,
             media::media_play_pause,

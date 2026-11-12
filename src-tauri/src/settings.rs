@@ -79,6 +79,8 @@ pub struct General {
     pub hide_in_fullscreen: bool,
     /// Opens the panel on hover; otherwise on click.
     pub open_on_hover: bool,
+    /// Closes the expanded island when the pointer leaves it.
+    pub auto_hide: bool,
     /// Closed, the island lets clicks go to the window under it (a browser's
     /// tabs); it opens when the pointer rests on it.
     pub pass_through: bool,
@@ -113,6 +115,7 @@ impl Default for General {
             screen: None,
             hide_in_fullscreen: true,
             open_on_hover: true,
+            auto_hide: true,
             pass_through: true,
             island_shortcut: Hotkey::default(),
             motion: Motion::System,

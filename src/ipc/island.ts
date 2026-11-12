@@ -19,6 +19,11 @@ export function setIslandPassThrough(on: boolean): void {
   invoke("island_pass_through", { on }).catch(() => {});
 }
 
+/** Temporarily activates the native island window for WebView text entry. */
+export function setIslandTextInput(active: boolean): void {
+  invoke("island_text_input", { active }).catch(() => {});
+}
+
 /** Whether the island's shortcut works (another app may hold it). */
 export const islandShortcutHeld = () => invoke<boolean>("island_shortcut_held");
 

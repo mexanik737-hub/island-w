@@ -12,6 +12,7 @@ pub fn capabilities() -> Capabilities {
 pub fn prepare_island_window(_window: &WebviewWindow) {}
 
 pub fn set_island_click_through(_on: bool) {}
+pub fn set_island_text_input(_window: &tauri::WebviewWindow, _active: bool) {}
 
 pub fn pointer() -> Option<(i32, i32, bool)> {
     None

@@ -34,7 +34,7 @@ import { launcherSize } from "../modules/launcher/search";
 import { onLauncher } from "../ipc/launcher";
 import { SYSTEM_PEEK_PREFIX, useSystemPeek, useSystemPeeks } from "../modules/system/store";
 import { SystemPeekView, systemPeekSize } from "../modules/system/SystemPeekView";
-import { onIslandNear, onIslandRest, onIslandToggle, setIslandMemory, setIslandPassThrough, type RegionRect } from "../ipc/island";
+import { onIslandNear, onIslandRest, onIslandToggle, setIslandMemory, setIslandPassThrough, setIslandTextInput, type RegionRect } from "../ipc/island";
 import { useIslandRegion } from "./region";
 import { useSettings } from "../settings/store";
 import { useApplyTheme } from "../theme/useApplyTheme";
@@ -59,6 +59,16 @@ import "./island.css";
 
 /** The welcome's activity: above music, so a first launch is greeted. */
 const WELCOME = "welcome";
+const LAST_TAB_KEY = "island-w:last-tab";
+const TABS: Tab[] = ["home", "text", "notes", "tools", "weather", "timer", "calendar", "controls", "mirror", "shelf", "clipboard", "notifications"];
+function initialIslandState() {
+  try {
+    const saved = localStorage.getItem(LAST_TAB_KEY) as Tab | null;
+    return saved && TABS.includes(saved) ? { ...initialState, tab: saved } : initialState;
+  } catch {
+    return initialState;
+  }
+}
 /** The welcome pill appears once the island has settled after its birth. */
 const WELCOME_DELAY_MS = 1500;
 /** A running timer shows over the music; ringing, over almost everything. */
@@ -108,7 +118,7 @@ function viewFor(
       // The wheels and the countdown crossfade.
       if (tab === "text") return { key: "expanded:text", content: <TextView /> };
       if (tab === "notes") return { key: "expanded:notes", content: <NotesView /> };
-      if (tab === "tools") return { key: "expanded:tools", content: <CaptureToolsView /> };
+      if (tab === "tools") return { key: "expanded:tools", content: null };
       if (tab === "weather") return { key: "expanded:weather", content: <WeatherView /> };
       if (tab === "timer") return { key: timerSet ? "expanded:timer" : "expanded:timer-pick", content: <TimerPanel /> };
       if (tab === "mirror") return { key: "expanded:mirror", content: <MirrorView /> };
@@ -140,11 +150,48 @@ const ENTER: Record<Surface, { blur: number; scale: number }> = {
 };
 
 export function Island() {
-  const [state, dispatch] = useReducer(reduce, initialState);
+  const [state, dispatch] = useReducer(reduce, undefined, initialIslandState);
   const controller = useMemo(() => createIslandController(dispatch), []);
   useEffect(() => () => controller.dispose(), [controller]);
 
   const settings = useSettings();
+  useEffect(() => {
+    try { localStorage.setItem(LAST_TAB_KEY, state.tab); } catch { /* storage is optional */ }
+  }, [state.tab]);
+
+  // Native WS_EX_NOACTIVATE protects the overlay while idle. Drop it only
+  // during actual text editing so WebView2 receives IME and shortcut keys.
+  useEffect(() => {
+    const isTextTarget = (target: EventTarget | null) => target instanceof HTMLElement &&
+      (target.matches("input, textarea, select, [contenteditable='true'], [role='textbox']"));
+    const activate = () => setIslandTextInput(true);
+    let releaseTimer = 0;
+    const onPointerDown = (event: PointerEvent) => {
+      if (isTextTarget(event.target)) activate();
+    };
+    const onFocusIn = (event: FocusEvent) => {
+      if (isTextTarget(event.target)) {
+        window.clearTimeout(releaseTimer);
+        activate();
+      }
+    };
+    const onFocusOut = () => {
+      window.clearTimeout(releaseTimer);
+      releaseTimer = window.setTimeout(() => {
+        if (!isTextTarget(document.activeElement)) setIslandTextInput(false);
+      }, 120);
+    };
+    document.addEventListener("pointerdown", onPointerDown, true);
+    document.addEventListener("focusin", onFocusIn, true);
+    document.addEventListener("focusout", onFocusOut, true);
+    return () => {
+      window.clearTimeout(releaseTimer);
+      document.removeEventListener("pointerdown", onPointerDown, true);
+      document.removeEventListener("focusin", onFocusIn, true);
+      document.removeEventListener("focusout", onFocusOut, true);
+      setIslandTextInput(false);
+    };
+  }, []);
   useApplyTheme(settings.general.theme);
   const systemReduced = useReducedMotion() ?? false;
   const motionSetting = settings.general.motion;
@@ -153,6 +200,10 @@ export function Island() {
   const [birth, setBirth] = useState(0);
   const [risen, setRisen] = useState(reducedMotion);
   const [debugRects, setDebugRects] = useState<RegionRect[]>([]);
+  const [toolsMounted, setToolsMounted] = useState(() => initialIslandState().tab === "tools");
+  useEffect(() => {
+    if (state.tab === "tools") setToolsMounted(true);
+  }, [state.tab]);
 
   // Birth: the bubble rises, then meets the edge and becomes the island.
   useEffect(() => {
@@ -343,6 +394,7 @@ export function Island() {
 
   const openOnHover = settings.general.openOnHover;
   useEffect(() => controller.setOpenOnHover(openOnHover), [controller, openOnHover]);
+  useEffect(() => controller.setAutoHide(settings.general.autoHide), [controller, settings.general.autoHide]);
 
   // Closed, the island lets clicks go to the window under it (a browser's
   // tabs); the backend says when the pointer rests on it, and it opens.
@@ -501,6 +553,20 @@ export function Island() {
             </motion.div>
           )}
         </AnimatePresence>
+        {toolsMounted && (
+          <div
+            className="island-view"
+            style={{
+              top: tabOffset,
+              width: viewSize.width,
+              height: viewSize.height - tabOffset,
+              x: "-50%",
+              display: surface === "expanded" && state.tab === "tools" ? "block" : "none",
+            }}
+          >
+            <CaptureToolsView />
+          </div>
+        )}
       </IslandShell>
 
       {DebugPanel && (
