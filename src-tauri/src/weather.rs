@@ -52,14 +52,14 @@ struct GeocodeResult {
     lat: String,
     lon: String,
 }
-#[derive(Debug, Clone)]
-struct City {
+#[derive(Debug, Clone, Serialize)]
+pub struct City {
     label: String,
     lat: f64,
     lon: f64,
 }
 
-static GEO_CACHE: LazyLock<Mutex<HashMap<String, City>>> =
+static GEO_CACHE: LazyLock<Mutex<HashMap<String, Vec<City>>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
 static FORECAST_CACHE: LazyLock<Mutex<HashMap<String, (Instant, WeatherForecast)>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
@@ -73,18 +73,14 @@ fn agent() -> ureq::Agent {
         .into()
 }
 
-fn city_label(display_name: &str) -> String {
-    display_name
-        .split(',')
-        .take(2)
-        .map(str::trim)
-        .collect::<Vec<_>>()
-        .join(", ")
-}
-
-fn geocode(query: &str) -> Result<City, String> {
-    let key = query.trim().to_lowercase();
-    if key.is_empty() {
+fn search(query: &str) -> Result<Vec<City>, String> {
+    let language = if crate::i18n::lang() == crate::i18n::Lang::Ru {
+        "ru"
+    } else {
+        "en"
+    };
+    let key = format!("{language}:{}", query.trim().to_lowercase());
+    if query.trim().is_empty() {
         return Err("Enter a city or place name.".into());
     }
     if let Some(city) = GEO_CACHE
@@ -109,7 +105,8 @@ fn geocode(query: &str) -> Result<City, String> {
     let response: Vec<GeocodeResult> = agent()
         .get(GEO_URL)
         .query("format", "jsonv2")
-        .query("limit", "1")
+        .query("limit", "6")
+        .query("accept-language", language)
         .query("q", query.trim())
         .call()
         .map_err(|e| format!("Place search failed: {e}"))?
@@ -117,23 +114,25 @@ fn geocode(query: &str) -> Result<City, String> {
         .read_json()
         .map_err(|e| format!("Could not read place search results: {e}"))?;
 
-    let found = response
+    let city: Vec<City> = response
         .into_iter()
-        .next()
-        .ok_or_else(|| "No matching place was found.".to_string())?;
-    let lat: f64 = found
-        .lat
-        .parse()
-        .map_err(|_| "Invalid latitude in place result.".to_string())?;
-    let lon: f64 = found
-        .lon
-        .parse()
-        .map_err(|_| "Invalid longitude in place result.".to_string())?;
-    let city = City {
-        label: city_label(&found.display_name),
-        lat,
-        lon,
-    };
+        .filter_map(|found| {
+            let lat: f64 = found.lat.parse().ok()?;
+            let lon: f64 = found.lon.parse().ok()?;
+            if !lat.is_finite()
+                || !lon.is_finite()
+                || !(-90.0..=90.0).contains(&lat)
+                || !(-180.0..=180.0).contains(&lon)
+            {
+                return None;
+            }
+            Some(City {
+                label: found.display_name,
+                lat,
+                lon,
+            })
+        })
+        .collect();
     GEO_CACHE
         .lock()
         .unwrap_or_else(|e| e.into_inner())
@@ -261,7 +260,10 @@ fn fetch_city(city: City) -> Result<WeatherForecast, String> {
         .cloned()
         && at.elapsed() < CACHE_FOR
     {
-        return Ok(forecast);
+        return Ok(WeatherForecast {
+            city: city.label,
+            ..forecast
+        });
     }
     let lat = format!("{:.4}", city.lat);
     let lon = format!("{:.4}", city.lon);
@@ -283,7 +285,18 @@ fn fetch_city(city: City) -> Result<WeatherForecast, String> {
 }
 
 fn fetch(place: &str) -> Result<WeatherForecast, String> {
-    fetch_city(geocode(place)?)
+    let city = search(place)?
+        .into_iter()
+        .next()
+        .ok_or_else(|| "No matching place was found.".to_string())?;
+    fetch_city(city)
+}
+
+#[tauri::command]
+pub async fn weather_search(query: String) -> Result<Vec<City>, String> {
+    tauri::async_runtime::spawn_blocking(move || search(&query))
+        .await
+        .map_err(|e| e.to_string())?
 }
 
 fn fetch_at(place: &str, lat: f64, lon: f64) -> Result<WeatherForecast, String> {

@@ -32,14 +32,9 @@ export const CALENDAR_ACTIVITY = "calendar";
 export const CALENDAR_PEEK = "calendar";
 
 /** The tab that goes with a live activity, if one does. */
-function tabOfActivity(id: string | undefined): Tab | null {
-  if (id === TIMER_ACTIVITY) return "timer";
-  if (id === CALENDAR_ACTIVITY) return "calendar";
-  return null;
-}
-
 export interface IslandState {
   visible: boolean;
+  autoHide: boolean;
   hovered: boolean;
   open: boolean;
   tab: Tab;
@@ -61,6 +56,7 @@ export type IslandEvent =
   | { type: "activity.set"; activity: Activity }
   | { type: "activity.clear"; id: string }
   | { type: "visibility"; visible: boolean }
+  | { type: "auto-hide"; enabled: boolean }
   | { type: "tab.select"; tab: Tab }
   | { type: "drag.enter" }
   | { type: "drag.leave" }
@@ -70,6 +66,7 @@ export type IslandEvent =
 
 export const initialState: IslandState = {
   visible: true,
+  autoHide: true,
   hovered: false,
   open: false,
   tab: "home",
@@ -88,7 +85,7 @@ export function reduce(state: IslandState, event: IslandEvent): IslandState {
       if (!state.hovered) return state;
       const peek = state.peek?.expired ? null : state.peek;
       // Files still being dragged over it keep the island open.
-      return { ...state, hovered: false, open: state.dragging, peek };
+      return { ...state, hovered: false, open: state.dragging || (state.open && !state.autoHide), peek };
     }
 
     case "launcher.open":
@@ -99,16 +96,10 @@ export function reduce(state: IslandState, event: IslandEvent): IslandState {
       return state.launcher ? { ...state, launcher: false } : state;
 
     case "press": {
-      // Opening starts at home, or on what the closed island was showing:
-      // a notification, the timer, or a meeting coming.
+      // Reopen the last selected tab. Shortcuts use the same path, so the
+      // chosen destination is consistent whether the island was closed or hidden.
       if (!state.visible || state.open || state.launcher) return state;
-      const tab: Tab =
-        state.peek?.id === NOTIFICATION_PEEK
-          ? "notifications"
-          : state.peek?.id === CALENDAR_PEEK
-            ? "calendar"
-                : ((!state.peek && tabOfActivity(primaryActivity(state.activities)?.id)) || "home");
-      return { ...state, open: true, tab, peek: null };
+      return { ...state, open: true, peek: null };
     }
 
     case "close":
@@ -154,6 +145,9 @@ export function reduce(state: IslandState, event: IslandEvent): IslandState {
     case "visibility":
       if (event.visible) return state.visible ? state : { ...state, visible: true };
       return { ...state, visible: false, hovered: false, open: false, dragging: false, peek: null };
+
+    case "auto-hide":
+      return { ...state, autoHide: event.enabled };
   }
 }
 

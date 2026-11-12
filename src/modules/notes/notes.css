@@ -1,15 +1,15 @@
 .notes-workspace{box-sizing:border-box;width:520px;height:250px;padding:10px 13px 12px;color:var(--text-1);font-family:var(--font-ui);display:flex;flex-direction:column;gap:8px}
 .notes-topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:27px}
 .notes-sections,.notes-top-actions{display:flex;align-items:center;gap:5px}
-.notes-workspace button,.notes-workspace select{border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.06);color:var(--text-1);font:10px var(--font-ui);padding:6px 8px;cursor:pointer}
-.notes-workspace button:hover:not(:disabled){background:rgba(255,255,255,.13)}
+.notes-workspace button,.notes-workspace select{border:1px solid color-mix(in srgb, var(--text-1) 10%, transparent);border-radius:8px;background:color-mix(in srgb, var(--text-1) 6%, transparent);color:var(--text-1);font:10px var(--font-ui);padding:6px 8px;cursor:pointer}
+.notes-workspace button:hover:not(:disabled){background:color-mix(in srgb, var(--text-1) 13%, transparent)}
 .notes-workspace button:disabled{opacity:.4;cursor:default}
-.notes-workspace button.is-active{background:rgba(255,255,255,.17);border-color:rgba(255,255,255,.2)}
-.notes-workspace .notes-primary{background:rgba(255,255,255,.18);font-weight:650}
+.notes-workspace button.is-active{background:color-mix(in srgb, var(--text-1) 17%, transparent);border-color:color-mix(in srgb, var(--text-1) 20%, transparent)}
+.notes-workspace .notes-primary{background:color-mix(in srgb, var(--text-1) 18%, transparent);font-weight:650}
 .notes-top-actions select{max-width:94px}
 .notes-layout{display:grid;grid-template-columns:148px minmax(0,1fr);gap:9px;min-height:0;flex:1}
 .notes-list{display:flex;flex-direction:column;gap:6px;min-height:0}
-.notes-list>input,.notes-edit-head input,.reminder-form input{min-width:0;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.05);color:var(--text-1);padding:7px 8px;font:10px var(--font-ui);outline:none}
+.notes-list>input,.notes-edit-head input,.reminder-form input{min-width:0;border:1px solid color-mix(in srgb, var(--text-1) 10%, transparent);border-radius:8px;background:color-mix(in srgb, var(--text-1) 5%, transparent);color:var(--text-1);padding:7px 8px;font:10px var(--font-ui);outline:none}
 .notes-list-scroll{overflow:auto;display:flex;flex-direction:column;gap:4px}
 .notes-list-scroll>button{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:3px}
 .notes-list-scroll strong{font-size:10px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -20,14 +20,14 @@
 .notes-edit-head input{flex:1;font-weight:650}
 .notes-format{display:flex;gap:4px}
 .notes-format button{min-width:28px;padding:4px 7px}
-.notes-editor>textarea{flex:1;min-height:0;resize:none;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.045);color:var(--text-1);padding:9px;font:10px/1.55 var(--font-ui);outline:none}
+.notes-editor>textarea{flex:1;min-height:0;resize:none;border:1px solid color-mix(in srgb, var(--text-1) 10%, transparent);border-radius:8px;background:color-mix(in srgb, var(--text-1) 4.5%, transparent);color:var(--text-1);padding:9px;font:10px/1.55 var(--font-ui);outline:none}
 .notes-editor>footer{color:var(--text-3);font-size:9px}
 .notes-empty{display:grid;place-items:center;flex:1;color:var(--text-3);font-size:11px}
 .reminders-panel{display:flex;flex-direction:column;gap:7px;min-height:0;flex:1}
 .reminder-form{display:grid;grid-template-columns:1.4fr 1.15fr .7fr auto;gap:5px}
 .reminder-form input,.reminder-form select{width:100%;box-sizing:border-box;min-width:0;font-size:9px}
 .reminders-list{overflow:auto;display:flex;flex-direction:column;gap:4px}
-.reminder-row{display:grid;grid-template-columns:22px minmax(0,1fr) 22px;align-items:center;gap:6px;padding:5px 3px;border-bottom:1px solid rgba(255,255,255,.07)}
+.reminder-row{display:grid;grid-template-columns:22px minmax(0,1fr) 22px;align-items:center;gap:6px;padding:5px 3px;border-bottom:1px solid color-mix(in srgb, var(--text-1) 7.000000000000001%, transparent)}
 .reminder-row>div{display:flex;flex-direction:column;gap:3px;min-width:0}
 .reminder-row strong{font-size:10px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .reminder-row span{font-size:9px;color:var(--text-3)}

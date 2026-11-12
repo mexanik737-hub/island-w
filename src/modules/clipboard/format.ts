@@ -1,8 +1,8 @@
 import type { ClipItem } from "../../ipc/clipboard";
-import { fr } from "../../i18n/fr";
+import { en } from "../../i18n/en";
 
 /** "à l'instant", "il y a 5 min", "il y a 2 h", "hier", "il y a 3 j" (in the language of `t`). */
-export function timeAgo(then: number, now: number, t = fr.time): string {
+export function timeAgo(then: number, now: number, t = en.time): string {
   const minutes = Math.floor((now - then) / 60_000);
   if (minutes < 1) return t.justNow;
   if (minutes < 60) return t.minutesAgo(minutes);

@@ -1,4 +1,6 @@
-.island-character{position:absolute;z-index:2;left:50%;top:-9px;transform:translateX(-50%);width:50px;height:43px;display:grid;place-items:center;pointer-events:none;filter:drop-shadow(0 2px 5px rgba(0,0,0,.42))}
+.island-character{position:absolute;z-index:2;left:calc(50% - 112px);top:6px;transform:translateX(-50%);width:50px;height:43px;display:grid;place-items:center;pointer-events:none;filter:drop-shadow(0 2px 5px rgba(0,0,0,.42));opacity:1;transition:opacity .14s ease,transform .18s ease}
+.island-character--reduced,.island-character--reduced>span{animation:none!important;transition:none!important}
+.island-character--hidden{opacity:0}
 .island-character>span{font-family:"Segoe UI Emoji","Apple Color Emoji",sans-serif;font-size:27px;line-height:1;display:block;white-space:nowrap}
 .island-character--pixel>span{font-size:25px;image-rendering:pixelated;filter:contrast(1.15)}
 .island-character--spark>span,.island-character--star>span{filter:drop-shadow(0 0 8px rgba(255,225,125,.7))}

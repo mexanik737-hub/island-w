@@ -1,4 +1,4 @@
-import { fr } from "../../i18n/fr";
+import { en } from "../../i18n/en";
 
 export interface Part {
   text: string;
@@ -26,7 +26,7 @@ export function splitLinks(text: string): Part[] {
 }
 
 /** The time it arrived: "14:05" today, "hier 14:05", or the date. */
-export function arrivedLabel(at: number, now: number, locale = "fr-FR", yesterdayAt = fr.time.yesterdayAt): string {
+export function arrivedLabel(at: number, now: number, locale = "en-GB", yesterdayAt = en.time.yesterdayAt): string {
   const date = new Date(at);
   const time = date.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
   const day = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();

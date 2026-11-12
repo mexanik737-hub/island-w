@@ -17,7 +17,7 @@ export interface Hotkey {
 export const SHORTCUTS: Shortcut[] = ["Alt+Espace", "Ctrl+Alt+Espace", "Ctrl+Maj+Espace", "Alt+Q"];
 
 /** The interface's language: Windows' display language, or one chosen. */
-export type Language = "system" | "fr" | "en" | "ru";
+export type Language = "system" | "en" | "ru";
 export type Theme = "system" | "dark" | "light";
 export type CharacterId = "liquid" | "pixel" | "spark" | "eyes" | "tail" | "legs" | "jellyfish" | "hamster" | "campfire" | "lens" | "newton" | "cat" | "frog" | "ghost" | "cloud" | "planet" | "flower" | "mushroom" | "duck" | "fox" | "axolotl" | "star" | "robot" | "slime" | "butterfly";
 
@@ -30,6 +30,7 @@ export interface Settings {
     screen: string | null;
     hideInFullscreen: boolean;
     openOnHover: boolean;
+    autoHide: boolean;
     /** Closed, the island lets clicks go to the window under it; it opens when the pointer rests on it. */
     passThrough: boolean;
     islandShortcut: Hotkey;
@@ -63,7 +64,7 @@ export interface Monitor {
 /** The defaults, as the backend has them, until it answers. */
 export const DEFAULT_SETTINGS: Settings = {
   version: 1,
-  general: { startWithWindows: false, screen: null, hideInFullscreen: true, openOnHover: true, passThrough: true, islandShortcut: { ctrl: true, alt: true, shift: false, win: false, key: 0x49, label: "Ctrl+Alt+I", double: false }, motion: "system", theme: "system", checkUpdates: false, language: "system", character: "liquid" },
+  general: { startWithWindows: false, screen: null, hideInFullscreen: true, openOnHover: true, autoHide: true, passThrough: true, islandShortcut: { ctrl: true, alt: true, shift: false, win: false, key: 0x49, label: "Ctrl+Alt+I", double: false }, motion: "system", theme: "system", checkUpdates: false, language: "system", character: "liquid" },
   tabs: { order: [], hidden: [] },
   calendar: { links: [], remindMinutes: 10 },
   launcher: { enabled: true, shortcut: "Alt+Espace", indexFiles: true },

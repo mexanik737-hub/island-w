@@ -118,7 +118,7 @@
 }
 
 .timer-circle--gray {
-  background: rgba(255, 255, 255, 0.16);
+  background: color-mix(in srgb, var(--text-1) 16%, transparent);
   color: var(--text-1);
 }
 
@@ -176,7 +176,7 @@
   top: 30px;
   height: 30px;
   border-radius: 9px;
-  background: rgba(255, 255, 255, 0.09);
+  background: color-mix(in srgb, var(--text-1) 9%, transparent);
   pointer-events: none;
 }
 

@@ -24,7 +24,7 @@ export const TABS: readonly TabDef[] = [
   { id: "controls", when: "always", hideable: true },
   { id: "mirror", when: "always", hideable: true },
   { id: "notifications", when: "content", hideable: true },
-  { id: "shelf", when: "content", hideable: true },
+  { id: "shelf", when: "always", hideable: false },
   { id: "clipboard", when: "content", hideable: true },
 ];
 

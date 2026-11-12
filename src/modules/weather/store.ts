@@ -52,7 +52,8 @@ export function startWeatherService(): void {
     const old = snapshot.forecast;
     try {
       const next = await getWeatherAt(old.city, old.lat, old.lon);
-      saveWeatherForecast(next);
+      // A slower refresh must not replace a city selected in the meantime.
+      if (snapshot.forecast === old) saveWeatherForecast(next);
     } catch {
       // Keep the last known forecast; opening the Weather tab will show any refresh error.
     } finally {

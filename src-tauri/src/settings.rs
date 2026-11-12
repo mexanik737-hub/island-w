@@ -79,6 +79,8 @@ pub struct General {
     pub hide_in_fullscreen: bool,
     /// Opens the panel on hover; otherwise on click.
     pub open_on_hover: bool,
+    /// Closes the expanded island when the pointer leaves it.
+    pub auto_hide: bool,
     /// Closed, the island lets clicks go to the window under it (a browser's
     /// tabs); it opens when the pointer rests on it.
     pub pass_through: bool,
@@ -98,10 +100,10 @@ pub struct General {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum Language {
-    /// Windows display language: Russian, French, or English by default.
+    /// Windows display language: Russian or English by default.
     #[default]
+    #[serde(alias = "fr")]
     System,
-    Fr,
     En,
     Ru,
 }
@@ -113,6 +115,7 @@ impl Default for General {
             screen: None,
             hide_in_fullscreen: true,
             open_on_hover: true,
+            auto_hide: true,
             pass_through: true,
             island_shortcut: Hotkey::default(),
             motion: Motion::System,
@@ -406,7 +409,7 @@ pub fn open_window_at(app: &AppHandle, section: Option<&str>) {
         None => "settings.html".to_owned(),
     };
     let built = tauri::WebviewWindowBuilder::new(app, WINDOW, tauri::WebviewUrl::App(page.into()))
-        .title(crate::i18n::tr("Réglages de Island", "Island settings"))
+        .title(crate::i18n::tr("Island settings", "Настройки Island"))
         .inner_size(780.0, 560.0)
         .min_inner_size(680.0, 460.0)
         .theme(Some(tauri::Theme::Dark))
@@ -480,6 +483,13 @@ pub fn settings_set(app: AppHandle, settings: Settings) -> Result<(), String> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn removed_french_preference_migrates_without_losing_settings() {
+        let old: super::Settings =
+            serde_json::from_str(r#"{"general":{"language":"fr","openOnHover":false}}"#).unwrap();
+        assert_eq!(old.general.language, super::Language::System);
+        assert!(!old.general.open_on_hover);
+    }
     use super::*;
 
     fn temp(name: &str) -> PathBuf {

@@ -59,7 +59,7 @@
   width: 25px;
   height: 12px;
   padding: 1.5px;
-  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  border: 1.5px solid color-mix(in srgb, var(--text-1) 45%, transparent);
   border-radius: 4px;
   box-sizing: border-box;
 }
@@ -89,7 +89,7 @@
   height: 5px;
   margin-left: 1px;
   border-radius: 0 1px 1px 0;
-  background: rgba(255, 255, 255, 0.45);
+  background: color-mix(in srgb, var(--text-1) 45%, transparent);
 }
 
 .peek-bolt {
@@ -113,7 +113,7 @@
   width: 32px;
   height: 32px;
   border-radius: 16px;
-  background: #1c1c20;
+  background: var(--control-hover);
 }
 
 .peek-icon--update {
@@ -139,7 +139,7 @@
 }
 
 .peek-ring-track {
-  stroke: rgba(255, 255, 255, 0.12);
+  stroke: color-mix(in srgb, var(--text-1) 12%, transparent);
 }
 
 .peek-ring-fill {
@@ -169,7 +169,7 @@
   flex: none;
   width: 24px;
   height: 22px;
-  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  border: 1.5px solid color-mix(in srgb, var(--text-1) 40%, transparent);
   border-radius: 6px;
 }
 
@@ -178,7 +178,7 @@
   width: 8px;
   height: 8px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.18);
+  background: color-mix(in srgb, var(--text-1) 18%, transparent);
 }
 
 .peek-dot--on {
@@ -193,7 +193,7 @@
   flex: 1;
   height: 5px;
   border-radius: 3px;
-  background: rgba(255, 255, 255, 0.14);
+  background: color-mix(in srgb, var(--text-1) 14%, transparent);
   overflow: hidden;
 }
 

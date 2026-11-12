@@ -12,6 +12,7 @@ pub fn capabilities() -> Capabilities {
 pub fn prepare_island_window(_window: &WebviewWindow) {}
 
 pub fn set_island_click_through(_on: bool) {}
+pub fn set_island_text_input(_window: &tauri::WebviewWindow, _active: bool) {}
 
 pub fn pointer() -> Option<(i32, i32, bool)> {
     None
@@ -164,14 +165,6 @@ pub fn share_files(_window: &WebviewWindow, _paths: &[std::path::PathBuf]) -> Re
 
 pub fn lan_addresses() -> Vec<std::net::Ipv4Addr> {
     Vec::new()
-}
-
-/// Whether the system shows itself in French (from LANG / LC_ALL).
-pub fn system_prefers_french() -> bool {
-    ["LC_ALL", "LC_MESSAGES", "LANG"]
-        .iter()
-        .find_map(|v| std::env::var(v).ok().filter(|s| !s.is_empty()))
-        .is_some_and(|l| l.to_lowercase().starts_with("fr"))
 }
 
 pub fn allow_island_camera(_window: &WebviewWindow) {}

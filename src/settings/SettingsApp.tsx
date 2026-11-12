@@ -118,7 +118,7 @@ const NO_HOTKEY: Hotkey = { ctrl: false, alt: false, shift: false, win: false, k
 function ShortcutRecorder({ value, onChange }: { value: Hotkey; onChange(hotkey: Hotkey): void }) {
   const messages = useT();
   const t = messages.settings.general;
-  const names = { shift: messages.shortcut("Maj"), space: messages.shortcut("Espace"), none: t.noShortcut, twice: t.twice };
+  const names = { shift: messages.shortcut("Maj"), space: messages.shortcut("Espace"), none: t.noShortcut, twice: t.twice, keys: t.keyNames };
   const [recording, setRecording] = useState(false);
   const [pending, setPending] = useState("");
   const [warning, setWarning] = useState<string | null>(null);
@@ -223,7 +223,9 @@ function General({ settings, save }: { settings: Settings; save: ReturnType<type
   useEffect(() => {
     getMonitors().then(setMonitors).catch(ignore);
   }, []);
-  const t = useT().settings.general;
+  const messages = useT();
+  const t = messages.settings.general;
+  const useCharacterName = (id: Settings["general"]["character"]) => messages.characters[id];
   const g = settings.general;
   const set = (patch: Partial<Settings["general"]>) => save((s) => ({ ...s, general: { ...s.general, ...patch } }));
   return (
@@ -238,7 +240,6 @@ function General({ settings, save }: { settings: Settings; save: ReturnType<type
             onChange={(language) => set({ language })}
             options={[
               { value: "system", label: t.languages.system },
-              { value: "fr", label: t.languages.fr },
               { value: "en", label: t.languages.en },
               { value: "ru", label: t.languages.ru },
             ]}
@@ -256,7 +257,7 @@ function General({ settings, save }: { settings: Settings; save: ReturnType<type
           </select>
         </Row>
       </Group>
-      <Group title="Character">
+      <Group title={t.character}>
         <div className="character-picker">
           {CHARACTER_OPTIONS.map((option) => (
             <button
@@ -269,7 +270,7 @@ function General({ settings, save }: { settings: Settings; save: ReturnType<type
               <span className="character-option-art">
                 {option.id === "liquid" ? <span className="character-liquid-preview" /> : <CharacterSprite character={option.id} preview />}
               </span>
-              <span>{option.name}</span>
+              <span>{useCharacterName(option.id)}</span>
             </button>
           ))}
         </div>
@@ -288,6 +289,9 @@ function General({ settings, save }: { settings: Settings; save: ReturnType<type
         </Row>
         <Row title={t.hover} description={t.hoverHint}>
           <Toggle label={t.hover} on={g.openOnHover} onChange={(on) => set({ openOnHover: on })} />
+        </Row>
+        <Row title={t.autoHide} description={t.autoHideHint}>
+          <Toggle label={t.autoHide} on={g.autoHide} onChange={(on) => set({ autoHide: on })} />
         </Row>
         <Row title={t.passThrough} description={t.passThroughHint}>
           <Toggle label={t.passThrough} on={g.passThrough} onChange={(on) => set({ passThrough: on })} />

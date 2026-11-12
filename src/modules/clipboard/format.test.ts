@@ -15,11 +15,11 @@ const item = (id: number, copiedAt: number, pinned = false): ClipItem => ({
 describe("timeAgo", () => {
   const now = 1_000_000_000;
   it("reads like a person would say it", () => {
-    expect(timeAgo(now - 20_000, now)).toBe("à l'instant");
-    expect(timeAgo(now - 5 * 60_000, now)).toBe("il y a 5 min");
-    expect(timeAgo(now - 2 * 3_600_000, now)).toBe("il y a 2 h");
-    expect(timeAgo(now - 30 * 3_600_000, now)).toBe("hier");
-    expect(timeAgo(now - 3 * 86_400_000, now)).toBe("il y a 3 j");
+    expect(timeAgo(now - 20_000, now)).toBe("just now");
+    expect(timeAgo(now - 5 * 60_000, now)).toBe("5 min ago");
+    expect(timeAgo(now - 2 * 3_600_000, now)).toBe("2 h ago");
+    expect(timeAgo(now - 30 * 3_600_000, now)).toBe("yesterday");
+    expect(timeAgo(now - 3 * 86_400_000, now)).toBe("3 d ago");
   });
 });
 

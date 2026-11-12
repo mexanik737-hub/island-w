@@ -68,8 +68,9 @@ describe("calculate", () => {
     expect(calculate("1/0")).toBeNull();
   });
 
-  it("formats like French", () => {
-    expect(formatNumber(1234.5).replace(/\s/g, " ")).toBe("1 234,5");
+  it("formats English and Russian numbers", () => {
+    expect(formatNumber(1234.5)).toBe("1,234.5");
+    expect(formatNumber(1234.5, "ru-RU").replace(/\s/g, " ")).toBe("1 234,5");
   });
 });
 

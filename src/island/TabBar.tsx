@@ -32,13 +32,13 @@ export function tabFace(id: Tab, labels: Messages["tabs"], hasMedia: boolean): {
     case "home":
       return hasMedia ? { label: labels.playing, icon: <NoteIcon size={17} /> } : { label: labels.clock, icon: <ClockIcon /> };
     case "text":
-      return { label: "Text", icon: <TextToolsIcon /> };
+      return { label: labels.text, icon: <TextToolsIcon /> };
     case "notes":
-      return { label: "Notes", icon: <NotesIcon /> };
+      return { label: labels.notes, icon: <NotesIcon /> };
     case "tools":
-      return { label: "Screen tools", icon: <ScreenToolsIcon /> };
+      return { label: labels.tools, icon: <ScreenToolsIcon /> };
     case "weather":
-      return { label: "Weather", icon: <WeatherIcon /> };
+      return { label: labels.weather, icon: <WeatherIcon /> };
     case "timer":
       return { label: labels.timer, icon: <TimerIcon size={17} /> };
     case "calendar":

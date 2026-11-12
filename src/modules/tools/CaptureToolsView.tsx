@@ -1,5 +1,8 @@
+import { useT } from "../../i18n";
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { recognizeImage } from "../../ipc/ocr";
+import * as shelf from "../../ipc/shelf";
+import { recording, useRecordingState } from "./recording";
 import "./capture-tools.css";
 
 type Tool = "pen" | "rectangle" | "arrow" | "blur" | "text" | "crop" | "pick";
@@ -62,9 +65,11 @@ function drawShape(ctx: CanvasRenderingContext2D, mode: DrawMode, from: Point, t
 }
 
 export function CaptureToolsView() {
-  const [stream, setStream] = useState<MediaStream | null>(null);
+  const t = useT().capture;
+  const recordingState = useRecordingState();
+  const stream = recordingState.stream;
+  const recordingActive = recordingState.phase === "active" || recordingState.phase === "starting" || recordingState.phase === "stopping";
   const [captured, setCaptured] = useState(false);
-  const [recording, setRecording] = useState(false);
   const [tool, setTool] = useState<Tool>("pen");
   const [color, setColor] = useState("#ff6259");
   const [picked, setPicked] = useState("#000000");
@@ -77,58 +82,49 @@ export function CaptureToolsView() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const magnifierRef = useRef<HTMLCanvasElement>(null);
   const [magnifier, setMagnifier] = useState<{ x: number; y: number; left: number; top: number } | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const recorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
   const drawRef = useRef<DrawState | null>(null);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !stream) return;
     video.srcObject = stream;
-    void video.play().catch(() => setMessage("The selected screen could not be previewed."));
+    void video.play().catch(() => setMessage(t.previewError));
   }, [stream]);
 
+  const previousPhase = useRef(recordingState.phase);
   useEffect(() => {
-    const current = streamRef;
-    return () => {
-      current.current?.getTracks().forEach((track) => track.stop());
-      if (recorderRef.current?.state === "recording") recorderRef.current.stop();
-    };
-  }, []);
+    if (recordingState.phase === "error") setMessage(t.recordError);
+    else if (recordingState.phase === "active") setMessage(t.recording);
+    else if (previousPhase.current === "stopping" && recordingState.phase === "idle") setMessage(t.recordSaved);
+    previousPhase.current = recordingState.phase;
+  }, [recordingState.phase, t.recordError, t.recording, t.recordSaved]);
 
   const chooseSource = async () => {
     setMessage("");
     setQr("");
     try {
-      const next = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30 }, audio: false });
-      streamRef.current = next;
-      setStream(next);
+      const next = await recording.chooseScreen();
+      if (!next) {
+        if (!recording.getSnapshot().error) setMessage(t.cancelled);
+        else setMessage(t.error);
+        return;
+      }
       setCaptured(false);
-      next.getVideoTracks()[0]?.addEventListener("ended", () => {
-        streamRef.current = null;
-        setStream(null);
-        setRecording(false);
-        setMessage("Screen sharing stopped.");
-      }, { once: true });
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Screen capture was cancelled.");
+      setMessage(t.error);
     }
   };
 
   const stopSource = () => {
-    if (recorderRef.current?.state === "recording") recorderRef.current.stop();
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-    streamRef.current = null;
-    setStream(null);
-    setRecording(false);
+    recording.stopScreen();
+    setMessage(t.stopped);
   };
 
   const takeScreenshot = () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas || !video.videoWidth || !video.videoHeight) {
-      setMessage("Choose a screen or window first.");
+      setMessage(t.chooseFirst);
       return;
     }
     canvas.width = video.videoWidth;
@@ -137,7 +133,7 @@ export function CaptureToolsView() {
     if (!context) return;
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
     setCaptured(true);
-    setMessage("Screenshot ready. You can mark it up, copy it or save it.");
+    setMessage(t.ready);
     setQr("");
   };
 
@@ -146,20 +142,38 @@ export function CaptureToolsView() {
     if (!canvas || !captured) return;
     canvas.toBlob(async (blob) => {
       if (!blob) {
-        setMessage("Could not export this image.");
+        setMessage(t.exportError);
         return;
       }
       if (kind === "save") {
         download(blob, `Island-W-${new Date().toISOString().replace(/[:.]/g, "-")}.png`);
-        setMessage("PNG saved to your Downloads folder.");
+        setMessage(t.saved);
         return;
       }
       try {
-        if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") throw new Error("Image clipboard is unavailable in this Windows session.");
+        if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") throw new Error(t.clipboardError);
         await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-        setMessage("Screenshot copied to the clipboard.");
+        setMessage(t.copied);
       } catch (error) {
-        setMessage(error instanceof Error ? error.message : "Could not copy the screenshot.");
+        setMessage(t.error);
+      }
+    }, "image/png");
+  };
+
+  const addScreenshotToShelf = () => {
+    const canvas = canvasRef.current;
+    if (!canvas || !captured) return;
+    canvas.toBlob(async (blob) => {
+      if (!blob) {
+        setMessage(t.exportError);
+        return;
+      }
+      try {
+        const bytes = Array.from(new Uint8Array(await blob.arrayBuffer()));
+        await shelf.importFiles([{ name: `Island-W-${Date.now()}.png`, bytes }]);
+        setMessage(t.addedToShelf);
+      } catch {
+        setMessage(t.exportError);
       }
     }, "image/png");
   };
@@ -169,13 +183,13 @@ export function CaptureToolsView() {
     if (!canvas || !captured) return;
     setOcrBusy(true);
     setOcrText("");
-    setMessage("Recognising text locally with Windows OCR…");
+    setMessage(t.ocrBusy);
     try {
       const text = await recognizeImage(canvas.toDataURL("image/png"));
       setOcrText(text);
-      setMessage(text.trim() ? "Text recognised. Copy it or use it in the Text tab." : "No text was recognised in this screenshot.");
+      setMessage(text.trim() ? t.ocrDone : t.ocrEmpty);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : String(error));
+      setMessage(t.error);
     } finally {
       setOcrBusy(false);
     }
@@ -185,9 +199,9 @@ export function CaptureToolsView() {
     if (!ocrText) return;
     try {
       await navigator.clipboard.writeText(ocrText);
-      setMessage("Recognised text copied.");
+      setMessage(t.ocrCopied);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Could not copy recognised text.");
+      setMessage(t.error);
     }
   };
 
@@ -196,7 +210,7 @@ export function CaptureToolsView() {
     if (!canvas || !captured) return;
     const Detector = (window as unknown as { BarcodeDetector?: BarcodeDetectorConstructor }).BarcodeDetector;
     if (!Detector) {
-      setMessage("QR scanning is not available in this WebView version yet.");
+      setMessage(t.qrUnsupported);
       return;
     }
     try {
@@ -204,54 +218,13 @@ export function CaptureToolsView() {
       const results = await detector.detect(canvas);
       const value = results[0]?.rawValue ?? "";
       setQr(value);
-      setMessage(value ? "QR code found." : "No QR code found in this screenshot.");
+      setMessage(value ? t.qrFound : t.qrEmpty);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "QR scan failed.");
+      setMessage(t.error);
     }
   };
 
-  const toggleRecording = () => {
-    if (recording) {
-      recorderRef.current?.stop();
-      return;
-    }
-    const source = streamRef.current;
-    if (!source) {
-      setMessage("Choose a screen or window before recording.");
-      return;
-    }
-    if (typeof MediaRecorder === "undefined") {
-      setMessage("Screen recording is not supported by this WebView.");
-      return;
-    }
-    const mimeType = ["video/mp4", "video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"].find((type) => MediaRecorder.isTypeSupported(type));
-    try {
-      const recorder = new MediaRecorder(source, mimeType ? { mimeType } : undefined);
-      chunksRef.current = [];
-      recorder.ondataavailable = (event) => {
-        if (event.data.size) chunksRef.current.push(event.data);
-      };
-      recorder.onstop = () => {
-        const type = recorder.mimeType || "video/webm";
-        const blob = new Blob(chunksRef.current, { type });
-        const ext = type.includes("mp4") ? "mp4" : "webm";
-        download(blob, `Island-W-recording-${Date.now()}.${ext}`);
-        chunksRef.current = [];
-        setRecording(false);
-        setMessage("Recording saved to your Downloads folder.");
-      };
-      recorder.onerror = () => {
-        setRecording(false);
-        setMessage("The screen recording failed.");
-      };
-      recorderRef.current = recorder;
-      recorder.start(1000);
-      setRecording(true);
-      setMessage("Recording screen. Press Stop recording when finished.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Could not start recording.");
-    }
-  };
+  const toggleRecording = () => recordingActive ? recording.stop() : recording.start();
 
   const sampleColor = (event: PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -262,7 +235,7 @@ export function CaptureToolsView() {
     const hex = "#" + [...pixel.slice(0, 3)].map((channel) => channel.toString(16).padStart(2, "0")).join("");
     setPicked(hex);
     setColorHistory((previous) => { const next = [hex, ...previous.filter((item) => item !== hex)].slice(0, 10); try { localStorage.setItem("island-w:color-history", JSON.stringify(next)); } catch { /* optional */ } return next; });
-    setMessage(`Picked ${hex.toUpperCase()}`);
+    setMessage(hex.toUpperCase());
   };
 
   const onPointerDown = (event: PointerEvent<HTMLCanvasElement>) => {
@@ -272,7 +245,7 @@ export function CaptureToolsView() {
       return;
     }
     if (tool === "text") {
-      const value = window.prompt("Text to add to the screenshot");
+      const value = window.prompt(t.addText);
       if (!value) return;
       const point = pointAt(event);
       const context = event.currentTarget.getContext("2d");
@@ -376,7 +349,7 @@ export function CaptureToolsView() {
       canvas.height = height;
       const cropped = canvas.getContext("2d");
       if (cropped) cropped.putImageData(selected, 0, 0);
-      setMessage("Screenshot cropped to the selected area.");
+      setMessage(t.cropped);
       return;
     }
     if (draw.mode === "blur") {
@@ -392,30 +365,30 @@ export function CaptureToolsView() {
         context.drawImage(patch, left, top, width, height);
         context.restore();
       }
-      setMessage("Selected area blurred.");
+      setMessage(t.blurred);
     }
   };
 
   return (
     <section className="capture-tools">
       <header className="capture-tools-head">
-        <div><strong>Screen tools</strong><span>Capture, mark up and record a screen or window</span></div>
+        <div><strong>{t.title}</strong><span>{t.hint}</span></div>
         <div className="capture-tools-actions">
-          {!stream ? <button type="button" onClick={chooseSource}>Choose screen</button> : <button type="button" onClick={stopSource}>Stop sharing</button>}
-          <button type="button" onClick={takeScreenshot} disabled={!stream}>Screenshot</button>
-          <button type="button" className={recording ? "is-recording" : ""} onClick={toggleRecording} disabled={!stream}>{recording ? "Stop recording" : "Record"}</button>
+          {!stream ? <button type="button" onClick={chooseSource} disabled={recordingState.selecting}>{t.choose}</button> : <button type="button" onClick={stopSource}>{t.stop}</button>}
+          <button type="button" onClick={takeScreenshot} disabled={!stream}>{t.screenshot}</button>
+          <button type="button" className={recordingState.phase === "active" ? "is-recording" : ""} onClick={toggleRecording} disabled={!stream || recordingState.phase === "starting" || recordingState.phase === "stopping"}>{recordingActive ? t.stopRecording : t.record}</button>
         </div>
       </header>
       {stream && <video ref={videoRef} className="capture-live-preview" muted playsInline />}
-      {!stream && <div className="capture-empty">Choose a screen, app window or browser tab to get started.</div>}
+      {!stream && <div className="capture-empty">{t.empty}</div>}
       <div className={`capture-result ${captured ? "" : "capture-result--hidden"}`}>
           <div className="capture-editor-tools">
             {(["pen", "rectangle", "arrow", "blur", "text", "crop", "pick"] as Tool[]).map((item) => (
               <button type="button" key={item} className={tool === item ? "is-selected" : ""} onClick={() => setTool(item)}>
-                {item === "pen" ? "Pen" : item === "rectangle" ? "Box" : item === "arrow" ? "Arrow" : item === "blur" ? "Blur" : item === "text" ? "Text" : item === "crop" ? "Crop" : "Picker"}
+                {item === "pen" ? t.pen : item === "rectangle" ? t.box : item === "arrow" ? t.arrow : item === "blur" ? t.blur : item === "text" ? t.text : item === "crop" ? t.crop : t.picker}
               </button>
             ))}
-            <input aria-label="Annotation colour" type="color" value={color} onChange={(event) => setColor(event.target.value)} />
+            <input aria-label={t.colour} type="color" value={color} onChange={(event) => setColor(event.target.value)} />
           </div>
           <div className="capture-canvas-wrap">
             <canvas ref={canvasRef} className="capture-canvas" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp} />
@@ -428,20 +401,21 @@ export function CaptureToolsView() {
           </div>
           <div className="capture-colour-history">
             {colorHistory.map((hex) => <button type="button" key={hex} title={hex} style={{ background: hex }} onClick={() => setColor(hex)} />)}
-            <button type="button" onClick={() => void navigator.clipboard.writeText(picked).then(() => setMessage("HEX colour copied."))}>Copy HEX</button>
+            <button type="button" onClick={() => void navigator.clipboard.writeText(picked).then(() => setMessage(t.hexCopied))}>{t.copyHex}</button>
           </div>
           <footer className="capture-result-actions">
             <span className="capture-picked"><i style={{ background: picked }} />{picked.toUpperCase()}</span>
-            <button type="button" onClick={() => exportCanvas("copy")}>Copy PNG</button>
-            <button type="button" onClick={() => exportCanvas("save")}>Save PNG</button>
-            <button type="button" onClick={scanQr}>Read QR</button>
-            <button type="button" onClick={extractText} disabled={ocrBusy}>{ocrBusy ? "Reading…" : "Extract text"}</button>
+            <button type="button" onClick={() => exportCanvas("copy")}>{t.copyPng}</button>
+            <button type="button" onClick={() => exportCanvas("save")}>{t.savePng}</button>
+            <button type="button" onClick={addScreenshotToShelf}>{t.addToShelf}</button>
+            <button type="button" onClick={scanQr}>{t.readQr}</button>
+            <button type="button" onClick={extractText} disabled={ocrBusy}>{ocrBusy ? t.reading : t.extract}</button>
           </footer>
-          {ocrText && <div className="capture-ocr"><textarea readOnly value={ocrText} aria-label="Recognised text" /><button type="button" onClick={copyOcrText}>Copy text</button></div>}
-          {qr && <div className="capture-qr"><span>QR result</span><code>{qr}</code><button type="button" onClick={() => void navigator.clipboard.writeText(qr).then(() => setMessage("QR result copied."))}>Copy</button></div>}
+          {ocrText && <div className="capture-ocr"><textarea readOnly value={ocrText} aria-label={t.recognised} /><button type="button" onClick={copyOcrText}>{t.copyText}</button></div>}
+          {qr && <div className="capture-qr"><span>{t.qrResult}</span><code>{qr}</code><button type="button" onClick={() => void navigator.clipboard.writeText(qr).then(() => setMessage(t.qrCopied))}>{t.copy}</button></div>}
       </div>
       {message && <p className="capture-message" role="status">{message}</p>}
-      <p className="capture-privacy">Capture and recording start only after you choose a source. Files are created locally in Downloads.</p>
+      <p className="capture-privacy">{t.privacy}</p>
     </section>
   );
 }

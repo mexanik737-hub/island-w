@@ -111,8 +111,8 @@ async fn check(app: &AppHandle, manual: bool) {
                 if manual {
                     state.status.error = Some(
                         tr(
-                            "Impossible de vérifier (pas de connexion ?)",
-                            "Could not check (no connection?)",
+                            "Could not check for updates. Check your connection and try again.",
+                            "Не удалось проверить обновления. Проверьте подключение к интернету и повторите попытку.",
                         )
                         .into(),
                     );
@@ -139,7 +139,11 @@ async fn install(app: &AppHandle) -> Result<(), String> {
     let update = {
         let mut state = state();
         let Some(update) = state.update.clone() else {
-            return Err(tr("Aucune mise à jour à installer.", "No update to install.").into());
+            return Err(tr(
+                "No update is ready to install.",
+                "Нет обновления для установки.",
+            )
+            .into());
         };
         if state.status.installing {
             return Ok(());
@@ -158,8 +162,8 @@ async fn install(app: &AppHandle) -> Result<(), String> {
             state.status.installing = false;
             state.status.error = Some(
                 tr(
-                    "La mise à jour n'a pas pu être installée.",
                     "The update could not be installed.",
+                    "Не удалось установить обновление.",
                 )
                 .into(),
             );

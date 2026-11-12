@@ -81,7 +81,7 @@
 .welcome-desc kbd {
   padding: 1px 6px;
   border-radius: 5px;
-  background: #26262b;
+  background: var(--control-hover);
   color: var(--text-1);
   font: 700 11px var(--font-ui);
 }
@@ -102,7 +102,7 @@
   width: 6px;
   height: 6px;
   border-radius: 3px;
-  background: rgba(255, 255, 255, 0.2);
+  background: color-mix(in srgb, var(--text-1) 20%, transparent);
   transition: width 0.25s ease, background-color 0.25s ease;
 }
 
@@ -121,7 +121,7 @@
   padding: 0 13px;
   border: 0;
   border-radius: 10px;
-  background: #1c1c20;
+  background: var(--control-hover);
   color: var(--text-1);
   font: 600 12px var(--font-ui);
   cursor: pointer;
@@ -129,7 +129,7 @@
 }
 
 .welcome-btn:hover {
-  background: #26262b;
+  background: var(--control-hover);
 }
 
 .welcome-btn--quiet {
@@ -138,7 +138,7 @@
 }
 
 .welcome-btn--quiet:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: color-mix(in srgb, var(--text-1) 6%, transparent);
   color: var(--text-2);
 }
 
@@ -165,7 +165,7 @@
   padding: 0 9px;
   border: 0;
   border-radius: 11px;
-  background: #1c1c20;
+  background: var(--control-hover);
   color: var(--text-3);
   font: 600 11px var(--font-ui);
   cursor: pointer;
@@ -176,7 +176,7 @@
   width: 6px;
   height: 6px;
   border-radius: 3px;
-  background: rgba(255, 255, 255, 0.25);
+  background: color-mix(in srgb, var(--text-1) 25%, transparent);
   transition: background-color 0.15s ease;
 }
 

@@ -1,5 +1,8 @@
 import { invoke } from "@tauri-apps/api/core";
 
+export interface WeatherPlace { label: string; lat: number; lon: number }
+export const searchWeatherPlaces = (query: string) => invoke<WeatherPlace[]>("weather_search", { query });
+
 export interface WeatherHour {
   time: string;
   temperature: number;
