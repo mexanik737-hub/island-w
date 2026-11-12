@@ -3,7 +3,7 @@ html,
 body {
   margin: 0;
   height: 100%;
-  background: #000;
+  background: var(--ink);
   color: var(--text-1);
   font: 13px var(--font-ui);
   user-select: none;
@@ -34,7 +34,7 @@ button {
   flex: none;
   height: 36px;
   padding-left: 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid color-mix(in srgb, var(--text-1) 6%, transparent);
 }
 
 .titlebar-logo {
@@ -64,13 +64,13 @@ button {
 }
 
 .titlebar-button:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-1) 8%, transparent);
   color: var(--text-1);
 }
 
 .titlebar-button--close:hover {
   background: #c42b1c;
-  color: #fff;
+  color: var(--text-1);
 }
 
 .app {
@@ -89,7 +89,7 @@ button {
   width: 220px;
   padding: 22px 12px;
   box-sizing: border-box;
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  border-right: 1px solid color-mix(in srgb, var(--text-1) 6%, transparent);
 }
 
 .nav-title {
@@ -122,7 +122,7 @@ button {
   position: absolute;
   inset: 0;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.09);
+  background: color-mix(in srgb, var(--text-1) 9%, transparent);
 }
 
 .nav-icon,
@@ -147,7 +147,7 @@ button {
   min-width: 0;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  scrollbar-color: color-mix(in srgb, var(--text-1) 15%, transparent) transparent;
 }
 
 .page {
@@ -188,7 +188,7 @@ button {
 }
 
 .row + .row {
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid color-mix(in srgb, var(--text-1) 5%, transparent);
 }
 
 .row--stacked {
@@ -242,7 +242,7 @@ button {
   min-height: 56px;
   padding: 10px 16px 10px 10px;
   box-sizing: border-box;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid color-mix(in srgb, var(--text-1) 5%, transparent);
   background: #101012;
 }
 
@@ -270,7 +270,7 @@ button {
   width: 32px;
   height: 32px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.07);
+  background: color-mix(in srgb, var(--text-1) 7.000000000000001%, transparent);
   color: var(--text-1);
   transition: opacity 0.2s ease;
 }
@@ -350,7 +350,7 @@ button {
 }
 
 .hotkey-clear:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-1) 8%, transparent);
   color: var(--text-1);
 }
 
@@ -422,7 +422,7 @@ button {
   height: 34px;
   padding: 0 10px 0 12px;
   border-radius: 9px;
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--text-1) 4%, transparent);
   font-size: 12.5px;
   font-weight: 600;
 }
@@ -479,7 +479,7 @@ button {
   width: 19px;
   height: 19px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--accent);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
@@ -505,7 +505,7 @@ button {
 }
 
 .choice-item--on {
-  color: #000;
+  color: var(--ink);
 }
 
 .choice-item:disabled {
@@ -516,7 +516,7 @@ button {
   position: absolute;
   inset: 0;
   border-radius: 8px;
-  background: #fff;
+  background: var(--accent);
 }
 
 .choice-label {
@@ -562,7 +562,7 @@ button {
 .range::-webkit-slider-runnable-track {
   height: 5px;
   border-radius: 3px;
-  background: linear-gradient(to right, #fff var(--fill), rgba(255, 255, 255, 0.14) var(--fill));
+  background: linear-gradient(to right, var(--accent) var(--fill), color-mix(in srgb, var(--text-1) 14.000000000000002%, transparent) var(--fill));
 }
 
 .range::-webkit-slider-thumb {
@@ -570,7 +570,7 @@ button {
   height: 15px;
   margin-top: -5px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--accent);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
   appearance: none;
 }
@@ -658,8 +658,8 @@ button {
 }
 
 .button--main {
-  background: #fff;
-  color: #000;
+  background: var(--accent);
+  color: var(--ink);
 }
 
 .button--main:hover {
@@ -726,9 +726,9 @@ button {
 }
 
 .character-picker{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding:12px}
-.character-option{min-width:0;min-height:82px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border:1px solid transparent;border-radius:12px;background:rgba(255,255,255,.035);color:var(--text-2);font:10px var(--font-ui);cursor:pointer}
-.character-option:hover{background:rgba(255,255,255,.08)}
-.character-option--selected{border-color:rgba(255,255,255,.45);background:rgba(255,255,255,.1);color:var(--text-1)}
+.character-option{min-width:0;min-height:82px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border:1px solid transparent;border-radius:12px;background:color-mix(in srgb, var(--text-1) 3.5000000000000004%, transparent);color:var(--text-2);font:10px var(--font-ui);cursor:pointer}
+.character-option:hover{background:color-mix(in srgb, var(--text-1) 8%, transparent)}
+.character-option--selected{border-color:color-mix(in srgb, var(--text-1) 45%, transparent);background:color-mix(in srgb, var(--text-1) 10%, transparent);color:var(--text-1)}
 .character-option-art{height:46px;display:grid;place-items:center}
 .character-liquid-preview{width:42px;height:21px;border-radius:14px;background:#000;box-shadow:0 5px 10px rgba(0,0,0,.24);position:relative}
 .character-liquid-preview:after{content:"";position:absolute;width:10px;height:6px;border-radius:50%;background:#000;bottom:-4px;left:4px}

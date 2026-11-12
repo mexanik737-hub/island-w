@@ -54,13 +54,16 @@ export function IslandShell({
     const pick = (value: MotionValue<number>, to: number, grow: Spring, shrink: Spring) =>
       spring(to >= value.get() ? grow : shrink);
 
-    animate(width, tw, pick(width, tw, SPRINGS.widthOpen, SPRINGS.widthClose));
-    animate(height, th, pick(height, th, SPRINGS.heightOpen, SPRINGS.heightClose));
-    animate(topRadius, ttr, spring(SPRINGS.radius));
-    animate(bottomRadius, tbr, spring(SPRINGS.radius));
-    animate(y, ty, spring(SPRINGS.y));
-    animate(flares, tf, tween(DURATIONS.flares));
-    animate(fill, tfill, tween(DURATIONS.fill));
+    const animations = [
+      animate(width, tw, pick(width, tw, SPRINGS.widthOpen, SPRINGS.widthClose)),
+      animate(height, th, pick(height, th, SPRINGS.heightOpen, SPRINGS.heightClose)),
+      animate(topRadius, ttr, spring(SPRINGS.radius)),
+      animate(bottomRadius, tbr, spring(SPRINGS.radius)),
+      animate(y, ty, spring(SPRINGS.y)),
+      animate(flares, tf, tween(DURATIONS.flares)),
+      animate(fill, tfill, tween(DURATIONS.fill)),
+    ];
+    return () => animations.forEach((animation) => animation.stop());
   }, [tw, th, ttr, tbr, tf, tfill, ty, timeScale, reducedMotion, width, height, topRadius, bottomRadius, flares, fill, y]);
 
   const total = useTransform(width, silhouetteWidth);

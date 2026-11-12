@@ -115,7 +115,7 @@
   height: 34px;
   border-radius: 11px;
   corner-shape: squircle;
-  background: rgba(255, 255, 255, 0.06);
+  background: color-mix(in srgb, var(--text-1) 6%, transparent);
   overflow: hidden;
   cursor: ew-resize;
   touch-action: none;
@@ -124,7 +124,7 @@
 }
 
 .ctl-pill:focus-visible {
-  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--text-1) 40%, transparent);
 }
 
 .ctl-pill--drag {
@@ -134,7 +134,7 @@
 .ctl-pill-fill {
   position: absolute;
   inset: 0 auto 0 0;
-  background: rgba(255, 255, 255, 0.17);
+  background: color-mix(in srgb, var(--text-1) 17%, transparent);
   transition: width 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -170,7 +170,7 @@
 }
 
 .ctl-pill-icon:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-1) 10%, transparent);
 }
 
 .ctl-pill-label {
@@ -198,7 +198,7 @@
 }
 
 .ctl-pill--big .ctl-pill-fill {
-  background: rgba(255, 255, 255, 0.94);
+  background: color-mix(in srgb, var(--text-1) 94%, transparent);
 }
 
 .ctl-pill--big .ctl-pill-content {
@@ -276,7 +276,7 @@
   padding: 0 12px;
   border: 0;
   border-radius: 11px;
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--text-1) 4%, transparent);
   color: var(--text-2);
   font: 600 12px var(--font-ui);
   text-align: left;
@@ -285,12 +285,12 @@
 }
 
 .ctl-output:hover {
-  background: rgba(255, 255, 255, 0.09);
+  background: color-mix(in srgb, var(--text-1) 9%, transparent);
   color: var(--text-1);
 }
 
 .ctl-output--on {
-  background: rgba(255, 255, 255, 0.12);
+  background: color-mix(in srgb, var(--text-1) 12%, transparent);
   color: var(--text-1);
 }
 
@@ -303,8 +303,8 @@
 }
 
 .ctl-power{display:flex;gap:6px;align-items:center}
-.ctl-power button{flex:1;min-width:0;height:30px;padding:0 5px;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:rgba(255,255,255,.055);color:var(--text-2);font:600 10px var(--font-ui);white-space:nowrap;cursor:pointer}
-.ctl-power button:hover{background:rgba(255,255,255,.12);color:var(--text-1)}
+.ctl-power button{flex:1;min-width:0;height:30px;padding:0 5px;border:1px solid color-mix(in srgb, var(--text-1) 10%, transparent);border-radius:9px;background:color-mix(in srgb, var(--text-1) 5.5%, transparent);color:var(--text-2);font:600 10px var(--font-ui);white-space:nowrap;cursor:pointer}
+.ctl-power button:hover{background:color-mix(in srgb, var(--text-1) 12%, transparent);color:var(--text-1)}
 .ctl-power button.ctl-power-confirm{background:rgba(255,159,10,.2);border-color:rgba(255,159,10,.45);color:#ffd08a}
 .ctl-power-error{margin:0;color:#ff8178;font-size:9px}
 

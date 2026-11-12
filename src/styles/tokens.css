@@ -1,5 +1,6 @@
 /* Design tokens. Values come from docs/02-decisions-design-fonctionnalites.md §3. */
 :root {
+  color-scheme: dark;
   /* Exterior (Bloom-style shell) */
   --shell-compact: rgba(0, 0, 0, 0.82);
   --shell-expanded: rgba(0, 0, 0, 0.94);
